@@ -54,6 +54,9 @@ interface CashSale {
   customer_name: string | null;
   created_at: string;
   order_nsu: string | null;
+  payment_method: string;
+  actual_delivery_cost: number | null;
+  shipping_price: number;
 }
 
 const AdminCaixa = () => {
