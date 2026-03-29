@@ -452,6 +452,57 @@ const AdminCaixa = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Close Register Dialog */}
+      <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-primary" />
+              Fechar Caixa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">Resumo do caixa de hoje:</p>
+            <div className="space-y-2 rounded-lg border border-border p-3 bg-muted/30">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Saldo Inicial</span>
+                <span className="font-medium">{fmt(saldoInicial)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Vendas em Dinheiro</span>
+                <span className="font-medium text-green-600">+{fmt(totalVendas)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Entradas Manuais</span>
+                <span className="font-medium text-green-600">+{fmt(totalDepositos)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Sangrias</span>
+                <span className="font-medium text-destructive">-{fmt(totalSaidas)}</span>
+              </div>
+              <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm font-bold">
+                <span>Saldo Final</span>
+                <span className={saldoAtual < 0 ? "text-destructive" : "text-primary"}>{fmt(saldoAtual)}</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Após fechar, não será possível registrar novas movimentações hoje.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                setIsClosed(true);
+                setShowCloseDialog(false);
+                toast({ title: "Caixa fechado com sucesso!" });
+              }}
+              className="gap-1"
+            >
+              <Lock className="w-4 h-4" /> Confirmar Fechamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Movements Table */}
       <Card>
         <CardHeader className="pb-3">
