@@ -73,6 +73,8 @@ const AdminCaixa = () => {
   // Dialog states
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawDesc, setWithdrawDesc] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
