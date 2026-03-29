@@ -54,6 +54,9 @@ interface CashSale {
   customer_name: string | null;
   created_at: string;
   order_nsu: string | null;
+  payment_method: string;
+  actual_delivery_cost: number | null;
+  shipping_price: number;
 }
 
 const AdminCaixa = () => {
@@ -111,8 +114,7 @@ const AdminCaixa = () => {
       const endOfDay = `${today}T23:59:59`;
       const { data: sales } = await supabase
         .from("sales")
-        .select("id, total_paid, customer_name, created_at, order_nsu")
-        .eq("payment_method", "cash")
+        .select("id, total_paid, customer_name, created_at, order_nsu, payment_method, actual_delivery_cost, shipping_price")
         .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
         .gte("created_at", startOfDay)
         .lte("created_at", endOfDay)
@@ -213,21 +215,40 @@ const AdminCaixa = () => {
   const totalVendas = cashSales.reduce((s, sale) => s + Number(sale.total_paid), 0);
   const totalDepositos = deposits.reduce((s, d) => s + Number(d.amount), 0);
   const totalEntradas = totalVendas + totalDepositos;
-  const totalSaidas = withdrawals.reduce((s, w) => s + Number(w.amount), 0);
+  const totalCustosEntrega = cashSales.reduce((s, sale) => s + Number(sale.actual_delivery_cost || 0), 0);
+  const totalSaidas = withdrawals.reduce((s, w) => s + Number(w.amount), 0) + totalCustosEntrega;
   const saldoInicial = register ? Number(register.initial_amount) : 0;
   const saldoAtual = saldoInicial + totalEntradas - totalSaidas;
 
   const fmt = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  const paymentLabel = (method: string) => {
+    switch (method) {
+      case "cash": return "Dinheiro";
+      case "pix": return "PIX";
+      case "credit": return "Crédito";
+      case "debit": return "Débito";
+      default: return method;
+    }
+  };
+
   // Merge all movements
   const movements = [
     ...cashSales.map((s) => ({
       type: "entrada" as const,
       value: Number(s.total_paid),
-      description: s.customer_name || s.order_nsu || "Venda em dinheiro",
+      description: `${s.customer_name || s.order_nsu || "Venda"} (${paymentLabel(s.payment_method)})`,
       time: s.created_at,
     })),
+    ...cashSales
+      .filter((s) => s.actual_delivery_cost && Number(s.actual_delivery_cost) > 0)
+      .map((s) => ({
+        type: "saida" as const,
+        value: Number(s.actual_delivery_cost),
+        description: `Frete - ${s.customer_name || s.order_nsu || "Pedido"}`,
+        time: s.created_at,
+      })),
     ...deposits.map((d) => ({
       type: "entrada" as const,
       value: Number(d.amount),
