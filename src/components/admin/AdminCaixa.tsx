@@ -334,21 +334,38 @@ const AdminCaixa = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button
-          onClick={() => setShowDepositDialog(true)}
-          className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-        >
-          <ArrowUpCircle className="w-4 h-4" /> Registrar Entrada
-        </Button>
-        <Button
-          onClick={() => setShowWithdrawDialog(true)}
-          variant="destructive"
-          className="flex-1 gap-2"
-        >
-          <ArrowDownCircle className="w-4 h-4" /> Registrar Sangria
-        </Button>
-      </div>
+      {isClosed ? (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-4 text-center">
+            <Lock className="w-8 h-8 mx-auto text-primary mb-2" />
+            <p className="font-semibold text-primary">Caixa fechado</p>
+            <p className="text-sm text-muted-foreground">O caixa de hoje foi encerrado.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={() => setShowDepositDialog(true)}
+            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <ArrowUpCircle className="w-4 h-4" /> Registrar Entrada
+          </Button>
+          <Button
+            onClick={() => setShowWithdrawDialog(true)}
+            variant="destructive"
+            className="flex-1 gap-2"
+          >
+            <ArrowDownCircle className="w-4 h-4" /> Registrar Sangria
+          </Button>
+          <Button
+            onClick={() => setShowCloseDialog(true)}
+            variant="outline"
+            className="w-full gap-2 border-primary text-primary hover:bg-primary/10"
+          >
+            <Lock className="w-4 h-4" /> Fechar Caixa
+          </Button>
+        </div>
+      )}
 
       {/* Deposit Dialog */}
       <Dialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
