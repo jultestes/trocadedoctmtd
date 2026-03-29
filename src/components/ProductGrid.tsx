@@ -1,0 +1,264 @@
+import { useRef, useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import CartConfirmDialog from "@/components/CartConfirmDialog";
+import { useCart } from "@/hooks/useCart";
+
+type Product = {
+  id: string;
+  name: string;
+  brand: string;
+  image: string;
+  extraImages: string[];
+  oldPrice: number | null;
+  price: number;
+  discount: number;
+  sizes: string[];
+  category: "meninas" | "meninos";
+  sku?: string;
+  stock: number;
+};
+
+const bannerContent: Record<string, { title: string; subtitle: string; bg: string }> = {
+  meninas: {
+    title: "Meninas",
+    subtitle: "As peças mais fofas para sua princesa ✨",
+    bg: "from-pink-400 to-rose-300",
+  },
+  meninos: {
+    title: "Meninos",
+    subtitle: "Estilo e conforto para os pequenos aventureiros 🚀",
+    bg: "from-sky-400 to-blue-300",
+  },
+};
+
+const ProductCard = ({ product, onClick }: { product: Product; onClick: () => void }) => {
+  const allImages = [product.image, ...product.extraImages].filter(Boolean);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const hasMultiple = allImages.length > 1;
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCurrentIdx(prev => (prev === 0 ? allImages.length - 1 : prev - 1));
+  };
+
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setCurrentIdx(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <div className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border shrink-0 w-[180px] md:w-[220px] flex flex-col">
+      <div className="relative overflow-hidden aspect-[3/4] cursor-pointer" onClick={onClick}>
+        <img
+          src={allImages[currentIdx] || product.image}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+        {hasMultiple && (
+          <>
+            <button
+              onClick={prevImage}
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-background"
+            >
+              <ChevronLeft className="w-4 h-4 text-foreground" />
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-background"
+            >
+              <ChevronRight className="w-4 h-4 text-foreground" />
+            </button>
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1">
+              {allImages.map((_, i) => (
+                <span
+                  key={i}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentIdx ? "bg-background w-3" : "bg-background/50"}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+        {product.discount > 0 && (
+          <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+            {product.discount}% OFF
+          </span>
+        )}
+        {product.stock === 1 && (
+          <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+            PEÇA ÚNICA
+          </span>
+        )}
+        {product.stock > 1 && (
+          <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+            {product.stock} em estoque
+          </span>
+        )}
+      </div>
+      <div className="p-3 flex flex-col flex-1">
+        <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">
+          {product.brand}
+        </p>
+        <div className="flex items-start gap-1.5 mt-1">
+          <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-2 flex-1">
+            {product.name}
+          </h3>
+          <div className="flex flex-wrap gap-0.5 shrink-0">
+            {product.sizes.map((size) => (
+              <span key={size} className="bg-muted text-muted-foreground text-[9px] font-bold px-1.5 py-0.5 rounded">
+                {size}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="mt-auto pt-2">
+          <div className="flex items-baseline gap-2">
+            {product.oldPrice && (
+              <p className="text-[10px] text-price-old line-through">
+                R$ {product.oldPrice.toFixed(2).replace(".", ",")}
+              </p>
+            )}
+            <p className="text-lg font-extrabold text-price-new leading-none">
+              R$ {product.price.toFixed(2).replace(".", ",")}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            className="w-full mt-2 gap-1.5 text-xs font-bold"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick();
+            }}
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            Escolher
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function detectCategory(sizes: string[] | null): "meninas" | "meninos" {
+  if (!sizes || sizes.length === 0) return "meninos";
+  if (sizes.some(s => s.startsWith("menina"))) return "meninas";
+  return "meninos";
+}
+
+const AGE_LABELS: Record<string, string> = {
+  "meninos-baby-rn": "Baby RN", "meninos-baby-p": "Baby P", "meninos-baby-m": "Baby M", "meninos-baby-g": "Baby G",
+  "menino-idade1": "1 ano", "menino-idade2": "2 anos", "menino-idade3": "3 anos",
+  "menino-idade4": "4 anos", "menino-idade6": "6 anos", "menino-idade8": "8 anos",
+  "menino-idade10": "10 anos", "menino-idade12": "12 anos", "menino-idade14": "14 anos", "menino-idade16": "16 anos",
+  "meninas-baby-rn": "Baby RN", "meninas-baby-p": "Baby P", "meninas-baby-m": "Baby M", "meninas-baby-g": "Baby G",
+  "menina-baby-rn": "Baby RN", "menina-baby-p": "Baby P", "menina-baby-m": "Baby M", "menina-baby-g": "Baby G",
+  "menina-idade1": "1 ano", "menina-idade2": "2 anos", "menina-idade3": "3 anos",
+  "menina-idade4": "4 anos", "menina-idade6": "6 anos", "menina-idade8": "8 anos",
+  "menina-idade10": "10 anos", "menina-idade12": "12 anos", "menina-idade14": "14 anos", "menina-idade16": "16 anos",
+};
+
+const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: string; category: string; productIds?: string[]; maxCount?: number }) => {
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
+  const [showCartConfirm, setShowCartConfirm] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const banner = bannerContent[category];
+  const { addItem } = useCart();
+
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      image: product.image,
+      price: product.price,
+      oldPrice: product.oldPrice,
+      size: product.sizes[0] || "",
+      sku: product.sku,
+      stock: product.stock,
+    });
+    setShowCartConfirm(true);
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("active", true)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        let mapped: Product[] = data
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            brand: p.brand || "",
+            image: p.image_url || "",
+            extraImages: ((p as any).extra_images || []) as string[],
+            oldPrice: p.old_price ? Number(p.old_price) : null,
+            price: Number(p.price),
+            discount: p.discount || 0,
+            sizes: (p.sizes || []).map(s => AGE_LABELS[s] || s),
+            category: detectCategory(p.sizes),
+            sku: p.sku || undefined,
+            stock: p.stock ?? 0,
+          }));
+        // Filter by specific product IDs if provided, otherwise by category
+        if (productIds && productIds.length > 0) {
+          mapped = mapped.filter((p) => productIds.includes(p.id));
+        } else {
+          mapped = mapped.filter((p) => p.category === category);
+        }
+        setDbProducts(mapped);
+      }
+    };
+    fetchProducts();
+  }, [category, productIds]);
+
+  const allProducts = dbProducts.slice(0, maxCount);
+
+  const scroll = (dir: "left" | "right") => {
+    if (!scrollRef.current) return;
+    const amount = dir === "left" ? -300 : 300;
+    scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
+  return (
+    <section className="py-8 md:py-12" id={category}>
+      <div className="container">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="section-title">{title}</h2>
+          <div className="flex gap-2">
+            <button onClick={() => scroll("left")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors">
+              <ChevronLeft className="w-4 h-4 text-foreground" />
+            </button>
+            <button onClick={() => scroll("right")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors">
+              <ChevronRight className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+
+          <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
+            {allProducts.map((product) => (
+              <ProductCard key={product.id} product={product} onClick={() => handleAddToCart(product)} />
+            ))}
+          </div>
+        </div>
+
+        <CartConfirmDialog
+          open={showCartConfirm}
+          onClose={() => setShowCartConfirm(false)}
+        />
+      </div>
+    </section>
+  );
+};
+
+export default ProductGrid;

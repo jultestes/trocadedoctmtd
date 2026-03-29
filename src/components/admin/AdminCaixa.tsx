@@ -1,0 +1,474 @@
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Lock,
+  Loader2,
+} from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface CashRegister {
+  id: string;
+  opened_at: string;
+  initial_amount: number;
+  register_date: string;
+}
+
+interface CashWithdrawal {
+  id: string;
+  cash_register_id: string;
+  amount: number;
+  description: string;
+  created_at: string;
+}
+
+interface CashDeposit {
+  id: string;
+  cash_register_id: string;
+  amount: number;
+  description: string;
+  created_at: string;
+}
+
+interface CashSale {
+  id: string;
+  total_paid: number;
+  customer_name: string | null;
+  created_at: string;
+  order_nsu: string | null;
+}
+
+const AdminCaixa = () => {
+  const { toast } = useToast();
+  const today = format(new Date(), "yyyy-MM-dd");
+
+  const [register, setRegister] = useState<CashRegister | null>(null);
+  const [withdrawals, setWithdrawals] = useState<CashWithdrawal[]>([]);
+  const [deposits, setDeposits] = useState<CashDeposit[]>([]);
+  const [cashSales, setCashSales] = useState<CashSale[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form states
+  const [initialAmount, setInitialAmount] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Dialog states
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawDesc, setWithdrawDesc] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositDesc, setDepositDesc] = useState("");
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+
+    const { data: reg } = await supabase
+      .from("cash_registers")
+      .select("*")
+      .eq("register_date", today)
+      .maybeSingle();
+
+    setRegister(reg);
+
+    if (reg) {
+      const [{ data: wds }, { data: deps }] = await Promise.all([
+        supabase
+          .from("cash_withdrawals")
+          .select("*")
+          .eq("cash_register_id", reg.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("cash_deposits")
+          .select("*")
+          .eq("cash_register_id", reg.id)
+          .order("created_at", { ascending: false }),
+      ]);
+      setWithdrawals(wds || []);
+      setDeposits(deps || []);
+
+      const startOfDay = `${today}T00:00:00`;
+      const endOfDay = `${today}T23:59:59`;
+      const { data: sales } = await supabase
+        .from("sales")
+        .select("id, total_paid, customer_name, created_at, order_nsu")
+        .eq("payment_method", "cash")
+        .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
+        .gte("created_at", startOfDay)
+        .lte("created_at", endOfDay)
+        .order("created_at", { ascending: false });
+      setCashSales(sales || []);
+    } else {
+      setWithdrawals([]);
+      setDeposits([]);
+      setCashSales([]);
+    }
+
+    setLoading(false);
+  }, [today]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleOpenRegister = async () => {
+    const amount = parseFloat(initialAmount.replace(",", "."));
+    if (isNaN(amount) || amount < 0) {
+      toast({ title: "Valor inválido", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await supabase.from("cash_registers").insert({
+      initial_amount: amount,
+      register_date: today,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao abrir caixa", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Caixa aberto com sucesso!" });
+    setInitialAmount("");
+    loadData();
+  };
+
+  const handleAddWithdrawal = async () => {
+    if (!register) return;
+    const amount = parseFloat(withdrawAmount.replace(",", "."));
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Valor inválido", variant: "destructive" });
+      return;
+    }
+    if (!withdrawDesc.trim()) {
+      toast({ title: "Informe o motivo da sangria", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await supabase.from("cash_withdrawals").insert({
+      cash_register_id: register.id,
+      amount,
+      description: withdrawDesc.trim(),
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao registrar sangria", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Sangria registrada!" });
+    setWithdrawAmount("");
+    setWithdrawDesc("");
+    setShowWithdrawDialog(false);
+    loadData();
+  };
+
+  const handleAddDeposit = async () => {
+    if (!register) return;
+    const amount = parseFloat(depositAmount.replace(",", "."));
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Valor inválido", variant: "destructive" });
+      return;
+    }
+    if (!depositDesc.trim()) {
+      toast({ title: "Informe o motivo da entrada", variant: "destructive" });
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await supabase.from("cash_deposits").insert({
+      cash_register_id: register.id,
+      amount,
+      description: depositDesc.trim(),
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: "Erro ao registrar entrada", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Entrada registrada!" });
+    setDepositAmount("");
+    setDepositDesc("");
+    setShowDepositDialog(false);
+    loadData();
+  };
+
+  const totalVendas = cashSales.reduce((s, sale) => s + Number(sale.total_paid), 0);
+  const totalDepositos = deposits.reduce((s, d) => s + Number(d.amount), 0);
+  const totalEntradas = totalVendas + totalDepositos;
+  const totalSaidas = withdrawals.reduce((s, w) => s + Number(w.amount), 0);
+  const saldoInicial = register ? Number(register.initial_amount) : 0;
+  const saldoAtual = saldoInicial + totalEntradas - totalSaidas;
+
+  const fmt = (v: number) =>
+    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  // Merge all movements
+  const movements = [
+    ...cashSales.map((s) => ({
+      type: "entrada" as const,
+      value: Number(s.total_paid),
+      description: s.customer_name || s.order_nsu || "Venda em dinheiro",
+      time: s.created_at,
+    })),
+    ...deposits.map((d) => ({
+      type: "entrada" as const,
+      value: Number(d.amount),
+      description: d.description || "Entrada manual",
+      time: d.created_at,
+    })),
+    ...withdrawals.map((w) => ({
+      type: "saida" as const,
+      value: Number(w.amount),
+      description: w.description,
+      time: w.created_at,
+    })),
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  if (!register) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold">Controle de Caixa</h2>
+        <Card className="max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <Lock className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+            <CardTitle className="text-lg">Abrir Caixa do Dia</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Valor Inicial (R$)</label>
+              <Input
+                placeholder="0,00"
+                value={initialAmount}
+                onChange={(e) => setInitialAmount(e.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+            <Button onClick={handleOpenRegister} disabled={submitting} className="w-full">
+              <DollarSign className="w-4 h-4 mr-2" /> Abrir Caixa
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-bold">Controle de Caixa</h2>
+        <p className="text-sm text-muted-foreground">
+          Aberto às {format(new Date(register.opened_at), "HH:mm")} —{" "}
+          {format(new Date(), "dd/MM/yyyy")}
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Wallet className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">Saldo Inicial</span>
+            </div>
+            <p className="text-base sm:text-xl font-bold break-all">{fmt(saldoInicial)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="w-4 h-4 text-green-600 shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">Entradas</span>
+            </div>
+            <p className="text-base sm:text-xl font-bold text-green-600 break-all">{fmt(totalEntradas)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingDown className="w-4 h-4 text-destructive shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">Saídas</span>
+            </div>
+            <p className="text-base sm:text-xl font-bold text-destructive break-all">{fmt(totalSaidas)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="w-4 h-4 text-primary shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">Saldo Atual</span>
+            </div>
+            <p className={`text-base sm:text-xl font-bold break-all ${saldoAtual < 0 ? "text-destructive" : "text-primary"}`}>
+              {fmt(saldoAtual)}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <Button
+          onClick={() => setShowDepositDialog(true)}
+          className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+        >
+          <ArrowUpCircle className="w-4 h-4" /> Registrar Entrada
+        </Button>
+        <Button
+          onClick={() => setShowWithdrawDialog(true)}
+          variant="destructive"
+          className="flex-1 gap-2"
+        >
+          <ArrowDownCircle className="w-4 h-4" /> Registrar Sangria
+        </Button>
+      </div>
+
+      {/* Deposit Dialog */}
+      <Dialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUpCircle className="w-5 h-5 text-green-600" />
+              Registrar Entrada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Valor (R$)</label>
+              <Input
+                placeholder="0,00"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Motivo / Descrição</label>
+              <Input
+                placeholder="Ex: Troco recebido, depósito..."
+                value={depositDesc}
+                onChange={(e) => setDepositDesc(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDepositDialog(false)}>Cancelar</Button>
+            <Button
+              onClick={handleAddDeposit}
+              disabled={submitting}
+              className="bg-green-600 hover:bg-green-700 text-white gap-1"
+            >
+              {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              Confirmar Entrada
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdraw Dialog */}
+      <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowDownCircle className="w-5 h-5 text-destructive" />
+              Registrar Sangria
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Valor (R$)</label>
+              <Input
+                placeholder="0,00"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                inputMode="decimal"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Motivo / Descrição</label>
+              <Input
+                placeholder="Ex: Pagamento de fornecedor..."
+                value={withdrawDesc}
+                onChange={(e) => setWithdrawDesc(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWithdrawDialog(false)}>Cancelar</Button>
+            <Button
+              onClick={handleAddWithdrawal}
+              disabled={submitting}
+              variant="destructive"
+              className="gap-1"
+            >
+              {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              Confirmar Sangria
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Movements Table */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg">Movimentações do Dia</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-6 sm:pt-0">
+          {movements.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Nenhuma movimentação registrada hoje.
+            </p>
+          ) : (
+            <div className="divide-y">
+              {movements.map((m, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 sm:px-2 py-3">
+                  {m.type === "entrada" ? (
+                    <ArrowUpCircle className="w-5 h-5 text-green-600 shrink-0" />
+                  ) : (
+                    <ArrowDownCircle className="w-5 h-5 text-destructive shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{m.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(m.time), "HH:mm")}
+                    </p>
+                  </div>
+                  <Badge variant={m.type === "entrada" ? "default" : "destructive"} className="shrink-0 text-xs">
+                    {m.type === "entrada" ? "+" : "-"} {fmt(m.value)}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AdminCaixa;
