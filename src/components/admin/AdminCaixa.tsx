@@ -73,6 +73,8 @@ const AdminCaixa = () => {
   // Dialog states
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawDesc, setWithdrawDesc] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
@@ -332,21 +334,38 @@ const AdminCaixa = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button
-          onClick={() => setShowDepositDialog(true)}
-          className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-        >
-          <ArrowUpCircle className="w-4 h-4" /> Registrar Entrada
-        </Button>
-        <Button
-          onClick={() => setShowWithdrawDialog(true)}
-          variant="destructive"
-          className="flex-1 gap-2"
-        >
-          <ArrowDownCircle className="w-4 h-4" /> Registrar Sangria
-        </Button>
-      </div>
+      {isClosed ? (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-4 text-center">
+            <Lock className="w-8 h-8 mx-auto text-primary mb-2" />
+            <p className="font-semibold text-primary">Caixa fechado</p>
+            <p className="text-sm text-muted-foreground">O caixa de hoje foi encerrado.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={() => setShowDepositDialog(true)}
+            className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <ArrowUpCircle className="w-4 h-4" /> Registrar Entrada
+          </Button>
+          <Button
+            onClick={() => setShowWithdrawDialog(true)}
+            variant="destructive"
+            className="flex-1 gap-2"
+          >
+            <ArrowDownCircle className="w-4 h-4" /> Registrar Sangria
+          </Button>
+          <Button
+            onClick={() => setShowCloseDialog(true)}
+            variant="outline"
+            className="w-full gap-2 border-primary text-primary hover:bg-primary/10"
+          >
+            <Lock className="w-4 h-4" /> Fechar Caixa
+          </Button>
+        </div>
+      )}
 
       {/* Deposit Dialog */}
       <Dialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
@@ -428,6 +447,57 @@ const AdminCaixa = () => {
             >
               {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
               Confirmar Sangria
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Close Register Dialog */}
+      <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-primary" />
+              Fechar Caixa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">Resumo do caixa de hoje:</p>
+            <div className="space-y-2 rounded-lg border border-border p-3 bg-muted/30">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Saldo Inicial</span>
+                <span className="font-medium">{fmt(saldoInicial)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Vendas em Dinheiro</span>
+                <span className="font-medium text-green-600">+{fmt(totalVendas)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Entradas Manuais</span>
+                <span className="font-medium text-green-600">+{fmt(totalDepositos)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Sangrias</span>
+                <span className="font-medium text-destructive">-{fmt(totalSaidas)}</span>
+              </div>
+              <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm font-bold">
+                <span>Saldo Final</span>
+                <span className={saldoAtual < 0 ? "text-destructive" : "text-primary"}>{fmt(saldoAtual)}</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">Após fechar, não será possível registrar novas movimentações hoje.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCloseDialog(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                setIsClosed(true);
+                setShowCloseDialog(false);
+                toast({ title: "Caixa fechado com sucesso!" });
+              }}
+              className="gap-1"
+            >
+              <Lock className="w-4 h-4" /> Confirmar Fechamento
             </Button>
           </DialogFooter>
         </DialogContent>
