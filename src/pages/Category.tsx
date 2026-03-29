@@ -1,0 +1,452 @@
+import { useParams, Link, useSearchParams } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { ChevronLeft, ShoppingBag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import TopBar from "@/components/TopBar";
+import Header from "@/components/Header";
+import FeaturesBar from "@/components/FeaturesBar";
+import Footer from "@/components/Footer";
+import CartConfirmDialog from "@/components/CartConfirmDialog";
+import { useCart } from "@/hooks/useCart";
+
+const LETTER_SIZES = ["p", "m", "g"];
+const INFANTIL_AGES = ["idade1", "idade2", "idade3", "idade4", "idade6", "idade8", "idade10"];
+const TEEN_AGES = ["idade12", "idade14", "idade16"];
+
+const AGE_DISPLAY: Record<string, string> = {
+  "p": "P", "m": "M", "g": "G",
+  "idade1": "1", "idade2": "2", "idade3": "3", "idade4": "4",
+  "idade6": "6", "idade8": "8", "idade10": "10",
+  "idade12": "12", "idade14": "14", "idade16": "16",
+};
+
+const AGE_LABELS: Record<string, string> = {
+  "menino-p": "P", "menino-m": "M", "menino-g": "G",
+  "menino-idade1": "1 ano", "menino-idade2": "2 anos", "menino-idade3": "3 anos",
+  "menino-idade4": "4 anos", "menino-idade6": "6 anos", "menino-idade8": "8 anos",
+  "menino-idade10": "10 anos", "menino-idade12": "12 anos", "menino-idade14": "14 anos", "menino-idade16": "16 anos",
+  "menina-p": "P", "menina-m": "M", "menina-g": "G",
+  "menina-idade1": "1 ano", "menina-idade2": "2 anos", "menina-idade3": "3 anos",
+  "menina-idade4": "4 anos", "menina-idade6": "6 anos", "menina-idade8": "8 anos",
+  "menina-idade10": "10 anos", "menina-idade12": "12 anos", "menina-idade14": "14 anos", "menina-idade16": "16 anos",
+};
+
+const ALL_AGE_KEYS = [...LETTER_SIZES, ...INFANTIL_AGES, ...TEEN_AGES].sort((a, b) => b.length - a.length);
+const extractAgeKey = (raw: string): string | null => {
+  for (const key of ALL_AGE_KEYS) {
+    const regex = new RegExp(`(^|[-_])${key}($|[-_])`);
+    if (regex.test(raw)) return key;
+  }
+  return null;
+};
+
+type RawProduct = {
+  id: string;
+  name: string;
+  brand: string | null;
+  image_url: string | null;
+  extra_images: string[] | null;
+  old_price: number | null;
+  price: number;
+  discount: number | null;
+  sizes: string[] | null;
+  sku: string | null;
+};
+
+type Product = {
+  id: string;
+  name: string;
+  brand: string;
+  image: string;
+  oldPrice: number | null;
+  price: number;
+  discount: number;
+  sizes: string[];
+  rawSizes: string[];
+  sku?: string;
+  stock: number;
+  categoryIds: string[];
+};
+
+type SubcategoryInfo = {
+  id: string;
+  name: string;
+  slug: string;
+  ages: string[];
+};
+
+type CategoryData = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  ages: string[];
+};
+
+const bannerStyles: Record<string, string> = {
+  meninas: "from-pink-400 to-rose-300",
+  meninos: "from-sky-400 to-blue-300",
+  bebes: "from-amber-300 to-yellow-200",
+  outlet: "from-emerald-400 to-green-300",
+};
+
+const filterBgStyles: Record<string, string> = {
+  meninas: "bg-pink-50",
+  meninos: "bg-sky-50",
+  bebes: "bg-amber-50",
+};
+
+const Category = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [category, setCategory] = useState<CategoryData | null>(null);
+  const [subcategories, setSubcategories] = useState<SubcategoryInfo[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCartConfirm, setShowCartConfirm] = useState(false);
+  const { addItem } = useCart();
+
+  const selectedAge = searchParams.get("idade") || null;
+  const selectedCatSlug = searchParams.get("cat") || null;
+
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      image: product.image,
+      price: product.price,
+      oldPrice: product.oldPrice,
+      size: product.sizes[0] || "",
+      sku: product.sku || undefined,
+      stock: product.stock,
+    });
+    setShowCartConfirm(true);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+
+      const { data: catData } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("slug", slug || "")
+        .is("parent_id", null)
+        .single();
+
+      if (!catData) {
+        setLoading(false);
+        return;
+      }
+
+      const parentCat = catData as unknown as CategoryData;
+      setCategory(parentCat);
+
+      const { data: subData } = await supabase
+        .from("categories")
+        .select("id, name, slug, ages")
+        .eq("parent_id", parentCat.id)
+        .order("name");
+
+      const subs = (subData || []) as unknown as SubcategoryInfo[];
+      setSubcategories(subs);
+
+      const allCatIds = [parentCat.id, ...subs.map(s => s.id)];
+
+      const { data: pcData } = await supabase
+        .from("product_categories")
+        .select("product_id, category_id")
+        .in("category_id", allCatIds);
+
+      const productCatMap = new Map<string, string[]>();
+      for (const pc of pcData || []) {
+        if (!productCatMap.has(pc.product_id)) productCatMap.set(pc.product_id, []);
+        productCatMap.get(pc.product_id)!.push(pc.category_id);
+      }
+
+      const productIds = [...new Set((pcData || []).map(r => r.product_id))];
+
+      if (productIds.length > 0) {
+        const { data: prodData } = await supabase
+          .from("products")
+          .select("*")
+          .in("id", productIds)
+          .eq("active", true)
+          .order("created_at", { ascending: false });
+
+        if (prodData) {
+          setProducts(
+            (prodData as RawProduct[]).map((p) => ({
+              id: p.id,
+              name: p.name,
+              brand: p.brand || "",
+              image: p.image_url || "",
+              oldPrice: p.old_price ? Number(p.old_price) : null,
+              price: Number(p.price),
+              discount: p.discount || 0,
+              sizes: (p.sizes || []).map((s) => AGE_LABELS[s] || s),
+              rawSizes: p.sizes || [],
+              sku: p.sku || undefined,
+              stock: (p as any).stock ?? 0,
+              categoryIds: productCatMap.get(p.id) || [],
+            }))
+          );
+        }
+      } else {
+        setProducts([]);
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [slug]);
+
+  // Build filter groups: parent + each subcategory with available ages
+  const buildFilterGroups = () => {
+    const groups: { id: string; name: string; slug: string | null; ages: string[] }[] = [];
+
+    // Parent direct ages
+    const parentAges = (category?.ages || []).filter((ageKey) =>
+      products.some((p) =>
+        p.categoryIds.includes(category!.id) &&
+        p.rawSizes.some((raw) => extractAgeKey(raw) === ageKey)
+      )
+    );
+    if (parentAges.length > 0) {
+      groups.push({ id: category!.id, name: category!.name, slug: null, ages: parentAges });
+    }
+
+    // Subcategory ages
+    for (const sub of subcategories) {
+      const subAges = (category?.ages || []).filter((ageKey) =>
+        products.some((p) =>
+          p.categoryIds.includes(sub.id) &&
+          p.rawSizes.some((raw) => extractAgeKey(raw) === ageKey)
+        )
+      );
+      if (subAges.length > 0) {
+        groups.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: subAges });
+      }
+    }
+
+    return groups;
+  };
+
+  const filterGroups = !loading && category ? buildFilterGroups() : [];
+
+  // Resolve selectedCatSlug to a subcategory ID
+  const selectedSubId = selectedCatSlug
+    ? subcategories.find(s => s.slug === selectedCatSlug)?.id || null
+    : null;
+
+  // Filter products
+  const filteredProducts = products.filter((p) => {
+    if (selectedSubId) {
+      if (!p.categoryIds.includes(selectedSubId)) return false;
+    }
+    if (selectedAge) {
+      const regex = new RegExp(`(^|[-_])${selectedAge}($|[-_])`);
+      if (!p.rawSizes.some((raw) => regex.test(raw))) return false;
+    }
+    return true;
+  });
+
+  const gradient = bannerStyles[slug || ""] || "from-primary to-primary/70";
+  const filterBg = filterBgStyles[slug || ""] || "bg-muted/50";
+  const hasActiveFilter = selectedAge || selectedCatSlug;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <TopBar />
+      <Header />
+
+      {/* Category Hero */}
+      <div className={`bg-gradient-to-r ${gradient} py-10 md:py-16`}>
+        <div className="container">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1 text-white/80 hover:text-white text-sm mb-4 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Voltar
+          </Link>
+          <h1 className="text-3xl md:text-4xl font-bold font-heading text-white drop-shadow-md">
+            {category?.name || slug}
+          </h1>
+          {category?.description && (
+            <p className="text-white/90 mt-2 text-sm md:text-base max-w-lg">
+              {category.description}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Filters + Products */}
+      <div className="container py-8 md:py-12">
+        {/* Age filter groups — same design as SizeSelector on main site */}
+        {!loading && filterGroups.length > 0 && (
+          <div className={`rounded-2xl p-6 md:p-8 mb-6 ${filterBg}`}>
+            <div className="space-y-4">
+              {filterGroups.map((group) => {
+                return (
+                  <div key={group.id}>
+                    <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-2">
+                      {group.name}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {group.ages.map((ageKey) => {
+                        const isActive = selectedAge === ageKey && selectedCatSlug === group.slug;
+                        return (
+                          <button
+                            key={ageKey}
+                            onClick={() => {
+                              if (isActive) {
+                                setSearchParams({}, { replace: true });
+                              } else {
+                                const next: Record<string, string> = { idade: ageKey };
+                                if (group.slug) next.cat = group.slug;
+                                setSearchParams(next, { replace: true });
+                              }
+                            }}
+                            className={`w-10 h-10 rounded-full text-sm font-bold border-2 transition-all flex items-center justify-center ${
+                              isActive
+                                ? "bg-primary text-primary-foreground border-primary shadow-md scale-110"
+                                : "border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                            }`}
+                          >
+                            {AGE_DISPLAY[ageKey] || ageKey}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {hasActiveFilter && (
+              <button
+                onClick={() => setSearchParams({}, { replace: true })}
+                className="mt-4 text-xs text-primary font-semibold hover:underline"
+              >
+                Limpar filtros
+              </button>
+            )}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-muted rounded-xl aspect-[3/4] animate-pulse" />
+            ))}
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">
+              {hasActiveFilter ? "Nenhum produto encontrado para esse filtro." : "Nenhum produto encontrado nesta categoria."}
+            </p>
+            {hasActiveFilter ? (
+              <button
+                onClick={() => setSearchParams({}, { replace: true })}
+                className="inline-block mt-4 text-primary font-semibold hover:underline"
+              >
+                Limpar filtros
+              </button>
+            ) : (
+              <Link
+                to="/"
+                className="inline-block mt-4 text-primary font-semibold hover:underline"
+              >
+                Voltar à loja
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border flex flex-col"
+              >
+                <div className="relative overflow-hidden aspect-[3/4]">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  {product.discount > 0 && (
+                    <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {product.discount}% OFF
+                    </span>
+                  )}
+                  {product.stock === 1 && (
+                    <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                      PEÇA ÚNICA
+                    </span>
+                  )}
+                  {product.stock > 1 && (
+                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {product.stock} em estoque
+                    </span>
+                  )}
+                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+                    {product.sizes.map((size) => (
+                      <span
+                        key={size}
+                        className="bg-background/90 backdrop-blur-sm text-foreground text-[10px] font-bold px-1.5 py-0.5 rounded"
+                      >
+                        {size}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 flex flex-col flex-1">
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">
+                    {product.brand}
+                  </p>
+                  <h3 className="text-xs font-bold text-foreground leading-tight line-clamp-2 mt-1">
+                    {product.name}
+                  </h3>
+                  <div className="mt-auto pt-2">
+                    <div className="flex items-baseline gap-2">
+                      {product.oldPrice && (
+                        <p className="text-[10px] text-price-old line-through">
+                          R$ {product.oldPrice.toFixed(2).replace(".", ",")}
+                        </p>
+                      )}
+                      <p className="text-lg font-extrabold text-price-new leading-none">
+                        R$ {product.price.toFixed(2).replace(".", ",")}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full mt-2 gap-1.5 text-xs font-bold"
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      Escolher
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <CartConfirmDialog
+        open={showCartConfirm}
+        onClose={() => setShowCartConfirm(false)}
+      />
+
+      <FeaturesBar />
+      <Footer />
+    </div>
+  );
+};
+
+export default Category;
