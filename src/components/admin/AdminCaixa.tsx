@@ -114,8 +114,7 @@ const AdminCaixa = () => {
       const endOfDay = `${today}T23:59:59`;
       const { data: sales } = await supabase
         .from("sales")
-        .select("id, total_paid, customer_name, created_at, order_nsu")
-        .eq("payment_method", "cash")
+        .select("id, total_paid, customer_name, created_at, order_nsu, payment_method, actual_delivery_cost, shipping_price")
         .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
         .gte("created_at", startOfDay)
         .lte("created_at", endOfDay)
