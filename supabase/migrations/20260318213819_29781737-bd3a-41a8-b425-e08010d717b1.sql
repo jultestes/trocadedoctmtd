@@ -1,0 +1,1 @@
+INSERT INTO categories (name, slug, parent_id) VALUES ('Baby', 'baby-meninos', '5267f5fa-65df-4f57-859c-e69c564074db');

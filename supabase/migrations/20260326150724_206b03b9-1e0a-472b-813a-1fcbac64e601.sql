@@ -1,0 +1,1 @@
+ALTER TABLE public.sales ADD COLUMN IF NOT EXISTS actual_delivery_cost numeric DEFAULT NULL;

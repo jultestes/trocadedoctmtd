@@ -1,0 +1,1 @@
+ALTER TABLE public.products ADD COLUMN extra_images text[] DEFAULT '{}'::text[];

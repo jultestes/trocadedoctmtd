@@ -1,0 +1,1 @@
+UPDATE categories SET name = 'Conjuntos' WHERE id = '1c9b2737-208d-4880-8907-f97f93584070';

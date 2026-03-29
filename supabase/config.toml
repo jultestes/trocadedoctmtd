@@ -1,0 +1,10 @@
+project_id = "bdipjvkpasiuekqtaiev"
+
+[functions.r2-upload]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.infinitepay-webhook]
+verify_jwt = false
