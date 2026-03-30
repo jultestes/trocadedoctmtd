@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 
 const FloatingCartBadge = () => {
-  const { totalItems, isOpen, setIsOpen } = useCart();
+  const { totalItems, isOpen, setIsOpen, productSheetOpen } = useCart();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const prevItems = useRef(totalItems);
