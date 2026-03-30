@@ -190,6 +190,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
     setItems((prev) =>
       prev.map((item) => {
         const updated = { ...item };
+        if (bulkPrice !== "") updated.price = bulkPrice;
         if (bulkStock !== "") updated.stock = bulkStock;
         if (bulkGender !== "") {
           updated.gender = bulkGender;
