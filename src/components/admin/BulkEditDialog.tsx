@@ -69,7 +69,7 @@ type EditableProduct = {
   name: string;
   image_url: string | null;
   sku: string | null;
-  price: number;
+  price: string;
   // editable fields
   stock: string;
   gender: GenderType | "";
