@@ -213,10 +213,11 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         setSaveProgress(i + 1);
-        const payload = {
+        const payload: Record<string, any> = {
           stock: parseInt(item.stock) || 0,
           sizes: item.selectedAges,
           active: item.active,
+          price: parseFloat(item.price) || 0,
         };
         const { error } = await supabase.from("products").update(payload).eq("id", item.id);
         if (error) throw error;
