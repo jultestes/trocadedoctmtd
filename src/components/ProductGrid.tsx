@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
-import OptimizedImage from "@/components/OptimizedImage";
 import { useCart } from "@/hooks/useCart";
 
 type Product = {
@@ -11,7 +10,6 @@ type Product = {
   name: string;
   brand: string;
   image: string;
-  extraImages: string[];
   oldPrice: number | null;
   price: number;
   discount: number;
@@ -40,64 +38,25 @@ function detectCategory(sizes: string[] | null): "meninas" | "meninos" {
 }
 
 const ProductCard = memo(({ product, onClick, index }: { product: Product; onClick: () => void; index: number }) => {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const allImages = [product.image, ...product.extraImages].filter(Boolean);
-  const hasMultiple = allImages.length > 1;
-  const isEager = index < 2;
-
-  const prevImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setCurrentIdx(prev => (prev === 0 ? allImages.length - 1 : prev - 1));
-  };
-
-  const nextImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setCurrentIdx(prev => (prev === allImages.length - 1 ? 0 : prev + 1));
-  };
+  const isEager = index < 4;
 
   return (
     <div className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border shrink-0 w-[180px] md:w-[220px] flex flex-col">
-      <div className="relative overflow-hidden aspect-[3/4] cursor-pointer" onClick={onClick}>
-        <OptimizedImage
-          src={allImages[currentIdx] || product.image}
+      <div
+        className="relative overflow-hidden cursor-pointer"
+        style={{ aspectRatio: "3/4" }}
+        onClick={onClick}
+      >
+        <img
+          src={product.image}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          sizes="(max-width: 768px) 180px, 220px"
-          widths={[180, 220, 360, 440]}
-          transformWidth={220}
-          quality={45}
           loading={isEager ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={isEager ? "high" : "low"}
           width={220}
           height={293}
         />
-        {hasMultiple && (
-          <>
-            <button
-              onClick={prevImage}
-              className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-background"
-            >
-              <ChevronLeft className="w-4 h-4 text-foreground" />
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-background"
-            >
-              <ChevronRight className="w-4 h-4 text-foreground" />
-            </button>
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1">
-              {allImages.map((_, i) => (
-                <span
-                  key={i}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentIdx ? "bg-background w-3" : "bg-background/50"}`}
-                />
-              ))}
-            </div>
-          </>
-        )}
         {product.discount > 0 && (
           <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
             {product.discount}% OFF
@@ -183,18 +142,16 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
 
   useEffect(() => {
     const fetchProducts = async () => {
-      // Only select the columns we need
       let query = supabase
         .from("products")
-        .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
+        .select("id, name, brand, image_url, old_price, price, discount, sizes, sku, stock")
         .eq("active", true)
         .order("created_at", { ascending: false })
-        .limit(maxCount * 3); // fetch a reasonable amount, not all
+        .limit(maxCount);
 
       if (productIds && productIds.length > 0) {
         query = query.in("id", productIds);
       } else if (category === "meninas") {
-        // Filter server-side: sizes containing any "menina" prefix
         query = query.or("sizes.cs.{menina-idade1},sizes.cs.{menina-idade2},sizes.cs.{menina-idade3},sizes.cs.{menina-idade4},sizes.cs.{menina-idade6},sizes.cs.{menina-idade8},sizes.cs.{menina-idade10},sizes.cs.{menina-idade12},sizes.cs.{menina-idade14},sizes.cs.{menina-idade16},sizes.cs.{menina-baby-rn},sizes.cs.{menina-baby-p},sizes.cs.{menina-baby-m},sizes.cs.{menina-baby-g},sizes.cs.{meninas-baby-rn},sizes.cs.{meninas-baby-p},sizes.cs.{meninas-baby-m},sizes.cs.{meninas-baby-g}");
       } else if (category === "meninos") {
         query = query.or("sizes.cs.{menino-idade1},sizes.cs.{menino-idade2},sizes.cs.{menino-idade3},sizes.cs.{menino-idade4},sizes.cs.{menino-idade6},sizes.cs.{menino-idade8},sizes.cs.{menino-idade10},sizes.cs.{menino-idade12},sizes.cs.{menino-idade14},sizes.cs.{menino-idade16},sizes.cs.{meninos-baby-rn},sizes.cs.{meninos-baby-p},sizes.cs.{meninos-baby-m},sizes.cs.{meninos-baby-g}");
@@ -208,7 +165,6 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
           name: p.name,
           brand: p.brand || "",
           image: p.image_url || "",
-          extraImages: (p.extra_images || []) as string[],
           oldPrice: p.old_price ? Number(p.old_price) : null,
           price: Number(p.price),
           discount: p.discount || 0,
@@ -222,8 +178,6 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
     };
     fetchProducts();
   }, [category, productIds, maxCount]);
-
-  const allProducts = dbProducts.slice(0, maxCount);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -248,7 +202,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
 
         <div className="flex gap-4">
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
-            {allProducts.map((product, idx) => (
+            {dbProducts.map((product, idx) => (
               <ProductCard key={product.id} product={product} onClick={() => handleAddToCart(product)} index={idx} />
             ))}
           </div>

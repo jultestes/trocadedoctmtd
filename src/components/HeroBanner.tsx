@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBanner1 from "@/assets/hero-banner-1.jpg";
 import heroBanner2 from "@/assets/hero-banner-2.jpg";
-import OptimizedImage from "@/components/OptimizedImage";
 import type { BannerSlide } from "@/components/admin/layout/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -48,22 +47,19 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
   };
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative w-full overflow-hidden" style={{ aspectRatio: isMobile ? "4/5" : "16/5" }}>
       {slides.map((slide, i) => (
         <div
           key={i}
           className={`${i === current ? "relative" : "absolute inset-0"} transition-opacity duration-700 ${i === current ? "opacity-100" : "opacity-0 pointer-events-none"} ${slide.clickable && slide.link ? "cursor-pointer" : ""}`}
+          style={{ aspectRatio: isMobile ? "4/5" : "16/5" }}
           onClick={() => handleBannerClick(slide)}
         >
           {getImageUrl(slide) ? (
-            <OptimizedImage
-              src={getImageUrl(slide)}
+            <img
+              src={getImageUrl(slide) || ""}
               alt={slide.title}
-              className="w-full h-auto block"
-              sizes="100vw"
-              widths={isMobile ? [480, 640, 768] : [640, 960, 1280, 1600]}
-              transformWidth={isMobile ? 768 : 1600}
-              quality={50}
+              className="w-full h-full object-cover block"
               loading={i === 0 ? "eager" : "lazy"}
               decoding="async"
               fetchPriority={i === 0 ? "high" : "low"}
