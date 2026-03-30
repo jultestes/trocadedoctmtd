@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBanner1 from "@/assets/hero-banner-1.jpg";
 import heroBanner2 from "@/assets/hero-banner-2.jpg";
-import OptimizedImage from "@/components/OptimizedImage";
 import type { BannerSlide } from "@/components/admin/layout/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
