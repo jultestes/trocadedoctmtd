@@ -118,6 +118,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
 
   // Bulk edit fields
+  const [bulkPrice, setBulkPrice] = useState("");
   const [bulkStock, setBulkStock] = useState("");
   const [bulkGender, setBulkGender] = useState<GenderType | "">("");
   const [bulkAges, setBulkAges] = useState<string[]>([]);
