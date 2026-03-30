@@ -189,7 +189,27 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
           </div>
 
           {/* Fixed bottom CTA */}
-          <div className="p-4 border-t border-border bg-background">
+          <div className="p-4 border-t border-border bg-background space-y-3">
+            {/* Quantity counter - only show when stock > 1 */}
+            {!isUnique && product.stock > 1 && (
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  disabled={quantity <= 1}
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                >
+                  <Minus className="w-4 h-4 text-foreground" />
+                </button>
+                <span className="text-lg font-bold text-foreground w-8 text-center">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+                  disabled={quantity >= product.stock}
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+            )}
             <Button onClick={handleChoose} className="w-full gap-2 h-12 text-base font-bold" size="lg">
               <ShoppingBag className="w-5 h-5" />
               Escolher
