@@ -100,6 +100,7 @@ const AdminOverview = () => {
     const { data, error } = await supabase
       .from("sales")
       .select("*")
+      .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
       .gte("created_at", from)
       .lte("created_at", to)
       .order("created_at", { ascending: false });
@@ -120,13 +121,11 @@ const AdminOverview = () => {
   }, []);
 
   const stats = useMemo(() => {
-    const completedSales = sales.filter((s: any) => s.status === "completed");
-    const totalSales = completedSales.length;
-    const revenue = completedSales.reduce((s, v) => s + Number(v.total_paid), 0);
-    const totalOriginal = completedSales.reduce((s, v) => s + Number(v.total_original), 0);
-    const discount = completedSales.reduce((s, v) => s + Number(v.discount), 0);
-    // Lucro = total_paid - actual_delivery_cost (when set). For pickup or no cost set, profit = total_paid
-    const netProfit = completedSales.reduce((s, v) => {
+    const totalSales = sales.length;
+    const revenue = sales.reduce((s, v) => s + Number(v.total_paid), 0);
+    const totalOriginal = sales.reduce((s, v) => s + Number(v.total_original), 0);
+    const discount = sales.reduce((s, v) => s + Number(v.discount), 0);
+    const netProfit = sales.reduce((s, v) => {
       const cost = v.actual_delivery_cost !== null && v.actual_delivery_cost !== undefined ? Number(v.actual_delivery_cost) : 0;
       return s + (Number(v.total_paid) - cost);
     }, 0);
