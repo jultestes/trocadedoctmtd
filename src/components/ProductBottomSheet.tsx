@@ -30,7 +30,6 @@ type Props = {
 const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Props) => {
   const [imgIdx, setImgIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [showCartConfirm, setShowCartConfirm] = useState(false);
   const { addItem } = useCart();
 
   if (!product) return null;
