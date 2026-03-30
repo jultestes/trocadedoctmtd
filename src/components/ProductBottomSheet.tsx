@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag, Minus, Plus } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 
