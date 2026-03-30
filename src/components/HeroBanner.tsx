@@ -55,7 +55,14 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
           onClick={() => handleBannerClick(slide)}
         >
           {getImageUrl(slide) ? (
-            <img src={getImageUrl(slide)} alt={slide.title} className="w-full h-auto block" />
+            <img
+              src={getImageUrl(slide)}
+              alt={slide.title}
+              className="w-full h-auto block"
+              loading={i === 0 ? "eager" : "lazy"}
+              decoding="async"
+              fetchPriority={i === 0 ? "high" : "low"}
+            />
           ) : (
             <div
               className="w-full aspect-[16/5]"
