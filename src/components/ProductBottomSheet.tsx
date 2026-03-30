@@ -217,10 +217,6 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
         </DrawerContent>
       </Drawer>
 
-      <CartConfirmDialog
-        open={showCartConfirm}
-        onClose={() => setShowCartConfirm(false)}
-      />
     </>
   );
 };
