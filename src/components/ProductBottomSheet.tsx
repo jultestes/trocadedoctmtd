@@ -29,6 +29,7 @@ type Props = {
 
 const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
   const [imgIdx, setImgIdx] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
   const { addItem } = useCart();
 
@@ -39,19 +40,22 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
   const gender = product.category === "meninas" ? "Menina" : "Menino";
 
   const handleChoose = () => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      image: product.image,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      size: product.sizes[0] || "",
-      sku: product.sku,
-      stock: product.stock,
-    });
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        size: product.sizes[0] || "",
+        sku: product.sku,
+        stock: product.stock,
+      });
+    }
     onOpenChange(false);
     setImgIdx(0);
+    setQuantity(1);
     setTimeout(() => setShowCartConfirm(true), 200);
   };
 
