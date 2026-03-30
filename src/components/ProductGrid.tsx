@@ -3,7 +3,9 @@ import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
+import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
 import { useCart } from "@/hooks/useCart";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Product = {
   id: string;
@@ -122,23 +124,34 @@ ProductCard.displayName = "ProductCard";
 const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: string; category: string; productIds?: string[]; maxCount?: number }) => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
+  const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { addItem } = useCart();
+  const { addItem, setProductSheetOpen } = useCart();
+  const isMobile = useIsMobile();
 
-  const handleAddToCart = useCallback((product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      image: product.image,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      size: product.sizes[0] || "",
-      sku: product.sku,
-      stock: product.stock,
-    });
-    setShowCartConfirm(true);
-  }, [addItem]);
+  const handleClick = useCallback((product: Product) => {
+    if (isMobile) {
+      const bsProduct: BottomSheetProduct = {
+        ...product,
+        extraImages: [],
+      };
+      setSheetProduct(bsProduct);
+      setProductSheetOpen(true);
+    } else {
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        size: product.sizes[0] || "",
+        sku: product.sku,
+        stock: product.stock,
+      });
+      setShowCartConfirm(true);
+    }
+  }, [addItem, isMobile, setProductSheetOpen]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -203,10 +216,21 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
         <div className="flex gap-4">
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
             {dbProducts.map((product, idx) => (
-              <ProductCard key={product.id} product={product} onClick={() => handleAddToCart(product)} index={idx} />
+              <ProductCard key={product.id} product={product} onClick={() => handleClick(product)} index={idx} />
             ))}
           </div>
         </div>
+
+        <ProductBottomSheet
+          product={sheetProduct}
+          open={!!sheetProduct}
+          onOpenChange={(o) => {
+            if (!o) {
+              setSheetProduct(null);
+              setProductSheetOpen(false);
+            }
+          }}
+        />
 
         <CartConfirmDialog
           open={showCartConfirm}

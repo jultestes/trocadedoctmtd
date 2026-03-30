@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 
 const FloatingCartBadge = () => {
-  const { totalItems, isOpen, setIsOpen } = useCart();
+  const { totalItems, isOpen, setIsOpen, productSheetOpen } = useCart();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const prevItems = useRef(totalItems);
@@ -31,7 +31,7 @@ const FloatingCartBadge = () => {
     }
   }, [isOpen, totalItems]);
 
-  if (isOpen || location.pathname === "/checkout" || location.pathname === "/admin") return null;
+  if (isOpen || location.pathname === "/checkout" || location.pathname === "/admin" || productSheetOpen) return null;
 
   return (
     <button
