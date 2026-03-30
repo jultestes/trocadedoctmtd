@@ -24,6 +24,7 @@ type Props = {
   product: BottomSheetProduct | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddedToCart?: () => void;
 };
 
 const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
