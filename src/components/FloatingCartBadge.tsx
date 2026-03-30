@@ -31,7 +31,7 @@ const FloatingCartBadge = () => {
     }
   }, [isOpen, totalItems]);
 
-  if (isOpen || location.pathname === "/checkout" || location.pathname === "/admin") return null;
+  if (isOpen || location.pathname === "/checkout" || location.pathname === "/admin" || productSheetOpen) return null;
 
   return (
     <button

@@ -3,7 +3,9 @@ import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
+import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
 import { useCart } from "@/hooks/useCart";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Product = {
   id: string;
