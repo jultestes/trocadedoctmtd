@@ -100,6 +100,7 @@ const AdminOverview = () => {
     const { data, error } = await supabase
       .from("sales")
       .select("*")
+      .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
       .gte("created_at", from)
       .lte("created_at", to)
       .order("created_at", { ascending: false });
