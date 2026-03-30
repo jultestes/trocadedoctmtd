@@ -1,7 +1,6 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, memo, useCallback } from "react";
 import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 import { useCart } from "@/hooks/useCart";
@@ -21,23 +20,29 @@ type Product = {
   stock: number;
 };
 
-const bannerContent: Record<string, { title: string; subtitle: string; bg: string }> = {
-  meninas: {
-    title: "Meninas",
-    subtitle: "As peças mais fofas para sua princesa ✨",
-    bg: "from-pink-400 to-rose-300",
-  },
-  meninos: {
-    title: "Meninos",
-    subtitle: "Estilo e conforto para os pequenos aventureiros 🚀",
-    bg: "from-sky-400 to-blue-300",
-  },
+const AGE_LABELS: Record<string, string> = {
+  "meninos-baby-rn": "Baby RN", "meninos-baby-p": "Baby P", "meninos-baby-m": "Baby M", "meninos-baby-g": "Baby G",
+  "menino-idade1": "1 ano", "menino-idade2": "2 anos", "menino-idade3": "3 anos",
+  "menino-idade4": "4 anos", "menino-idade6": "6 anos", "menino-idade8": "8 anos",
+  "menino-idade10": "10 anos", "menino-idade12": "12 anos", "menino-idade14": "14 anos", "menino-idade16": "16 anos",
+  "meninas-baby-rn": "Baby RN", "meninas-baby-p": "Baby P", "meninas-baby-m": "Baby M", "meninas-baby-g": "Baby G",
+  "menina-baby-rn": "Baby RN", "menina-baby-p": "Baby P", "menina-baby-m": "Baby M", "menina-baby-g": "Baby G",
+  "menina-idade1": "1 ano", "menina-idade2": "2 anos", "menina-idade3": "3 anos",
+  "menina-idade4": "4 anos", "menina-idade6": "6 anos", "menina-idade8": "8 anos",
+  "menina-idade10": "10 anos", "menina-idade12": "12 anos", "menina-idade14": "14 anos", "menina-idade16": "16 anos",
 };
 
-const ProductCard = ({ product, onClick }: { product: Product; onClick: () => void }) => {
-  const allImages = [product.image, ...product.extraImages].filter(Boolean);
+function detectCategory(sizes: string[] | null): "meninas" | "meninos" {
+  if (!sizes || sizes.length === 0) return "meninos";
+  if (sizes.some(s => s.startsWith("menina"))) return "meninas";
+  return "meninos";
+}
+
+const ProductCard = memo(({ product, onClick, index }: { product: Product; onClick: () => void; index: number }) => {
   const [currentIdx, setCurrentIdx] = useState(0);
+  const allImages = [product.image, ...product.extraImages].filter(Boolean);
   const hasMultiple = allImages.length > 1;
+  const isEager = index < 4;
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,7 +63,11 @@ const ProductCard = ({ product, onClick }: { product: Product; onClick: () => vo
           src={allImages[currentIdx] || product.image}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
+          loading={isEager ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={isEager ? "high" : "low"}
+          width={220}
+          height={293}
         />
         {hasMultiple && (
           <>
@@ -142,34 +151,17 @@ const ProductCard = ({ product, onClick }: { product: Product; onClick: () => vo
       </div>
     </div>
   );
-};
+});
 
-function detectCategory(sizes: string[] | null): "meninas" | "meninos" {
-  if (!sizes || sizes.length === 0) return "meninos";
-  if (sizes.some(s => s.startsWith("menina"))) return "meninas";
-  return "meninos";
-}
-
-const AGE_LABELS: Record<string, string> = {
-  "meninos-baby-rn": "Baby RN", "meninos-baby-p": "Baby P", "meninos-baby-m": "Baby M", "meninos-baby-g": "Baby G",
-  "menino-idade1": "1 ano", "menino-idade2": "2 anos", "menino-idade3": "3 anos",
-  "menino-idade4": "4 anos", "menino-idade6": "6 anos", "menino-idade8": "8 anos",
-  "menino-idade10": "10 anos", "menino-idade12": "12 anos", "menino-idade14": "14 anos", "menino-idade16": "16 anos",
-  "meninas-baby-rn": "Baby RN", "meninas-baby-p": "Baby P", "meninas-baby-m": "Baby M", "meninas-baby-g": "Baby G",
-  "menina-baby-rn": "Baby RN", "menina-baby-p": "Baby P", "menina-baby-m": "Baby M", "menina-baby-g": "Baby G",
-  "menina-idade1": "1 ano", "menina-idade2": "2 anos", "menina-idade3": "3 anos",
-  "menina-idade4": "4 anos", "menina-idade6": "6 anos", "menina-idade8": "8 anos",
-  "menina-idade10": "10 anos", "menina-idade12": "12 anos", "menina-idade14": "14 anos", "menina-idade16": "16 anos",
-};
+ProductCard.displayName = "ProductCard";
 
 const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: string; category: string; productIds?: string[]; maxCount?: number }) => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const banner = bannerContent[category];
   const { addItem } = useCart();
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = useCallback((product: Product) => {
     addItem({
       id: product.id,
       name: product.name,
@@ -182,43 +174,49 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
       stock: product.stock,
     });
     setShowCartConfirm(true);
-  };
+  }, [addItem]);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await supabase
+      // Only select the columns we need
+      let query = supabase
         .from("products")
-        .select("*")
+        .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
         .eq("active", true)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(maxCount * 3); // fetch a reasonable amount, not all
+
+      if (productIds && productIds.length > 0) {
+        query = query.in("id", productIds);
+      } else if (category === "meninas") {
+        // Filter server-side: sizes containing any "menina" prefix
+        query = query.or("sizes.cs.{menina-idade1},sizes.cs.{menina-idade2},sizes.cs.{menina-idade3},sizes.cs.{menina-idade4},sizes.cs.{menina-idade6},sizes.cs.{menina-idade8},sizes.cs.{menina-idade10},sizes.cs.{menina-idade12},sizes.cs.{menina-idade14},sizes.cs.{menina-idade16},sizes.cs.{menina-baby-rn},sizes.cs.{menina-baby-p},sizes.cs.{menina-baby-m},sizes.cs.{menina-baby-g},sizes.cs.{meninas-baby-rn},sizes.cs.{meninas-baby-p},sizes.cs.{meninas-baby-m},sizes.cs.{meninas-baby-g}");
+      } else if (category === "meninos") {
+        query = query.or("sizes.cs.{menino-idade1},sizes.cs.{menino-idade2},sizes.cs.{menino-idade3},sizes.cs.{menino-idade4},sizes.cs.{menino-idade6},sizes.cs.{menino-idade8},sizes.cs.{menino-idade10},sizes.cs.{menino-idade12},sizes.cs.{menino-idade14},sizes.cs.{menino-idade16},sizes.cs.{meninos-baby-rn},sizes.cs.{meninos-baby-p},sizes.cs.{meninos-baby-m},sizes.cs.{meninos-baby-g}");
+      }
+
+      const { data } = await query;
 
       if (data) {
-        let mapped: Product[] = data
-          .map((p) => ({
-            id: p.id,
-            name: p.name,
-            brand: p.brand || "",
-            image: p.image_url || "",
-            extraImages: ((p as any).extra_images || []) as string[],
-            oldPrice: p.old_price ? Number(p.old_price) : null,
-            price: Number(p.price),
-            discount: p.discount || 0,
-            sizes: (p.sizes || []).map(s => AGE_LABELS[s] || s),
-            category: detectCategory(p.sizes),
-            sku: p.sku || undefined,
-            stock: p.stock ?? 0,
-          }));
-        // Filter by specific product IDs if provided, otherwise by category
-        if (productIds && productIds.length > 0) {
-          mapped = mapped.filter((p) => productIds.includes(p.id));
-        } else {
-          mapped = mapped.filter((p) => p.category === category);
-        }
+        const mapped: Product[] = data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          brand: p.brand || "",
+          image: p.image_url || "",
+          extraImages: (p.extra_images || []) as string[],
+          oldPrice: p.old_price ? Number(p.old_price) : null,
+          price: Number(p.price),
+          discount: p.discount || 0,
+          sizes: (p.sizes || []).map((s: string) => AGE_LABELS[s] || s),
+          category: detectCategory(p.sizes),
+          sku: p.sku || undefined,
+          stock: p.stock ?? 0,
+        }));
         setDbProducts(mapped);
       }
     };
     fetchProducts();
-  }, [category, productIds]);
+  }, [category, productIds, maxCount]);
 
   const allProducts = dbProducts.slice(0, maxCount);
 
@@ -244,10 +242,9 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
         </div>
 
         <div className="flex gap-4">
-
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
-            {allProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onClick={() => handleAddToCart(product)} />
+            {allProducts.map((product, idx) => (
+              <ProductCard key={product.id} product={product} onClick={() => handleAddToCart(product)} index={idx} />
             ))}
           </div>
         </div>
