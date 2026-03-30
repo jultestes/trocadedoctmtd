@@ -61,7 +61,7 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
 
   return (
     <>
-      <Drawer open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) setImgIdx(0); }}>
+      <Drawer open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setImgIdx(0); setQuantity(1); } }}>
         <DrawerContent className="max-h-[92vh] rounded-t-3xl">
           {/* Header with back button */}
           <div className="flex items-center gap-3 px-4 pt-2 pb-3 border-b border-border">
