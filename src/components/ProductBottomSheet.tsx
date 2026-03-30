@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag, Minus, Plus } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 
@@ -29,6 +29,7 @@ type Props = {
 
 const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
   const [imgIdx, setImgIdx] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
   const { addItem } = useCart();
 
@@ -39,25 +40,28 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
   const gender = product.category === "meninas" ? "Menina" : "Menino";
 
   const handleChoose = () => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      image: product.image,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      size: product.sizes[0] || "",
-      sku: product.sku,
-      stock: product.stock,
-    });
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        size: product.sizes[0] || "",
+        sku: product.sku,
+        stock: product.stock,
+      });
+    }
     onOpenChange(false);
     setImgIdx(0);
+    setQuantity(1);
     setTimeout(() => setShowCartConfirm(true), 200);
   };
 
   return (
     <>
-      <Drawer open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) setImgIdx(0); }}>
+      <Drawer open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setImgIdx(0); setQuantity(1); } }}>
         <DrawerContent className="max-h-[92vh] rounded-t-3xl">
           {/* Header with back button */}
           <div className="flex items-center gap-3 px-4 pt-2 pb-3 border-b border-border">
@@ -185,7 +189,27 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
           </div>
 
           {/* Fixed bottom CTA */}
-          <div className="p-4 border-t border-border bg-background">
+          <div className="p-4 border-t border-border bg-background space-y-3">
+            {/* Quantity counter - only show when stock > 1 */}
+            {!isUnique && product.stock > 1 && (
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  disabled={quantity <= 1}
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                >
+                  <Minus className="w-4 h-4 text-foreground" />
+                </button>
+                <span className="text-lg font-bold text-foreground w-8 text-center">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+                  disabled={quantity >= product.stock}
+                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+            )}
             <Button onClick={handleChoose} className="w-full gap-2 h-12 text-base font-bold" size="lg">
               <ShoppingBag className="w-5 h-5" />
               Escolher
