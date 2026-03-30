@@ -31,9 +31,18 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem("tmtd_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [isOpen, setIsOpen] = useState(false);
   const [productSheetOpen, setProductSheetOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("tmtd_cart", JSON.stringify(items));
+  }, [items]);
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     setItems((prev) => {
