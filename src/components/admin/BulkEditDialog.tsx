@@ -165,7 +165,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
               name: p.name,
               image_url: (p as any).image_url,
               sku: (p as any).sku,
-              price: p.price,
+              price: String(p.price),
               stock: String((p as any).stock),
               gender,
               selectedAges: sizes,
