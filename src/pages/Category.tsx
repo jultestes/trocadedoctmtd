@@ -47,7 +47,7 @@ type RawProduct = {
   name: string;
   brand: string | null;
   image_url: string | null;
-  extra_images: string[] | null;
+  extra_images?: string[] | null;
   old_price: number | null;
   price: number;
   discount: number | null;
