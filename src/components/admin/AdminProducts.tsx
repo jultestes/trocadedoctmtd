@@ -101,6 +101,7 @@ const AdminProducts = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [skuSearch, setSkuSearch] = useState("");
   const [filterGender, setFilterGender] = useState<string>("all");
