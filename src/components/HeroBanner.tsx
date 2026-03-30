@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBanner1 from "@/assets/hero-banner-1.jpg";
 import heroBanner2 from "@/assets/hero-banner-2.jpg";
+import OptimizedImage from "@/components/OptimizedImage";
 import type { BannerSlide } from "@/components/admin/layout/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -55,10 +56,14 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
           onClick={() => handleBannerClick(slide)}
         >
           {getImageUrl(slide) ? (
-            <img
+            <OptimizedImage
               src={getImageUrl(slide)}
               alt={slide.title}
               className="w-full h-auto block"
+              sizes="100vw"
+              widths={isMobile ? [480, 640, 768] : [640, 960, 1280, 1600]}
+              transformWidth={isMobile ? 768 : 1600}
+              quality={50}
               loading={i === 0 ? "eager" : "lazy"}
               decoding="async"
               fetchPriority={i === 0 ? "high" : "low"}

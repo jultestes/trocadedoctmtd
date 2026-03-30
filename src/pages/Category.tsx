@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import FeaturesBar from "@/components/FeaturesBar";
 import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
+import OptimizedImage from "@/components/OptimizedImage";
 import { useCart } from "@/hooks/useCart";
 
 const LETTER_SIZES = ["p", "m", "g"];
@@ -46,7 +47,7 @@ type RawProduct = {
   name: string;
   brand: string | null;
   image_url: string | null;
-  extra_images: string[] | null;
+  extra_images?: string[] | null;
   old_price: number | null;
   price: number;
   discount: number | null;
@@ -171,7 +172,7 @@ const Category = () => {
       if (productIds.length > 0) {
         const { data: prodData } = await supabase
           .from("products")
-          .select("*")
+          .select("id, name, brand, image_url, old_price, price, discount, sizes, sku, stock")
           .in("id", productIds)
           .eq("active", true)
           .order("created_at", { ascending: false });
@@ -366,17 +367,23 @@ const Category = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
                 className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border flex flex-col"
               >
                 <div className="relative overflow-hidden aspect-[3/4]">
-                  <img
+                  <OptimizedImage
                     src={product.image}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    widths={[240, 360, 480, 720]}
+                    transformWidth={480}
+                    quality={45}
+                    loading={index < 4 ? "eager" : "lazy"}
+                    fetchPriority={index < 2 ? "high" : "low"}
+                    decoding="async"
                   />
                   {product.discount > 0 && (
                     <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">

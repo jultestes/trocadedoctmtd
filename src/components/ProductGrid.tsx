@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
+import OptimizedImage from "@/components/OptimizedImage";
 import { useCart } from "@/hooks/useCart";
 
 type Product = {
@@ -42,7 +43,7 @@ const ProductCard = memo(({ product, onClick, index }: { product: Product; onCli
   const [currentIdx, setCurrentIdx] = useState(0);
   const allImages = [product.image, ...product.extraImages].filter(Boolean);
   const hasMultiple = allImages.length > 1;
-  const isEager = index < 4;
+  const isEager = index < 2;
 
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -59,10 +60,14 @@ const ProductCard = memo(({ product, onClick, index }: { product: Product; onCli
   return (
     <div className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border shrink-0 w-[180px] md:w-[220px] flex flex-col">
       <div className="relative overflow-hidden aspect-[3/4] cursor-pointer" onClick={onClick}>
-        <img
+        <OptimizedImage
           src={allImages[currentIdx] || product.image}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          sizes="(max-width: 768px) 180px, 220px"
+          widths={[180, 220, 360, 440]}
+          transformWidth={220}
+          quality={45}
           loading={isEager ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={isEager ? "high" : "low"}
