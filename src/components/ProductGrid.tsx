@@ -124,23 +124,34 @@ ProductCard.displayName = "ProductCard";
 const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: string; category: string; productIds?: string[]; maxCount?: number }) => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
+  const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { addItem } = useCart();
+  const { addItem, setProductSheetOpen } = useCart();
+  const isMobile = useIsMobile();
 
-  const handleAddToCart = useCallback((product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      image: product.image,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      size: product.sizes[0] || "",
-      sku: product.sku,
-      stock: product.stock,
-    });
-    setShowCartConfirm(true);
-  }, [addItem]);
+  const handleClick = useCallback((product: Product) => {
+    if (isMobile) {
+      const bsProduct: BottomSheetProduct = {
+        ...product,
+        extraImages: [],
+      };
+      setSheetProduct(bsProduct);
+      setProductSheetOpen(true);
+    } else {
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        size: product.sizes[0] || "",
+        sku: product.sku,
+        stock: product.stock,
+      });
+      setShowCartConfirm(true);
+    }
+  }, [addItem, isMobile, setProductSheetOpen]);
 
   useEffect(() => {
     const fetchProducts = async () => {
