@@ -410,7 +410,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
-                      <p className="text-[10px] text-muted-foreground">SKU: {item.sku || "—"} · Est: {item.stock} · R$ {Number(item.price).toFixed(2)}</p>
+                      <p className="text-[10px] text-muted-foreground">SKU: {item.sku || "—"} · Est: {item.stock} · R$ {parseFloat(item.price).toFixed(2)}</p>
                     </div>
                     <Pencil className={`w-4 h-4 text-muted-foreground transition-transform ${item.expanded ? "rotate-45" : ""}`} />
                   </button>
