@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, ChevronDown, Camera, ImageIcon, Images, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
 import MultiUploadDialog from "@/components/admin/MultiUploadDialog";
+import BulkEditDialog from "@/components/admin/BulkEditDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,6 +101,7 @@ const AdminProducts = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [skuSearch, setSkuSearch] = useState("");
   const [filterGender, setFilterGender] = useState<string>("all");
@@ -786,10 +788,14 @@ const AdminProducts = () => {
       <div className="flex items-center justify-between mb-4 gap-2">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground font-heading">Produtos</h2>
         <div className="flex items-center gap-2">
-          {selectedIds.length > 0 &&
-          <Button variant="destructive" size="sm" onClick={() => setShowBulkDeleteDialog(true)} className="gap-1 text-xs sm:text-sm">
+          {selectedIds.length > 0 && <>
+            <Button variant="outline" size="sm" onClick={() => setShowBulkEditDialog(true)} className="gap-1 text-xs sm:text-sm">
+              <Pencil className="w-4 h-4" /> Editar ({selectedIds.length})
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => setShowBulkDeleteDialog(true)} className="gap-1 text-xs sm:text-sm">
               <Trash2 className="w-4 h-4" /> Excluir ({selectedIds.length})
             </Button>
+          </>
           }
           <Button onClick={openNew} className="gap-1 text-xs sm:text-sm"><Plus className="w-4 h-4" /> Novo</Button>
         </div>
@@ -1413,6 +1419,12 @@ const AdminProducts = () => {
           setExtraTargetIdx(null);
         }} />
       
+      <BulkEditDialog
+        open={showBulkEditDialog}
+        onOpenChange={setShowBulkEditDialog}
+        productIds={selectedIds}
+        onSaved={() => { setSelectedIds([]); fetchAll(); }}
+      />
     </div>);
 
 };

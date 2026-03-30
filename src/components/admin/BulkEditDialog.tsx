@@ -69,7 +69,7 @@ type EditableProduct = {
   name: string;
   image_url: string | null;
   sku: string | null;
-  price: number;
+  price: string;
   // editable fields
   stock: string;
   gender: GenderType | "";
@@ -118,6 +118,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
 
   // Bulk edit fields
+  const [bulkPrice, setBulkPrice] = useState("");
   const [bulkStock, setBulkStock] = useState("");
   const [bulkGender, setBulkGender] = useState<GenderType | "">("");
   const [bulkAges, setBulkAges] = useState<string[]>([]);
@@ -129,6 +130,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
   useEffect(() => {
     if (!open || productIds.length === 0) return;
     setLoading(true);
+    setBulkPrice("");
     setBulkStock("");
     setBulkGender("");
     setBulkAges([]);
@@ -163,7 +165,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
               name: p.name,
               image_url: (p as any).image_url,
               sku: (p as any).sku,
-              price: p.price,
+              price: String(p.price),
               stock: String((p as any).stock),
               gender,
               selectedAges: sizes,
@@ -188,6 +190,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
     setItems((prev) =>
       prev.map((item) => {
         const updated = { ...item };
+        if (bulkPrice !== "") updated.price = bulkPrice;
         if (bulkStock !== "") updated.stock = bulkStock;
         if (bulkGender !== "") {
           updated.gender = bulkGender;
@@ -210,10 +213,11 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         setSaveProgress(i + 1);
-        const payload = {
+        const payload: Record<string, any> = {
           stock: parseInt(item.stock) || 0,
           sizes: item.selectedAges,
           active: item.active,
+          price: parseFloat(item.price) || 0,
         };
         const { error } = await supabase.from("products").update(payload).eq("id", item.id);
         if (error) throw error;
@@ -269,7 +273,17 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
             <div className="bg-muted/50 rounded-xl border border-border p-4 space-y-3">
               <p className="text-sm font-bold text-foreground">Alterar todos de uma vez</p>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">Preço (R$)</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Novo preço"
+                    value={bulkPrice}
+                    onChange={(e) => setBulkPrice(e.target.value)}
+                  />
+                </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Estoque</label>
                   <Input
@@ -396,7 +410,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-foreground truncate">{item.name}</p>
-                      <p className="text-[10px] text-muted-foreground">SKU: {item.sku || "—"} · Est: {item.stock} · R$ {Number(item.price).toFixed(2)}</p>
+                      <p className="text-[10px] text-muted-foreground">SKU: {item.sku || "—"} · Est: {item.stock} · R$ {parseFloat(item.price).toFixed(2)}</p>
                     </div>
                     <Pencil className={`w-4 h-4 text-muted-foreground transition-transform ${item.expanded ? "rotate-45" : ""}`} />
                   </button>
@@ -404,7 +418,16 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
                   {/* Expanded edit */}
                   {item.expanded && (
                     <div className="border-t border-border p-3 space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground">Preço (R$)</label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={item.price}
+                            onChange={(e) => updateItem(idx, { price: e.target.value })}
+                          />
+                        </div>
                         <div>
                           <label className="text-xs text-muted-foreground">Estoque</label>
                           <Input
