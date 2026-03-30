@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, ChevronDown, Camera, ImageIcon, Images, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
 import MultiUploadDialog from "@/components/admin/MultiUploadDialog";
+import BulkEditDialog from "@/components/admin/BulkEditDialog";
 import {
   AlertDialog,
   AlertDialogAction,
