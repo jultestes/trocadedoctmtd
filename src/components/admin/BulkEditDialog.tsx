@@ -273,7 +273,17 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
             <div className="bg-muted/50 rounded-xl border border-border p-4 space-y-3">
               <p className="text-sm font-bold text-foreground">Alterar todos de uma vez</p>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-muted-foreground">Preço (R$)</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Novo preço"
+                    value={bulkPrice}
+                    onChange={(e) => setBulkPrice(e.target.value)}
+                  />
+                </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Estoque</label>
                   <Input
