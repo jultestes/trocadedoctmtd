@@ -23,6 +23,8 @@ type CartContextType = {
   totalPrice: number;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  productSheetOpen: boolean;
+  setProductSheetOpen: (open: boolean) => void;
 };
 
 
