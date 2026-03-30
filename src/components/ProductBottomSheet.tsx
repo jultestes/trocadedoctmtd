@@ -3,7 +3,6 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag, Minus, Plus } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
-import CartConfirmDialog from "@/components/CartConfirmDialog";
 
 export type BottomSheetProduct = {
   id: string;
@@ -25,12 +24,12 @@ type Props = {
   product: BottomSheetProduct | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAddedToCart?: () => void;
 };
 
-const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
+const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Props) => {
   const [imgIdx, setImgIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [showCartConfirm, setShowCartConfirm] = useState(false);
   const { addItem } = useCart();
 
   if (!product) return null;
@@ -56,7 +55,7 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
     onOpenChange(false);
     setImgIdx(0);
     setQuantity(1);
-    setTimeout(() => setShowCartConfirm(true), 200);
+    onAddedToCart?.();
   };
 
   return (
@@ -218,10 +217,6 @@ const ProductBottomSheet = ({ product, open, onOpenChange }: Props) => {
         </DrawerContent>
       </Drawer>
 
-      <CartConfirmDialog
-        open={showCartConfirm}
-        onClose={() => setShowCartConfirm(false)}
-      />
     </>
   );
 };
