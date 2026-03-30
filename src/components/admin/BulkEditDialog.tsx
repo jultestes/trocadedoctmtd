@@ -130,6 +130,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
   useEffect(() => {
     if (!open || productIds.length === 0) return;
     setLoading(true);
+    setBulkPrice("");
     setBulkStock("");
     setBulkGender("");
     setBulkAges([]);
