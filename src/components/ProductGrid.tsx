@@ -216,10 +216,21 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
         <div className="flex gap-4">
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
             {dbProducts.map((product, idx) => (
-              <ProductCard key={product.id} product={product} onClick={() => handleAddToCart(product)} index={idx} />
+              <ProductCard key={product.id} product={product} onClick={() => handleClick(product)} index={idx} />
             ))}
           </div>
         </div>
+
+        <ProductBottomSheet
+          product={sheetProduct}
+          open={!!sheetProduct}
+          onOpenChange={(o) => {
+            if (!o) {
+              setSheetProduct(null);
+              setProductSheetOpen(false);
+            }
+          }}
+        />
 
         <CartConfirmDialog
           open={showCartConfirm}
