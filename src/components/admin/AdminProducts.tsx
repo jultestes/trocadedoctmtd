@@ -788,10 +788,14 @@ const AdminProducts = () => {
       <div className="flex items-center justify-between mb-4 gap-2">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground font-heading">Produtos</h2>
         <div className="flex items-center gap-2">
-          {selectedIds.length > 0 &&
-          <Button variant="destructive" size="sm" onClick={() => setShowBulkDeleteDialog(true)} className="gap-1 text-xs sm:text-sm">
+          {selectedIds.length > 0 && <>
+            <Button variant="outline" size="sm" onClick={() => setShowBulkEditDialog(true)} className="gap-1 text-xs sm:text-sm">
+              <Pencil className="w-4 h-4" /> Editar ({selectedIds.length})
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => setShowBulkDeleteDialog(true)} className="gap-1 text-xs sm:text-sm">
               <Trash2 className="w-4 h-4" /> Excluir ({selectedIds.length})
             </Button>
+          </>
           }
           <Button onClick={openNew} className="gap-1 text-xs sm:text-sm"><Plus className="w-4 h-4" /> Novo</Button>
         </div>
