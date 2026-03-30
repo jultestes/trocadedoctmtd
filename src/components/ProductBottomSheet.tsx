@@ -55,7 +55,7 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
     onOpenChange(false);
     setImgIdx(0);
     setQuantity(1);
-    setTimeout(() => setShowCartConfirm(true), 200);
+    onAddedToCart?.();
   };
 
   return (
