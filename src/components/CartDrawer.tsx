@@ -14,15 +14,25 @@ import { useNavigate } from "react-router-dom";
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
   const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleCheckout = () => {
+    setShowConfirm(false);
     setIsOpen(false);
     navigate("/checkout");
-
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
+    });
+  };
+
+  const handleWhatsApp = () => {
+    setShowConfirm(false);
+    setIsOpen(false);
+    navigate("/checkout-whatsapp");
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     });
   };
 
