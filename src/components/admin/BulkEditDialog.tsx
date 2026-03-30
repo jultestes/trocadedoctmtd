@@ -418,7 +418,16 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
                   {/* Expanded edit */}
                   {item.expanded && (
                     <div className="border-t border-border p-3 space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground">Preço (R$)</label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={item.price}
+                            onChange={(e) => updateItem(idx, { price: e.target.value })}
+                          />
+                        </div>
                         <div>
                           <label className="text-xs text-muted-foreground">Estoque</label>
                           <Input

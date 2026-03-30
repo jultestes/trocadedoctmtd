@@ -1419,6 +1419,12 @@ const AdminProducts = () => {
           setExtraTargetIdx(null);
         }} />
       
+      <BulkEditDialog
+        open={showBulkEditDialog}
+        onOpenChange={setShowBulkEditDialog}
+        productIds={selectedIds}
+        onSaved={() => { setSelectedIds([]); fetchAll(); }}
+      />
     </div>);
 
 };
