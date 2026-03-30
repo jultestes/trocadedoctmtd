@@ -230,6 +230,11 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
               setProductSheetOpen(false);
             }
           }}
+          onAddedToCart={() => {
+            setSheetProduct(null);
+            setProductSheetOpen(false);
+            setTimeout(() => setShowCartConfirm(true), 250);
+          }}
         />
 
         <CartConfirmDialog
