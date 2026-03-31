@@ -8,8 +8,10 @@ import Header from "@/components/Header";
 import FeaturesBar from "@/components/FeaturesBar";
 import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
+import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
 import OptimizedImage from "@/components/OptimizedImage";
 import { useCart } from "@/hooks/useCart";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const LETTER_SIZES = ["p", "m", "g"];
 const INFANTIL_AGES = ["idade1", "idade2", "idade3", "idade4", "idade6", "idade8", "idade10"];
