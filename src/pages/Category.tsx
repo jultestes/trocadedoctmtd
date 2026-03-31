@@ -108,7 +108,9 @@ const Category = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
-  const { addItem } = useCart();
+  const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
+  const { addItem, setProductSheetOpen } = useCart();
+  const isMobile = useIsMobile();
 
   const selectedAge = searchParams.get("idade") || null;
   const selectedCatSlug = searchParams.get("cat") || null;
