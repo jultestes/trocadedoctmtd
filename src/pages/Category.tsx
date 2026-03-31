@@ -8,8 +8,10 @@ import Header from "@/components/Header";
 import FeaturesBar from "@/components/FeaturesBar";
 import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
+import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
 import OptimizedImage from "@/components/OptimizedImage";
 import { useCart } from "@/hooks/useCart";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const LETTER_SIZES = ["p", "m", "g"];
 const INFANTIL_AGES = ["idade1", "idade2", "idade3", "idade4", "idade6", "idade8", "idade10"];
@@ -106,25 +108,47 @@ const Category = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
-  const { addItem } = useCart();
+  const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
+  const { addItem, setProductSheetOpen } = useCart();
+  const isMobile = useIsMobile();
 
   const selectedAge = searchParams.get("idade") || null;
   const selectedCatSlug = searchParams.get("cat") || null;
 
-  const handleAddToCart = (product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      image: product.image,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      size: product.sizes[0] || "",
-      sku: product.sku || undefined,
-      stock: product.stock,
-    });
-    setShowCartConfirm(true);
-  };
+  const handleAddToCart = useCallback((product: Product) => {
+    if (isMobile) {
+      const bsProduct: BottomSheetProduct = {
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        extraImages: [],
+        oldPrice: product.oldPrice,
+        price: product.price,
+        discount: product.discount,
+        sizes: product.sizes,
+        rawSizes: product.rawSizes,
+        sku: product.sku,
+        stock: product.stock,
+        category: product.rawSizes?.some(s => s.startsWith("menina")) ? "meninas" : "meninos",
+      };
+      setSheetProduct(bsProduct);
+      setProductSheetOpen(true);
+    } else {
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        size: product.sizes[0] || "",
+        sku: product.sku || undefined,
+        stock: product.stock,
+      });
+      setShowCartConfirm(true);
+    }
+  }, [addItem, isMobile, setProductSheetOpen]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -444,6 +468,18 @@ const Category = () => {
           </div>
         )}
       </div>
+
+      <ProductBottomSheet
+        product={sheetProduct}
+        open={!!sheetProduct}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSheetProduct(null);
+            setProductSheetOpen(false);
+          }
+        }}
+        onAddedToCart={() => setShowCartConfirm(true)}
+      />
 
       <CartConfirmDialog
         open={showCartConfirm}
