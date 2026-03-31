@@ -147,7 +147,7 @@ const Footer = () => {
 
       <div className="border-t border-primary/20">
         <div className="container py-4 text-center text-xs opacity-60">
-          © 2026 TMTD Kids. Todos os direitos reservados.
+          © 2026 TMTD Kids. Todos os direitos reservados. ✨
         </div>
       </div>
     </footer>
