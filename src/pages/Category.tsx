@@ -115,20 +115,40 @@ const Category = () => {
   const selectedAge = searchParams.get("idade") || null;
   const selectedCatSlug = searchParams.get("cat") || null;
 
-  const handleAddToCart = (product: Product) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      brand: product.brand,
-      image: product.image,
-      price: product.price,
-      oldPrice: product.oldPrice,
-      size: product.sizes[0] || "",
-      sku: product.sku || undefined,
-      stock: product.stock,
-    });
-    setShowCartConfirm(true);
-  };
+  const handleAddToCart = useCallback((product: Product) => {
+    if (isMobile) {
+      const bsProduct: BottomSheetProduct = {
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        extraImages: [],
+        oldPrice: product.oldPrice,
+        price: product.price,
+        discount: product.discount,
+        sizes: product.sizes,
+        rawSizes: product.rawSizes,
+        sku: product.sku,
+        stock: product.stock,
+        category: product.rawSizes?.some(s => s.startsWith("menina")) ? "meninas" : "meninos",
+      };
+      setSheetProduct(bsProduct);
+      setProductSheetOpen(true);
+    } else {
+      addItem({
+        id: product.id,
+        name: product.name,
+        brand: product.brand,
+        image: product.image,
+        price: product.price,
+        oldPrice: product.oldPrice,
+        size: product.sizes[0] || "",
+        sku: product.sku || undefined,
+        stock: product.stock,
+      });
+      setShowCartConfirm(true);
+    }
+  }, [addItem, isMobile, setProductSheetOpen]);
 
   useEffect(() => {
     const fetchData = async () => {
