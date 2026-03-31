@@ -469,6 +469,18 @@ const Category = () => {
         )}
       </div>
 
+      <ProductBottomSheet
+        product={sheetProduct}
+        open={!!sheetProduct}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSheetProduct(null);
+            setProductSheetOpen(false);
+          }
+        }}
+        onAddedToCart={() => setShowCartConfirm(true)}
+      />
+
       <CartConfirmDialog
         open={showCartConfirm}
         onClose={() => setShowCartConfirm(false)}
