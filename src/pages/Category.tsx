@@ -336,7 +336,7 @@ const Category = () => {
                                 setSearchParams(next, { replace: true });
                               }
                             }}
-                            className={`w-10 h-10 rounded-full text-sm font-bold border-2 transition-all flex items-center justify-center ${
+                            className={`px-4 h-10 rounded-full text-xs font-bold border-2 transition-all flex items-center justify-center whitespace-nowrap ${
                               isActive
                                 ? "bg-primary text-primary-foreground border-primary shadow-md scale-110"
                                 : "border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
