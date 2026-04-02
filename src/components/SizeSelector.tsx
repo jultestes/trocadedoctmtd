@@ -177,7 +177,7 @@ const SizeSelector = () => {
                               params.set("idade", ageKey);
                               navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
                             }}
-                            className="w-10 h-10 rounded-full border-2 border-primary/30 text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                            className="px-4 h-10 rounded-full border-2 border-primary/30 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap"
                           >
                             {AGE_DISPLAY[ageKey] || ageKey}
                           </button>
