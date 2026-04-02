@@ -167,48 +167,81 @@ const AdminSales = () => {
     setDeleting(true);
     const ids = Array.from(selectedIds);
 
-    // 1. Fetch sale_items to know which products to restore stock
-    const { data: itemsToRestore } = await supabase
-      .from("sale_items")
-      .select("product_id")
-      .in("sale_id", ids);
+    try {
+      // 1. Fetch sale_items to know which products to restore stock
+      const { data: itemsToRestore, error: fetchErr } = await supabase
+        .from("sale_items")
+        .select("product_id")
+        .in("sale_id", ids);
 
-    // 2. Restore stock for each product
-    if (itemsToRestore && itemsToRestore.length > 0) {
-      // Count how many units per product
-      const countMap: Record<string, number> = {};
-      for (const item of itemsToRestore) {
-        if (item.product_id) {
-          countMap[item.product_id] = (countMap[item.product_id] || 0) + 1;
+      if (fetchErr) {
+        console.error("Erro ao buscar itens:", fetchErr);
+        toast.error("Erro ao buscar itens das vendas");
+        setDeleting(false);
+        return;
+      }
+
+      // 2. Delete sale_items first (before stock restore to avoid FK issues)
+      const { error: itemsErr } = await supabase.from("sale_items").delete().in("sale_id", ids);
+      if (itemsErr) {
+        console.error("Erro ao apagar sale_items:", itemsErr);
+        toast.error("Erro ao apagar itens das vendas");
+        setDeleting(false);
+        return;
+      }
+
+      // 3. Delete sales
+      const { error: salesErr } = await supabase.from("sales").delete().in("id", ids);
+      if (salesErr) {
+        console.error("Erro ao apagar sales:", salesErr);
+        toast.error("Erro ao apagar vendas");
+        setDeleting(false);
+        return;
+      }
+
+      // 4. Restore stock for each product (after deletes succeeded)
+      if (itemsToRestore && itemsToRestore.length > 0) {
+        const countMap: Record<string, number> = {};
+        for (const item of itemsToRestore) {
+          if (item.product_id) {
+            countMap[item.product_id] = (countMap[item.product_id] || 0) + 1;
+          }
+        }
+        for (const [productId, qty] of Object.entries(countMap)) {
+          const { data: prod, error: prodErr } = await supabase
+            .from("products")
+            .select("stock, active")
+            .eq("id", productId)
+            .single();
+          
+          if (prodErr) {
+            console.error(`Erro ao buscar produto ${productId}:`, prodErr);
+            continue;
+          }
+          if (prod) {
+            const newStock = (prod.stock || 0) + qty;
+            const { error: updateErr } = await supabase
+              .from("products")
+              .update({ stock: newStock, active: true })
+              .eq("id", productId);
+            if (updateErr) {
+              console.error(`Erro ao restaurar estoque do produto ${productId}:`, updateErr);
+              toast.error(`Erro ao restaurar estoque de um produto`);
+            }
+          }
         }
       }
-      // Increment stock for each product
-      for (const [productId, qty] of Object.entries(countMap)) {
-        const { data: prod } = await supabase.from("products").select("stock, active").eq("id", productId).single();
-        if (prod) {
-          const newStock = prod.stock + qty;
-          await supabase.from("products").update({ stock: newStock, active: true }).eq("id", productId);
-        }
-      }
-    }
 
-    // 3. Delete sale_items first, then sales
-    const { error: itemsErr } = await supabase.from("sale_items").delete().in("sale_id", ids);
-    if (itemsErr) {
-      toast.error("Erro ao apagar itens das vendas");
+      toast.success(`${ids.length} venda(s) apagada(s) e estoque restaurado`);
+      setSelectedIds(new Set());
+      setShowDeleteDialog(false);
+      fetchSales();
+    } catch (err) {
+      console.error("Erro inesperado:", err);
+      toast.error("Erro inesperado ao apagar vendas");
+    } finally {
       setDeleting(false);
-      return;
     }
-    const { error } = await supabase.from("sales").delete().in("id", ids);
-    setDeleting(false);
-    setShowDeleteDialog(false);
-    if (error) {
-      toast.error("Erro ao apagar vendas");
-      return;
-    }
-    toast.success(`${ids.length} venda(s) apagada(s) e estoque restaurado`);
-    setSelectedIds(new Set());
-    fetchSales();
   };
 
   const statusLabel: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
