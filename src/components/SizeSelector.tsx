@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 
 const AGE_DISPLAY: Record<string, string> = {
   "p": "P", "m": "M", "g": "G",
-  "idade1": "1", "idade2": "2", "idade3": "3", "idade4": "4",
-  "idade6": "6", "idade8": "8", "idade10": "10",
-  "idade12": "12", "idade14": "14", "idade16": "16",
+  "idade1": "1 ano", "idade2": "2 anos", "idade3": "3 anos", "idade4": "4 anos",
+  "idade6": "6 anos", "idade8": "8 anos", "idade10": "10 anos",
+  "idade12": "12 anos", "idade14": "14 anos", "idade16": "16 anos",
 };
 
 const LETTER_SIZES = ["p", "m", "g"];
@@ -177,7 +177,7 @@ const SizeSelector = () => {
                               params.set("idade", ageKey);
                               navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
                             }}
-                            className="w-10 h-10 rounded-full border-2 border-primary/30 text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+                            className="px-4 h-10 rounded-full border-2 border-primary/30 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap"
                           >
                             {AGE_DISPLAY[ageKey] || ageKey}
                           </button>
