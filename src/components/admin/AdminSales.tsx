@@ -184,9 +184,10 @@ const AdminSales = () => {
       }
       // Increment stock for each product
       for (const [productId, qty] of Object.entries(countMap)) {
-        const { data: prod } = await supabase.from("products").select("stock").eq("id", productId).single();
+        const { data: prod } = await supabase.from("products").select("stock, active").eq("id", productId).single();
         if (prod) {
-          await supabase.from("products").update({ stock: prod.stock + qty }).eq("id", productId);
+          const newStock = prod.stock + qty;
+          await supabase.from("products").update({ stock: newStock, active: true }).eq("id", productId);
         }
       }
     }
