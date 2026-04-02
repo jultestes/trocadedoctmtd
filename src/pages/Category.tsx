@@ -19,9 +19,9 @@ const TEEN_AGES = ["idade12", "idade14", "idade16"];
 
 const AGE_DISPLAY: Record<string, string> = {
   "p": "P", "m": "M", "g": "G",
-  "idade1": "1", "idade2": "2", "idade3": "3", "idade4": "4",
-  "idade6": "6", "idade8": "8", "idade10": "10",
-  "idade12": "12", "idade14": "14", "idade16": "16",
+  "idade1": "1 ano", "idade2": "2 anos", "idade3": "3 anos", "idade4": "4 anos",
+  "idade6": "6 anos", "idade8": "8 anos", "idade10": "10 anos",
+  "idade12": "12 anos", "idade14": "14 anos", "idade16": "16 anos",
 };
 
 const AGE_LABELS: Record<string, string> = {
@@ -336,7 +336,7 @@ const Category = () => {
                                 setSearchParams(next, { replace: true });
                               }
                             }}
-                            className={`w-10 h-10 rounded-full text-sm font-bold border-2 transition-all flex items-center justify-center ${
+                            className={`px-4 h-10 rounded-full text-xs font-bold border-2 transition-all flex items-center justify-center whitespace-nowrap ${
                               isActive
                                 ? "bg-primary text-primary-foreground border-primary shadow-md scale-110"
                                 : "border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
