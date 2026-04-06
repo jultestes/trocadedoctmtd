@@ -44,6 +44,9 @@ const PaymentSuccess = () => {
   const [loadingWhatsApp, setLoadingWhatsApp] = useState(false);
 
   useEffect(() => {
+    if (!isWhatsApp) {
+      trackPurchase({ currency: "BRL" });
+    }
     clearCart();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -113,6 +113,8 @@ const Category = () => {
   const { addItem, setProductSheetOpen } = useCart();
   const isMobile = useIsMobile();
 
+  useEffect(() => { trackPageView(); }, [slug, selectedAge]);
+
   const selectedAge = searchParams.get("idade") || null;
   const selectedCatSlug = searchParams.get("cat") || null;
 
