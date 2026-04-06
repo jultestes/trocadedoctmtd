@@ -165,7 +165,6 @@ const AdminFrete = () => {
           className="pl-9"
         />
       </div>
-      </div>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
