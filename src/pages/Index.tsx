@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { trackPageView } from "@/lib/fbpixel";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
@@ -47,6 +48,8 @@ const renderSection = (section: LayoutSection) => {
 
 const Index = () => {
   const [sections, setSections] = useState<LayoutSection[]>(DEFAULT_SECTIONS);
+
+  useEffect(() => { trackPageView(); }, []);
 
   useEffect(() => {
     supabase

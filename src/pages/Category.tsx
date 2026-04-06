@@ -1,5 +1,6 @@
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
+import { trackPageView } from "@/lib/fbpixel";
 import { ChevronLeft, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
