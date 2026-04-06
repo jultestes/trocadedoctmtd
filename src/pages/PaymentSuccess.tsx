@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { trackPurchase } from "@/lib/fbpixel";
 
 const WHATSAPP_NUMBER = "5592993339711";
 
@@ -43,6 +44,9 @@ const PaymentSuccess = () => {
   const [loadingWhatsApp, setLoadingWhatsApp] = useState(false);
 
   useEffect(() => {
+    if (!isWhatsApp) {
+      trackPurchase({ currency: "BRL" });
+    }
     clearCart();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

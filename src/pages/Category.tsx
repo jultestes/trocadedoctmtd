@@ -1,5 +1,6 @@
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
+import { trackPageView } from "@/lib/fbpixel";
 import { ChevronLeft, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,6 +114,8 @@ const Category = () => {
   const isMobile = useIsMobile();
 
   const selectedAge = searchParams.get("idade") || null;
+
+  useEffect(() => { trackPageView(); }, [slug, selectedAge]);
   const selectedCatSlug = searchParams.get("cat") || null;
 
   const handleAddToCart = useCallback((product: Product) => {
