@@ -62,6 +62,8 @@ const AdminSales = () => {
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deletePreview, setDeletePreview] = useState<{name: string; currentStock: number; newStock: number; willReactivate: boolean}[] | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
   const [invoiceSale, setInvoiceSale] = useState<Sale | null>(null);
   const [deliveryCostInputs, setDeliveryCostInputs] = useState<Record<string, string>>({});
   const getDateRange = () => {
@@ -320,7 +322,41 @@ const AdminSales = () => {
         <h2 className="text-2xl font-bold text-foreground font-heading">Vendas</h2>
         <div className="flex items-center gap-3">
           {selectedIds.size > 0 && (
-            <Button variant="destructive" size="sm" className="gap-2" onClick={() => setShowDeleteDialog(true)}>
+            <Button variant="destructive" size="sm" className="gap-2" onClick={async () => {
+              setShowDeleteDialog(true);
+              setLoadingPreview(true);
+              setDeletePreview(null);
+              try {
+                const ids = Array.from(selectedIds);
+                const { data: items } = await supabase.from("sale_items").select("product_id, product_name").in("sale_id", ids);
+                if (items && items.length > 0) {
+                  const countMap: Record<string, { qty: number; name: string }> = {};
+                  for (const item of items) {
+                    if (item.product_id) {
+                      if (!countMap[item.product_id]) countMap[item.product_id] = { qty: 0, name: item.product_name || "Produto" };
+                      countMap[item.product_id].qty += 1;
+                    }
+                  }
+                  const productIds = Object.keys(countMap);
+                  const { data: products } = await supabase.from("products").select("id, stock, active").in("id", productIds);
+                  const preview = productIds.map((pid) => {
+                    const prod = products?.find((p: any) => p.id === pid);
+                    const currentStock = prod?.stock || 0;
+                    const newStock = currentStock + countMap[pid].qty;
+                    return {
+                      name: countMap[pid].name,
+                      currentStock,
+                      newStock,
+                      willReactivate: !prod?.active,
+                    };
+                  });
+                  setDeletePreview(preview);
+                } else {
+                  setDeletePreview([]);
+                }
+              } catch { setDeletePreview([]); }
+              finally { setLoadingPreview(false); }
+            }}>
               <Trash2 className="w-4 h-4" /> Apagar ({selectedIds.size})
             </Button>
           )}
@@ -642,17 +678,42 @@ const AdminSales = () => {
 
       {/* Delete confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Apagar {selectedIds.size} venda(s)?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Essa ação não pode ser desfeita. Todos os itens dessas vendas também serão removidos.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>Essa ação não pode ser desfeita. Os produtos abaixo terão o estoque restaurado:</p>
+                {loadingPreview ? (
+                  <p className="text-xs text-muted-foreground">Carregando...</p>
+                ) : deletePreview && deletePreview.length > 0 ? (
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {deletePreview.map((p, i) => (
+                      <div key={i} className="bg-muted rounded-lg p-3 text-sm">
+                        <p className="font-medium text-foreground truncate">{p.name}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs">
+                          <span className="text-destructive font-mono">Estoque: {p.currentStock}</span>
+                          <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-primary font-mono font-bold">Estoque: {p.newStock}</span>
+                        </div>
+                        {p.willReactivate && (
+                          <Badge variant="outline" className="mt-1 text-[10px] border-primary text-primary">
+                            Será reativado
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Nenhum produto para restaurar.</p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSelected} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleting ? "Apagando..." : "Apagar"}
+            <AlertDialogAction onClick={handleDeleteSelected} disabled={deleting || loadingPreview} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Apagando..." : "Confirmar e Apagar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
