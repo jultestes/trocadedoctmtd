@@ -114,8 +114,9 @@ const AdminFrete = () => {
     setEditOpen(true);
   };
 
+  const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const filtered = neighborhoods.filter((n) =>
-    n.name.toLowerCase().includes(search.toLowerCase())
+    normalize(n.name).includes(normalize(search))
   );
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedNeighborhoods = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
