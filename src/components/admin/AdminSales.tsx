@@ -322,7 +322,41 @@ const AdminSales = () => {
         <h2 className="text-2xl font-bold text-foreground font-heading">Vendas</h2>
         <div className="flex items-center gap-3">
           {selectedIds.size > 0 && (
-            <Button variant="destructive" size="sm" className="gap-2" onClick={() => setShowDeleteDialog(true)}>
+            <Button variant="destructive" size="sm" className="gap-2" onClick={async () => {
+              setShowDeleteDialog(true);
+              setLoadingPreview(true);
+              setDeletePreview(null);
+              try {
+                const ids = Array.from(selectedIds);
+                const { data: items } = await supabase.from("sale_items").select("product_id, product_name").in("sale_id", ids);
+                if (items && items.length > 0) {
+                  const countMap: Record<string, { qty: number; name: string }> = {};
+                  for (const item of items) {
+                    if (item.product_id) {
+                      if (!countMap[item.product_id]) countMap[item.product_id] = { qty: 0, name: item.product_name || "Produto" };
+                      countMap[item.product_id].qty += 1;
+                    }
+                  }
+                  const productIds = Object.keys(countMap);
+                  const { data: products } = await supabase.from("products").select("id, stock, active").in("id", productIds);
+                  const preview = productIds.map((pid) => {
+                    const prod = products?.find((p: any) => p.id === pid);
+                    const currentStock = prod?.stock || 0;
+                    const newStock = currentStock + countMap[pid].qty;
+                    return {
+                      name: countMap[pid].name,
+                      currentStock,
+                      newStock,
+                      willReactivate: !prod?.active,
+                    };
+                  });
+                  setDeletePreview(preview);
+                } else {
+                  setDeletePreview([]);
+                }
+              } catch { setDeletePreview([]); }
+              finally { setLoadingPreview(false); }
+            }}>
               <Trash2 className="w-4 h-4" /> Apagar ({selectedIds.size})
             </Button>
           )}
