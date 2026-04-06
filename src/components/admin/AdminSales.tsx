@@ -678,17 +678,42 @@ const AdminSales = () => {
 
       {/* Delete confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Apagar {selectedIds.size} venda(s)?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Essa ação não pode ser desfeita. Todos os itens dessas vendas também serão removidos.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>Essa ação não pode ser desfeita. Os produtos abaixo terão o estoque restaurado:</p>
+                {loadingPreview ? (
+                  <p className="text-xs text-muted-foreground">Carregando...</p>
+                ) : deletePreview && deletePreview.length > 0 ? (
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {deletePreview.map((p, i) => (
+                      <div key={i} className="bg-muted rounded-lg p-3 text-sm">
+                        <p className="font-medium text-foreground truncate">{p.name}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs">
+                          <span className="text-destructive font-mono">Estoque: {p.currentStock}</span>
+                          <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-primary font-mono font-bold">Estoque: {p.newStock}</span>
+                        </div>
+                        {p.willReactivate && (
+                          <Badge variant="outline" className="mt-1 text-[10px] border-primary text-primary">
+                            Será reativado
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Nenhum produto para restaurar.</p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSelected} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleting ? "Apagando..." : "Apagar"}
+            <AlertDialogAction onClick={handleDeleteSelected} disabled={deleting || loadingPreview} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Apagando..." : "Confirmar e Apagar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
