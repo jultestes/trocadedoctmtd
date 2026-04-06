@@ -113,9 +113,9 @@ const Category = () => {
   const { addItem, setProductSheetOpen } = useCart();
   const isMobile = useIsMobile();
 
-  useEffect(() => { trackPageView(); }, [slug, selectedAge]);
-
   const selectedAge = searchParams.get("idade") || null;
+
+  useEffect(() => { trackPageView(); }, [slug, selectedAge]);
   const selectedCatSlug = searchParams.get("cat") || null;
 
   const handleAddToCart = useCallback((product: Product) => {
