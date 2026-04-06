@@ -13,6 +13,27 @@ import FloatingCartBadge from "@/components/FloatingCartBadge";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 
+declare global {
+  interface Window {
+    __vitePreloadErrorHandlerAdded?: boolean;
+  }
+}
+
+if (typeof window !== "undefined" && !window.__vitePreloadErrorHandlerAdded) {
+  window.__vitePreloadErrorHandlerAdded = true;
+  window.addEventListener("vite:preloadError", (event) => {
+    event.preventDefault();
+
+    const retryKey = "vite-preload-retried";
+    const alreadyRetried = window.sessionStorage.getItem(retryKey) === "1";
+
+    if (!alreadyRetried) {
+      window.sessionStorage.setItem(retryKey, "1");
+      window.location.reload();
+    }
+  });
+}
+
 // Lazy load all non-home routes
 const Auth = lazy(() => import("./pages/Auth"));
 const CategoryPage = lazy(() => import("./pages/Category"));
