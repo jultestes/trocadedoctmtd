@@ -62,6 +62,8 @@ const AdminSales = () => {
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deletePreview, setDeletePreview] = useState<{name: string; currentStock: number; newStock: number; willReactivate: boolean}[] | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
   const [invoiceSale, setInvoiceSale] = useState<Sale | null>(null);
   const [deliveryCostInputs, setDeliveryCostInputs] = useState<Record<string, string>>({});
   const getDateRange = () => {
