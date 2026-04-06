@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2, Plus, MapPin, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, Plus, MapPin, Pencil, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,7 @@ const AdminFrete = () => {
   const [editPrice, setEditPrice] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
 
   const { data: neighborhoods = [], isLoading } = useQuery({
@@ -113,8 +114,11 @@ const AdminFrete = () => {
     setEditOpen(true);
   };
 
-  const totalPages = Math.ceil(neighborhoods.length / ITEMS_PER_PAGE);
-  const paginatedNeighborhoods = neighborhoods.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const filtered = neighborhoods.filter((n) =>
+    n.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginatedNeighborhoods = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const getPageNumbers = () => {
     const pages: number[] = [];
@@ -149,7 +153,17 @@ const AdminFrete = () => {
               <Button type="submit" className="w-full" disabled={addMutation.isPending}>Adicionar</Button>
             </form>
           </DialogContent>
-        </Dialog>
+      </Dialog>
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar bairro..."
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          className="pl-9"
+        />
       </div>
 
       {/* Edit Dialog */}
