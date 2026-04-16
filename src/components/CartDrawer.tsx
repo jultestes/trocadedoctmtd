@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import {
   AlertDialog,
@@ -7,14 +7,30 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Ticket, X, Check, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useCoupon } from "@/hooks/useCoupon";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
+  const { coupon, applyByCode, remove: removeCoupon, loading: couponLoading } = useCoupon();
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+
+  useEffect(() => {
+    if (coupon?.utm_code) setCouponInput(coupon.utm_code);
+  }, [coupon?.utm_code]);
+
+  const handleApplyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    const res = await applyByCode(couponInput.trim());
+    if (res.ok) toast.success(res.message);
+    else toast.error(res.message);
+  };
 
   const handleCheckout = () => {
     setShowConfirm(false);
