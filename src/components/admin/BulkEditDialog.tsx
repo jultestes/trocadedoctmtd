@@ -219,7 +219,7 @@ const BulkEditDialog = ({ open, onOpenChange, productIds, onSaved }: Props) => {
           active: item.active,
           price: parseFloat(item.price) || 0,
         };
-        const { error } = await supabase.from("products").update(payload).eq("id", item.id);
+        const { error } = await supabase.from("products").update(payload as any).eq("id", item.id);
         if (error) throw error;
 
         // Update categories
