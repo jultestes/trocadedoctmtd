@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
+import { CouponProvider } from "@/hooks/useCoupon";
 import { SiteSettingsProvider } from "@/hooks/useSiteSettings";
 import CartDrawer from "@/components/CartDrawer";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
@@ -63,26 +64,28 @@ const App = () => (
         <AuthProvider>
           <SiteSettingsProvider>
             <CartProvider>
-              <CartDrawer />
-              <FloatingCartBadge />
-              <Suspense fallback={<Loading />}>
-                <Routes>
-                  <Route path="/" element={<MaintenanceGuard><Index /></MaintenanceGuard>} />
-                  <Route path="/categoria/:slug" element={<MaintenanceGuard><CategoryPage /></MaintenanceGuard>} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/checkout" element={<MaintenanceGuard><Checkout /></MaintenanceGuard>} />
-                  <Route path="/checkout-whatsapp" element={<MaintenanceGuard><WhatsAppCheckout /></MaintenanceGuard>} />
-                  <Route path="/pagamento-concluido" element={<PaymentSuccess />} />
-                  <Route path="/pedido-recebido" element={<PaymentSuccess />} />
-                  <Route path="/acompanhar-pedido" element={<OrderTracking />} />
-                  <Route path="/admin" element={
-                    <Suspense fallback={<Loading />}>
-                      <AdminGuard><Admin /></AdminGuard>
-                    </Suspense>
-                  } />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+              <CouponProvider>
+                <CartDrawer />
+                <FloatingCartBadge />
+                <Suspense fallback={<Loading />}>
+                  <Routes>
+                    <Route path="/" element={<MaintenanceGuard><Index /></MaintenanceGuard>} />
+                    <Route path="/categoria/:slug" element={<MaintenanceGuard><CategoryPage /></MaintenanceGuard>} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/checkout" element={<MaintenanceGuard><Checkout /></MaintenanceGuard>} />
+                    <Route path="/checkout-whatsapp" element={<MaintenanceGuard><WhatsAppCheckout /></MaintenanceGuard>} />
+                    <Route path="/pagamento-concluido" element={<PaymentSuccess />} />
+                    <Route path="/pedido-recebido" element={<PaymentSuccess />} />
+                    <Route path="/acompanhar-pedido" element={<OrderTracking />} />
+                    <Route path="/admin" element={
+                      <Suspense fallback={<Loading />}>
+                        <AdminGuard><Admin /></AdminGuard>
+                      </Suspense>
+                    } />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </CouponProvider>
             </CartProvider>
           </SiteSettingsProvider>
         </AuthProvider>
