@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getFunctionUrl } from "@/lib/supabase-url";
 import { toast } from "sonner";
 
 interface ImageUploaderProps {
@@ -24,9 +25,8 @@ export default function ImageUploader({ value, onChange, folder = "banners", lab
       formData.append("file", file);
       formData.append("folder", folder);
 
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/r2-upload?action=upload`,
+        getFunctionUrl("r2-upload", "action=upload"),
         {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}` },
