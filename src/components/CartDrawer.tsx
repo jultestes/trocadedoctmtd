@@ -131,6 +131,52 @@ const CartDrawer = () => {
             </div>
 
             <div className="border-t border-border pt-4 space-y-3">
+              {/* Coupon section */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <Ticket className="w-3.5 h-3.5" /> Cupom de desconto
+                </label>
+                {coupon ? (
+                  <div className="flex items-center justify-between gap-2 bg-primary/5 border border-primary/30 rounded-md px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Check className="w-4 h-4 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate">{coupon.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {coupon.min_quantity} por R$ {Number(coupon.bundle_price).toFixed(2).replace(".", ",")}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { removeCoupon(); setCouponInput(""); }}
+                      className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                      aria-label="Remover cupom"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Digite o código"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                      className="h-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="h-10 shrink-0"
+                    >
+                      {couponLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aplicar"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-foreground">Subtotal</span>
                 <span className="text-xl font-bold text-foreground">
