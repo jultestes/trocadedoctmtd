@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, X, Ticket } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Ticket, Copy, Link as LinkIcon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { slugifyUtm, COUPON_PARAM } from "@/lib/coupon";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -20,6 +21,14 @@ type Coupon = {
   bundle_price: number;
   active: boolean;
   created_at: string;
+  utm_code: string | null;
+};
+
+const SITE_URL = "https://tmtdkids.vercel.app/";
+
+const buildCouponLink = (utm: string) => {
+  const base = SITE_URL.endsWith("/") ? SITE_URL : `${SITE_URL}/`;
+  return `${base}?${COUPON_PARAM}=${encodeURIComponent(utm)}`;
 };
 
 const AdminCoupons = () => {
@@ -35,23 +44,34 @@ const AdminCoupons = () => {
   const [description, setDescription] = useState("");
   const [minQuantity, setMinQuantity] = useState(3);
   const [bundlePrice, setBundlePrice] = useState(100);
+  const [utmCode, setUtmCode] = useState("");
+  const [utmTouched, setUtmTouched] = useState(false);
 
   const fetchCoupons = async () => {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("coupons")
       .select("*")
       .order("created_at", { ascending: false });
-    if (!error && data) setCoupons(data);
+    if (!error && data) setCoupons(data as Coupon[]);
     setLoading(false);
   };
 
   useEffect(() => { fetchCoupons(); }, []);
+
+  // Auto-generate UTM from name unless user manually edited it
+  useEffect(() => {
+    if (!utmTouched) {
+      setUtmCode(slugifyUtm(name));
+    }
+  }, [name, utmTouched]);
 
   const resetForm = () => {
     setName("");
     setDescription("");
     setMinQuantity(3);
     setBundlePrice(100);
+    setUtmCode("");
+    setUtmTouched(false);
     setEditingId(null);
     setShowForm(false);
   };
@@ -61,6 +81,8 @@ const AdminCoupons = () => {
     setDescription(c.description || "");
     setMinQuantity(c.min_quantity);
     setBundlePrice(c.bundle_price);
+    setUtmCode(c.utm_code || slugifyUtm(c.name));
+    setUtmTouched(true); // preserve existing utm
     setEditingId(c.id);
     setShowForm(true);
   };
@@ -70,6 +92,11 @@ const AdminCoupons = () => {
       toast({ title: "Nome é obrigatório", variant: "destructive" });
       return;
     }
+    const finalUtm = slugifyUtm(utmCode || name);
+    if (!finalUtm) {
+      toast({ title: "UTM inválida", variant: "destructive" });
+      return;
+    }
 
     const payload = {
       name: name.trim(),
@@ -77,19 +104,20 @@ const AdminCoupons = () => {
       coupon_type: "bundle_price",
       min_quantity: minQuantity,
       bundle_price: bundlePrice,
+      utm_code: finalUtm,
     };
 
     if (editingId) {
-      const { error } = await supabase.from("coupons").update(payload).eq("id", editingId);
+      const { error } = await (supabase as any).from("coupons").update(payload).eq("id", editingId);
       if (error) {
-        toast({ title: "Erro ao atualizar cupom", variant: "destructive" });
+        toast({ title: "Erro ao atualizar cupom", description: error.message, variant: "destructive" });
         return;
       }
       toast({ title: "Cupom atualizado!" });
     } else {
-      const { error } = await supabase.from("coupons").insert(payload);
+      const { error } = await (supabase as any).from("coupons").insert(payload);
       if (error) {
-        toast({ title: "Erro ao criar cupom", variant: "destructive" });
+        toast({ title: "Erro ao criar cupom", description: error.message, variant: "destructive" });
         return;
       }
       toast({ title: "Cupom criado!" });
@@ -111,6 +139,21 @@ const AdminCoupons = () => {
   const toggleActive = async (id: string, active: boolean) => {
     await supabase.from("coupons").update({ active: !active }).eq("id", id);
     fetchCoupons();
+  };
+
+  const copyLink = async (utm: string | null, fallbackName: string) => {
+    const code = utm || slugifyUtm(fallbackName);
+    if (!code) {
+      toast({ title: "Cupom sem UTM definida", variant: "destructive" });
+      return;
+    }
+    const link = buildCouponLink(code);
+    try {
+      await navigator.clipboard.writeText(link);
+      toast({ title: "Link copiado!", description: link });
+    } catch {
+      toast({ title: "Falha ao copiar", description: link, variant: "destructive" });
+    }
   };
 
   if (loading) return <p className="text-muted-foreground">Carregando cupons...</p>;
@@ -172,6 +215,28 @@ const AdminCoupons = () => {
                 onChange={(e) => setBundlePrice(Number(e.target.value))}
               />
             </div>
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                UTM do cupom <span className="text-muted-foreground/70 font-normal">(usada na URL: ?{COUPON_PARAM}=...)</span>
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="combo-familia"
+                  value={utmCode}
+                  onChange={(e) => { setUtmTouched(true); setUtmCode(slugifyUtm(e.target.value)); }}
+                />
+                {utmTouched && (
+                  <Button type="button" variant="outline" onClick={() => { setUtmTouched(false); setUtmCode(slugifyUtm(name)); }}>
+                    Auto
+                  </Button>
+                )}
+              </div>
+              {utmCode && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 break-all">
+                  <LinkIcon className="w-3 h-3 shrink-0" /> {buildCouponLink(utmCode)}
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2 justify-end">
@@ -196,10 +261,15 @@ const AdminCoupons = () => {
                 !c.active ? "opacity-60" : ""
               }`}
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Ticket className="w-4 h-4 text-primary" />
                   <span className="font-semibold text-foreground">{c.name}</span>
+                  {c.utm_code && (
+                    <span className="text-[10px] font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                      ?{COUPON_PARAM}={c.utm_code}
+                    </span>
+                  )}
                   {!c.active && (
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">
                       Inativo
@@ -215,6 +285,9 @@ const AdminCoupons = () => {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => copyLink(c.utm_code, c.name)}>
+                  <Copy className="w-3.5 h-3.5" /> Copiar link
+                </Button>
                 <Switch
                   checked={c.active}
                   onCheckedChange={() => toggleActive(c.id, c.active)}
