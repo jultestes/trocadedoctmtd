@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, X, Upload, Loader2, ChevronDown, Camera, ImageIcon, Images, ChevronLeft, ChevronRight, Search, Filter } from "lucide-react";
 import MultiUploadDialog from "@/components/admin/MultiUploadDialog";
 import BulkEditDialog from "@/components/admin/BulkEditDialog";
+import { getFunctionUrl, SUPABASE_ANON_KEY } from "@/lib/supabase-url";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -369,13 +370,13 @@ const AdminProducts = () => {
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       try {
-        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload?action=upload`, {
+        const res = await fetch(getFunctionUrl("r2-upload", "action=upload"), {
           method: "POST",
           body: formData,
           signal: controller.signal,
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: SUPABASE_ANON_KEY,
           },
         });
 
