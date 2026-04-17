@@ -133,7 +133,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
     if (isMobile) {
       const bsProduct: BottomSheetProduct = {
         ...product,
-        extraImages: [],
+        extraImages: product.extraImages,
       };
       setSheetProduct(bsProduct);
       setProductSheetOpen(true);
@@ -157,7 +157,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
     const fetchProducts = async () => {
       let query = supabase
         .from("products")
-        .select("id, name, brand, image_url, old_price, price, discount, sizes, sku, stock")
+        .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(maxCount);
@@ -178,6 +178,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
           name: p.name,
           brand: p.brand || "",
           image: p.image_url || "",
+          extraImages: p.extra_images || [],
           oldPrice: p.old_price ? Number(p.old_price) : null,
           price: Number(p.price),
           discount: p.discount || 0,
