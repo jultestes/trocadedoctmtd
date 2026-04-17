@@ -3,6 +3,7 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag, Minus, Plus } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import ProductImageCarousel from "@/components/ProductImageCarousel";
 
 export type BottomSheetProduct = {
   id: string;
@@ -76,23 +77,24 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
           </div>
 
           <div className="overflow-y-auto flex-1">
-            {/* Product Images */}
-            <div className="relative">
-              <div className="aspect-square bg-muted">
-                <img
-                  src={allImages[imgIdx] || product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                />
-              </div>
+            {/* Product Images - swipeable carousel */}
+            <div className="relative aspect-square bg-muted">
+              <ProductImageCarousel
+                images={allImages}
+                alt={product.name}
+                eager
+                showArrows={false}
+                showDots
+                optimized={false}
+                sizes="100vw"
+              />
               {product.discount > 0 && (
-                <span className="absolute top-3 left-3 bg-badge-discount text-accent-foreground text-xs font-bold px-2.5 py-1 rounded-full">
+                <span className="absolute top-3 left-3 bg-badge-discount text-accent-foreground text-xs font-bold px-2.5 py-1 rounded-full z-10">
                   {product.discount}% OFF
                 </span>
               )}
               {isUnique && (
-                <span className="absolute top-3 right-3 bg-destructive text-destructive-foreground text-xs font-bold px-2.5 py-1 rounded-full animate-pulse">
+                <span className="absolute top-3 right-3 bg-destructive text-destructive-foreground text-xs font-bold px-2.5 py-1 rounded-full animate-pulse z-10">
                   PEÇA ÚNICA
                 </span>
               )}

@@ -10,7 +10,7 @@ import FeaturesBar from "@/components/FeaturesBar";
 import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
-import OptimizedImage from "@/components/OptimizedImage";
+import ProductImageCarousel from "@/components/ProductImageCarousel";
 import { useCart } from "@/hooks/useCart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -63,6 +63,7 @@ type Product = {
   name: string;
   brand: string;
   image: string;
+  extraImages: string[];
   oldPrice: number | null;
   price: number;
   discount: number;
@@ -125,7 +126,7 @@ const Category = () => {
         name: product.name,
         brand: product.brand,
         image: product.image,
-        extraImages: [],
+        extraImages: product.extraImages,
         oldPrice: product.oldPrice,
         price: product.price,
         discount: product.discount,
@@ -199,7 +200,7 @@ const Category = () => {
       if (productIds.length > 0) {
         const { data: prodData } = await supabase
           .from("products")
-          .select("id, name, brand, image_url, old_price, price, discount, sizes, sku, stock")
+          .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
           .in("id", productIds)
           .eq("active", true)
           .order("created_at", { ascending: false });
@@ -211,6 +212,7 @@ const Category = () => {
               name: p.name,
               brand: p.brand || "",
               image: p.image_url || "",
+              extraImages: p.extra_images || [],
               oldPrice: p.old_price ? Number(p.old_price) : null,
               price: Number(p.price),
               discount: p.discount || 0,
@@ -400,34 +402,30 @@ const Category = () => {
                 className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border flex flex-col"
               >
                 <div className="relative overflow-hidden aspect-[3/4]">
-                  <OptimizedImage
-                    src={product.image}
+                  <ProductImageCarousel
+                    images={[product.image, ...product.extraImages]}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    eager={index < 4}
+                    optimized
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                    widths={[240, 360, 480, 720]}
-                    transformWidth={480}
-                    quality={45}
-                    loading={index < 4 ? "eager" : "lazy"}
-                    fetchPriority={index < 2 ? "high" : "low"}
-                    decoding="async"
+                    onImageClick={() => handleAddToCart(product)}
                   />
                   {product.discount > 0 && (
-                    <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                       {product.discount}% OFF
                     </span>
                   )}
                   {product.stock === 1 && (
-                    <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                    <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse z-10">
                       PEÇA ÚNICA
                     </span>
                   )}
                   {product.stock > 1 && (
-                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                       {product.stock} em estoque
                     </span>
                   )}
-                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1 z-10 pointer-events-none">
                     {product.sizes.map((size) => (
                       <span
                         key={size}
