@@ -402,34 +402,30 @@ const Category = () => {
                 className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border flex flex-col"
               >
                 <div className="relative overflow-hidden aspect-[3/4]">
-                  <OptimizedImage
-                    src={product.image}
+                  <ProductImageCarousel
+                    images={[product.image, ...product.extraImages]}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    eager={index < 4}
+                    optimized
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                    widths={[240, 360, 480, 720]}
-                    transformWidth={480}
-                    quality={45}
-                    loading={index < 4 ? "eager" : "lazy"}
-                    fetchPriority={index < 2 ? "high" : "low"}
-                    decoding="async"
+                    onImageClick={() => handleAddToCart(product)}
                   />
                   {product.discount > 0 && (
-                    <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 left-2 bg-badge-discount text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                       {product.discount}% OFF
                     </span>
                   )}
                   {product.stock === 1 && (
-                    <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+                    <span className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse z-10">
                       PEÇA ÚNICA
                     </span>
                   )}
                   {product.stock > 1 && (
-                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
                       {product.stock} em estoque
                     </span>
                   )}
-                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1">
+                  <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1 z-10 pointer-events-none">
                     {product.sizes.map((size) => (
                       <span
                         key={size}
