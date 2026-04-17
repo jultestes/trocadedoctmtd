@@ -10,7 +10,7 @@ import FeaturesBar from "@/components/FeaturesBar";
 import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
-import OptimizedImage from "@/components/OptimizedImage";
+import ProductImageCarousel from "@/components/ProductImageCarousel";
 import { useCart } from "@/hooks/useCart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
