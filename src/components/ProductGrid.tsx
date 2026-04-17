@@ -43,7 +43,7 @@ function detectCategory(sizes: string[] | null): "meninas" | "meninos" {
 
 const ProductCard = memo(({ product, onClick, index }: { product: Product; onClick: () => void; index: number }) => {
   const isEager = index < 4;
-  const allImages = [product.image, ...product.extraImages].filter(Boolean);
+  const allImages = [product.image, ...(product.extraImages || [])].filter(Boolean);
 
   return (
     <div className="group bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow border border-border shrink-0 w-[180px] md:w-[220px] flex flex-col">
