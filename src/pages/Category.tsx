@@ -126,7 +126,7 @@ const Category = () => {
         name: product.name,
         brand: product.brand,
         image: product.image,
-        extraImages: [],
+        extraImages: product.extraImages,
         oldPrice: product.oldPrice,
         price: product.price,
         discount: product.discount,
