@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
+import ProductImageCarousel from "@/components/ProductImageCarousel";
 import { useCart } from "@/hooks/useCart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -12,6 +13,7 @@ type Product = {
   name: string;
   brand: string;
   image: string;
+  extraImages: string[];
   oldPrice: number | null;
   price: number;
   discount: number;
