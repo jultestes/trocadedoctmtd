@@ -63,6 +63,7 @@ type Product = {
   name: string;
   brand: string;
   image: string;
+  extraImages: string[];
   oldPrice: number | null;
   price: number;
   discount: number;
