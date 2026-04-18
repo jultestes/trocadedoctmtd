@@ -26,19 +26,21 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   const [themeColors, setThemeColors] = useState<ThemeColors | null>(null);
   const [logoUrl, setLogoUrl] = useState("");
   const [topbarTexts, setTopbarTexts] = useState<TopbarText[]>([]);
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = () => {
     supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["theme_colors", "site_logo", "topbar_texts"])
+      .in("key", ["theme_colors", "site_logo", "topbar_texts", "maintenance"])
       .then(({ data }) => {
         if (data) {
           for (const row of data) {
             if (row.key === "theme_colors") setThemeColors(row.value as unknown as ThemeColors);
             if (row.key === "site_logo") setLogoUrl((row.value as any)?.url || "");
             if (row.key === "topbar_texts") setTopbarTexts(row.value as unknown as TopbarText[]);
+            if (row.key === "maintenance") setMaintenanceEnabled(!!(row.value as any)?.enabled);
           }
         }
         setLoading(false);
@@ -59,7 +61,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
   }, [themeColors]);
 
   return (
-    <SiteSettingsContext.Provider value={{ themeColors, logoUrl, topbarTexts, loading, refresh: load }}>
+    <SiteSettingsContext.Provider value={{ themeColors, logoUrl, topbarTexts, maintenanceEnabled, loading, refresh: load }}>
       {children}
     </SiteSettingsContext.Provider>
   );
