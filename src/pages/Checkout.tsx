@@ -230,13 +230,26 @@ const Checkout = () => {
       const phoneDigits = telefone.replace(/\D/g, "");
       const redirectUrl = `${window.location.origin}/pedido-recebido`;
 
+      // Scale item prices proportionally so InfinitePay receives the discounted total
+      const scale = totalPrice > 0 ? subtotalAfterCoupon / totalPrice : 1;
+      const scaledItems = items.map((item) => ({
+        description: `${item.brand} - ${item.name} (Tam: ${item.size})`,
+        quantity: item.quantity,
+        price: Math.round(item.price * scale * 100) / 100,
+      }));
+      // Adjust rounding drift on the first item so the sum matches subtotalAfterCoupon exactly
+      if (scaledItems.length > 0) {
+        const sumScaled = scaledItems.reduce((s, it) => s + it.price * it.quantity, 0);
+        const drift = Math.round((subtotalAfterCoupon - sumScaled) * 100) / 100;
+        if (drift !== 0) {
+          const first = scaledItems[0];
+          first.price = Math.round((first.price + drift / first.quantity) * 100) / 100;
+        }
+      }
+
       const payload: Record<string, unknown> = {
         items: [
-          ...items.map((item) => ({
-            description: `${item.brand} - ${item.name} (Tam: ${item.size})`,
-            quantity: item.quantity,
-            price: item.price,
-          })),
+          ...scaledItems,
           ...(shippingPrice > 0
             ? [{ description: "Frete", quantity: 1, price: shippingPrice }]
             : []),
