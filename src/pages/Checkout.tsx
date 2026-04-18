@@ -120,7 +120,7 @@ const Checkout = () => {
     return match ? Number(match.price) : DEFAULT_SHIPPING;
   })();
 
-  const grandTotal = totalPrice + shippingPrice;
+  const grandTotal = subtotalAfterCoupon + shippingPrice;
 
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 8);
@@ -182,7 +182,7 @@ const Checkout = () => {
       _customer_email: email.trim(),
       _customer_phone: phoneDigits,
       _total_original: totalPrice,
-      _discount: 0,
+      _discount: couponDiscount,
       _total_paid: grandTotal,
       _shipping_price: shippingPrice,
       _payment_method: paymentMethod,
