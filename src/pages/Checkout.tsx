@@ -9,6 +9,8 @@ import { MapPin, Search, Loader2, Truck, ShoppingBag, User, Check, Store, Chevro
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
+import { useCoupon } from "@/hooks/useCoupon";
+import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 
@@ -30,6 +32,10 @@ type PaymentMethod = "pix" | "credit_card" | "cash";
 
 const Checkout = () => {
   const { items, totalPrice, totalItems, clearCart } = useCart();
+  const { coupon } = useCoupon();
+  const couponCalc = calculateCouponDiscount(items, coupon);
+  const subtotalAfterCoupon = couponCalc.finalTotal;
+  const couponDiscount = couponCalc.discount;
   const navigate = useNavigate();
   const checkoutTopRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -40,7 +46,7 @@ const Checkout = () => {
     checkoutTopRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
   }, []);
 
-  useEffect(() => { trackInitiateCheckout({ value: totalPrice, currency: "BRL", num_items: totalItems }); }, []);
+  useEffect(() => { trackInitiateCheckout({ value: subtotalAfterCoupon, currency: "BRL", num_items: totalItems }); }, []);
 
   const [step, setStep] = useState(1);
 
@@ -114,7 +120,7 @@ const Checkout = () => {
     return match ? Number(match.price) : DEFAULT_SHIPPING;
   })();
 
-  const grandTotal = totalPrice + shippingPrice;
+  const grandTotal = subtotalAfterCoupon + shippingPrice;
 
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 8);
@@ -176,7 +182,7 @@ const Checkout = () => {
       _customer_email: email.trim(),
       _customer_phone: phoneDigits,
       _total_original: totalPrice,
-      _discount: 0,
+      _discount: couponDiscount,
       _total_paid: grandTotal,
       _shipping_price: shippingPrice,
       _payment_method: paymentMethod,
@@ -224,13 +230,26 @@ const Checkout = () => {
       const phoneDigits = telefone.replace(/\D/g, "");
       const redirectUrl = `${window.location.origin}/pedido-recebido`;
 
+      // Scale item prices proportionally so InfinitePay receives the discounted total
+      const scale = totalPrice > 0 ? subtotalAfterCoupon / totalPrice : 1;
+      const scaledItems = items.map((item) => ({
+        description: `${item.brand} - ${item.name} (Tam: ${item.size})`,
+        quantity: item.quantity,
+        price: Math.round(item.price * scale * 100) / 100,
+      }));
+      // Adjust rounding drift on the first item so the sum matches subtotalAfterCoupon exactly
+      if (scaledItems.length > 0) {
+        const sumScaled = scaledItems.reduce((s, it) => s + it.price * it.quantity, 0);
+        const drift = Math.round((subtotalAfterCoupon - sumScaled) * 100) / 100;
+        if (drift !== 0) {
+          const first = scaledItems[0];
+          first.price = Math.round((first.price + drift / first.quantity) * 100) / 100;
+        }
+      }
+
       const payload: Record<string, unknown> = {
         items: [
-          ...items.map((item) => ({
-            description: `${item.brand} - ${item.name} (Tam: ${item.size})`,
-            quantity: item.quantity,
-            price: item.price,
-          })),
+          ...scaledItems,
           ...(shippingPrice > 0
             ? [{ description: "Frete", quantity: 1, price: shippingPrice }]
             : []),
@@ -606,6 +625,14 @@ const Checkout = () => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="text-foreground font-medium">R$ {totalPrice.toFixed(2).replace(".", ",")}</span>
               </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    Desconto cupom {coupon?.name && <span className="text-primary font-medium">({coupon.name})</span>}
+                  </span>
+                  <span className="font-semibold text-primary">− R$ {couponDiscount.toFixed(2).replace(".", ",")}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   {deliveryType === "delivery" ? `Frete (${bairro})` : "Frete (retirada)"}
