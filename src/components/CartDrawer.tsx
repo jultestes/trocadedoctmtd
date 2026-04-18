@@ -11,12 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, Ticket, X, Check, Loader2 } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useCoupon } from "@/hooks/useCoupon";
+import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const CartDrawer = () => {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, totalItems } = useCart();
   const { coupon, applyByCode, remove: removeCoupon, loading: couponLoading } = useCoupon();
+  const couponCalc = calculateCouponDiscount(items, coupon);
   const navigate = useNavigate();
   const [showConfirm, setShowConfirm] = useState(false);
   const [couponInput, setCouponInput] = useState("");
