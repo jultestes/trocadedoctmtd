@@ -625,6 +625,14 @@ const Checkout = () => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="text-foreground font-medium">R$ {totalPrice.toFixed(2).replace(".", ",")}</span>
               </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    Desconto cupom {coupon?.name && <span className="text-primary font-medium">({coupon.name})</span>}
+                  </span>
+                  <span className="font-semibold text-primary">− R$ {couponDiscount.toFixed(2).replace(".", ",")}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   {deliveryType === "delivery" ? `Frete (${bairro})` : "Frete (retirada)"}
