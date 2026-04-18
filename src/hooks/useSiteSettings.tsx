@@ -6,6 +6,7 @@ interface SiteSettingsContextValue {
   themeColors: ThemeColors | null;
   logoUrl: string;
   topbarTexts: TopbarText[];
+  maintenanceEnabled: boolean;
   loading: boolean;
   refresh: () => void;
 }
@@ -14,6 +15,7 @@ const defaultCtx: SiteSettingsContextValue = {
   themeColors: null,
   logoUrl: "",
   topbarTexts: [],
+  maintenanceEnabled: false,
   loading: true,
   refresh: () => {},
 };
