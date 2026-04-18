@@ -46,7 +46,7 @@ const Checkout = () => {
     checkoutTopRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
   }, []);
 
-  useEffect(() => { trackInitiateCheckout({ value: totalPrice, currency: "BRL", num_items: totalItems }); }, []);
+  useEffect(() => { trackInitiateCheckout({ value: subtotalAfterCoupon, currency: "BRL", num_items: totalItems }); }, []);
 
   const [step, setStep] = useState(1);
 
