@@ -1,10 +1,12 @@
 import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 
 const FloatingCartBadge = () => {
   const { totalItems, isOpen, setIsOpen, productSheetOpen } = useCart();
+  const { maintenanceEnabled } = useSiteSettings();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const prevItems = useRef(totalItems);
@@ -31,7 +33,7 @@ const FloatingCartBadge = () => {
     }
   }, [isOpen, totalItems]);
 
-  if (totalItems === 0 || isOpen || location.pathname === "/checkout" || location.pathname === "/admin" || productSheetOpen) return null;
+  if (maintenanceEnabled || totalItems === 0 || isOpen || location.pathname === "/checkout" || location.pathname === "/admin" || productSheetOpen) return null;
 
   return (
     <button
