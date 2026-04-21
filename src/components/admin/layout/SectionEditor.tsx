@@ -5,10 +5,35 @@ import { Settings2, X, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { sectionLabel } from "./constants";
 import type { LayoutSection, BannerSlide, FeatureItem, PromoStripItem, ShortcutCard, SecondaryBannerSlide, MiniBannerItem, MiniBannerWidth } from "./types";
 import { DEFAULT_FEATURES, DEFAULT_BANNERS } from "./constants";
+import {
+  HERO_ASPECT_PRESETS_DESKTOP, HERO_ASPECT_PRESETS_MOBILE,
+  SECONDARY_ASPECT_PRESETS_DESKTOP, SECONDARY_ASPECT_PRESETS_MOBILE,
+  MINI_ASPECT_PRESETS, type AspectPreset,
+} from "./aspectPresets";
 import IconPicker from "./IconPicker";
 import ImageUploader from "./ImageUploader";
 import ProductPicker from "./ProductPicker";
 import ColorPickerField from "./ColorPickerField";
+
+function AspectSelect({
+  label, value, presets, defaultLabel, onChange,
+}: { label: string; value?: string; presets: AspectPreset[]; defaultLabel: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</label>
+      <select
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        className="mt-1 h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+      >
+        <option value="">{defaultLabel}</option>
+        {presets.map((p) => (
+          <option key={p.value} value={p.value}>{p.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
 
 interface SectionEditorProps {
   section: LayoutSection;
@@ -208,6 +233,23 @@ function BannerEditor({ banners, onChange }: { banners: BannerSlide[]; onChange:
                 placeholder="199 30% 68%"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <AspectSelect
+              label="Tamanho desktop"
+              value={banner.aspect_desktop}
+              presets={HERO_ASPECT_PRESETS_DESKTOP}
+              defaultLabel="Padrão (16/5)"
+              onChange={(v) => update(i, "aspect_desktop", v)}
+            />
+            <AspectSelect
+              label="Tamanho mobile"
+              value={banner.aspect_mobile}
+              presets={HERO_ASPECT_PRESETS_MOBILE}
+              defaultLabel="Padrão (4/5)"
+              onChange={(v) => update(i, "aspect_mobile", v)}
+            />
           </div>
 
           {/* Toggle: texto sobre banner vs clicável */}
@@ -439,6 +481,22 @@ function SecondaryBannerCarouselEditor({
             <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
             <ColorPickerField value={s.bg_color ?? ""} onChange={(v) => update(i, "bg_color", v)} size="sm" placeholder="332 60% 80%" />
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <AspectSelect
+              label="Tamanho desktop"
+              value={s.aspect_desktop}
+              presets={SECONDARY_ASPECT_PRESETS_DESKTOP}
+              defaultLabel="Padrão (16/5)"
+              onChange={(v) => update(i, "aspect_desktop", v)}
+            />
+            <AspectSelect
+              label="Tamanho mobile"
+              value={s.aspect_mobile}
+              presets={SECONDARY_ASPECT_PRESETS_MOBILE}
+              defaultLabel="Padrão (16/6)"
+              onChange={(v) => update(i, "aspect_mobile", v)}
+            />
+          </div>
         </div>
       ))}
     </div>
@@ -520,6 +578,22 @@ function MiniBannersEditor({
           <div>
             <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
             <ColorPickerField value={item.bg_color ?? ""} onChange={(v) => update(i, "bg_color", v)} size="sm" placeholder="199 80% 90%" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <AspectSelect
+              label="Tamanho desktop"
+              value={item.aspect_desktop}
+              presets={MINI_ASPECT_PRESETS}
+              defaultLabel="Padrão (16/9)"
+              onChange={(v) => update(i, "aspect_desktop", v)}
+            />
+            <AspectSelect
+              label="Tamanho mobile"
+              value={item.aspect_mobile}
+              presets={MINI_ASPECT_PRESETS}
+              defaultLabel="Igual ao desktop"
+              onChange={(v) => update(i, "aspect_mobile", v)}
+            />
           </div>
         </div>
       ))}

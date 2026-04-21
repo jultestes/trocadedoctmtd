@@ -41,13 +41,22 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
     return slide.image_url;
   };
 
+  const currentSlide = slides[current];
+  const currentAspect =
+    (isMobile ? currentSlide?.aspect_mobile : currentSlide?.aspect_desktop) ||
+    (isMobile ? "4/5" : "16/5");
+
   return (
-    <section className="relative w-full overflow-hidden" style={{ aspectRatio: isMobile ? "4/5" : "16/5" }}>
-      {slides.map((slide, i) => (
+    <section className="relative w-full overflow-hidden" style={{ aspectRatio: currentAspect }}>
+      {slides.map((slide, i) => {
+        const slideAspect =
+          (isMobile ? slide.aspect_mobile : slide.aspect_desktop) ||
+          (isMobile ? "4/5" : "16/5");
+        return (
         <div
           key={i}
           className={`${i === current ? "relative" : "absolute inset-0"} transition-opacity duration-700 ${i === current ? "opacity-100" : "opacity-0 pointer-events-none"} ${slide.clickable && slide.link ? "cursor-pointer" : ""}`}
-          style={{ aspectRatio: isMobile ? "4/5" : "16/5" }}
+          style={{ aspectRatio: slideAspect }}
           onClick={() => handleBannerClick(slide)}
         >
           {getImageUrl(slide) ? (
@@ -61,7 +70,7 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
             />
           ) : (
             <div
-              className="w-full aspect-[16/5]"
+              className="w-full h-full"
               style={{ backgroundColor: slide.bg_color ? `hsl(${slide.bg_color})` : "hsl(var(--primary))" }}
             />
           )}
@@ -93,7 +102,8 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
             </>
           )}
         </div>
-      ))}
+        );
+      })}
 
       {slides.length > 1 && (
         <>

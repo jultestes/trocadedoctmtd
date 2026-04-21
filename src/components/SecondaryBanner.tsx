@@ -61,10 +61,16 @@ const SecondaryBanner = (props: SecondaryBannerProps) => {
       <div className="container">
         <div className="relative">
           {slides.map((slide, i) => {
+            const aspect =
+              (isMobile ? slide.aspect_mobile : slide.aspect_desktop) ||
+              (isMobile ? "16/6" : "16/5");
             const content = (
               <div
-                className="relative overflow-hidden rounded-3xl aspect-[16/6] md:aspect-[16/5] shadow-sm"
-                style={{ backgroundColor: slide.bg_color ? `hsl(${slide.bg_color})` : undefined }}
+                className="relative overflow-hidden rounded-3xl shadow-sm"
+                style={{
+                  aspectRatio: aspect,
+                  backgroundColor: slide.bg_color ? `hsl(${slide.bg_color})` : undefined,
+                }}
               >
                 {getImg(slide) && (
                   <img

@@ -21,6 +21,8 @@ export interface MiniBannerItem {
   link?: string;
   bg_color?: string;
   width?: MiniBannerWidth; // grid width (default: third)
+  aspect_desktop?: string; // e.g. "16/9", "4/3", "1/1", "16/6"
+  aspect_mobile?: string;
   active?: boolean;
 }
 
@@ -32,6 +34,8 @@ export interface SecondaryBannerSlide {
   cta_text?: string;
   link?: string;
   bg_color?: string;
+  aspect_desktop?: string;
+  aspect_mobile?: string;
   active?: boolean;
 }
 
@@ -67,6 +71,8 @@ export interface BannerSlide {
   bg_color?: string;
   clickable?: boolean;
   link?: string;
+  aspect_desktop?: string;
+  aspect_mobile?: string;
   active?: boolean;
 }
 
