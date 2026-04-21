@@ -136,35 +136,39 @@ const SizeSelector = () => {
   if (parents.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-16">
+    <section className="py-14 md:py-20">
       <div className="container">
-        <h2 className="section-title mb-10">Compre por Tamanho</h2>
+        <div className="text-center mb-10 md:mb-12">
+          <span className="inline-block text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-primary mb-3">
+            Encontre o tamanho ideal
+          </span>
+          <h2 className="font-heading font-extrabold text-3xl md:text-5xl text-foreground">
+            Compre por Tamanho
+          </h2>
+          <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4" />
+        </div>
 
-        <div className={`grid grid-cols-1 ${parents.length >= 2 ? "md:grid-cols-2" : ""} gap-6`}>
+        <div className={`grid grid-cols-1 ${parents.length >= 2 ? "md:grid-cols-2" : ""} gap-6 md:gap-8`}>
           {parents.map((parent) => {
             const bgClass = CATEGORY_STYLES[parent.slug] || "bg-muted/50";
-            // Combine: show parent row (if it has direct ages) + subcategory rows
             const rows: { label: string; parentSlug: string; catSlug: string | null; ages: string[] }[] = [];
 
-            // Parent row with all its ages
             if (parent.ages.length > 0) {
               rows.push({ label: parent.name, parentSlug: parent.slug, catSlug: null, ages: parent.ages });
             }
-
-            // Subcategory rows
             for (const sub of parent.subcategories) {
               rows.push({ label: sub.name, parentSlug: parent.slug, catSlug: sub.slug, ages: sub.ages });
             }
 
             return (
-              <div key={parent.id} className={`${bgClass} rounded-2xl p-6 md:p-8`}>
-                <h3 className="text-2xl font-bold font-heading text-foreground/60 mb-5">
+              <div key={parent.id} className={`${bgClass} rounded-3xl p-6 md:p-8 shadow-sm`}>
+                <h3 className="text-2xl md:text-3xl font-extrabold font-heading text-foreground mb-6">
                   {parent.name}
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {rows.map((row) => (
                     <div key={row.label}>
-                      <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-2">
+                      <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider mb-3">
                         {row.label}
                       </p>
                       <div className="flex gap-2 flex-wrap">
@@ -177,7 +181,7 @@ const SizeSelector = () => {
                               params.set("idade", ageKey);
                               navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
                             }}
-                            className="px-4 h-10 rounded-full border-2 border-primary/30 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all whitespace-nowrap"
+                            className="px-5 h-11 rounded-full bg-background border-2 border-primary/40 text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap"
                           >
                             {AGE_DISPLAY[ageKey] || ageKey}
                           </button>

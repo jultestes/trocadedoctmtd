@@ -7,28 +7,27 @@ import SizeSelector from "@/components/SizeSelector";
 import ProductGrid from "@/components/ProductGrid";
 import FeaturesBar from "@/components/FeaturesBar";
 import BrandsCarousel from "@/components/BrandsCarousel";
+import PromoStrip from "@/components/PromoStrip";
+import ShortcutCards from "@/components/ShortcutCards";
+import SecondaryBanner from "@/components/SecondaryBanner";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import type { LayoutSection } from "@/components/admin/layout/types";
+import { DEFAULT_LAYOUT } from "@/components/admin/layout/constants";
 
-const DEFAULT_SECTIONS: LayoutSection[] = [
-  { id: "hero_banner_1", type: "hero_banner", visible: true },
-  { id: "product_grid_meninas", type: "product_grid", visible: true, props: { title: "Meninas", category: "meninas" } },
-  { id: "product_grid_meninos", type: "product_grid", visible: true, props: { title: "Meninos", category: "meninos" } },
-  { id: "features_bar_1", type: "features_bar", visible: true },
-];
+// Tipos de seção que NÃO devem receber wrapper alternado (já têm largura total ou bg próprio)
+const FULL_BLEED_TYPES = new Set(["hero_banner", "promo_strip", "spacer"]);
 
 const renderSection = (section: LayoutSection) => {
   if (!section.visible) return null;
   switch (section.type) {
     case "hero_banner":
-      return <HeroBanner key={section.id} banners={section.props?.banners} />;
+      return <HeroBanner banners={section.props?.banners} />;
     case "size_selector":
-      return <SizeSelector key={section.id} />;
+      return <SizeSelector />;
     case "product_grid":
       return (
         <ProductGrid
-          key={section.id}
           title={section.props?.title || "Produtos"}
           category={section.props?.category || ""}
           productIds={section.props?.product_ids}
@@ -36,18 +35,24 @@ const renderSection = (section: LayoutSection) => {
         />
       );
     case "features_bar":
-      return <FeaturesBar key={section.id} features={section.props?.features} />;
+      return <FeaturesBar features={section.props?.features} />;
     case "brands_carousel":
-      return <BrandsCarousel key={section.id} />;
+      return <BrandsCarousel />;
+    case "promo_strip":
+      return <PromoStrip items={section.props?.items} bg_color={section.props?.bg_color} />;
+    case "shortcut_cards":
+      return <ShortcutCards cards={section.props?.cards} />;
+    case "secondary_banner":
+      return <SecondaryBanner {...(section.props || {})} />;
     case "spacer":
-      return <div key={section.id} style={{ height: `${section.props?.height || 40}px` }} />;
+      return <div style={{ height: `${section.props?.height || 40}px` }} />;
     default:
       return null;
   }
 };
 
 const Index = () => {
-  const [sections, setSections] = useState<LayoutSection[]>(DEFAULT_SECTIONS);
+  const [sections, setSections] = useState<LayoutSection[]>(DEFAULT_LAYOUT);
 
   useEffect(() => { trackPageView(); }, []);
 
@@ -64,11 +69,28 @@ const Index = () => {
       });
   }, []);
 
+  // Alterna fundos entre seções "wrapáveis"
+  let altIndex = 0;
+  const visible = sections.filter((s) => s.visible);
+
   return (
     <div className="min-h-screen bg-background">
       <TopBar />
       <Header />
-      {sections.map(renderSection)}
+      {visible.map((section) => {
+        const node = renderSection(section);
+        if (!node) return null;
+        if (FULL_BLEED_TYPES.has(section.type)) {
+          return <div key={section.id}>{node}</div>;
+        }
+        const bg = altIndex % 2 === 0 ? "bg-background" : "bg-muted/40";
+        altIndex++;
+        return (
+          <div key={section.id} className={bg}>
+            {node}
+          </div>
+        );
+      })}
       <Footer />
     </div>
   );
