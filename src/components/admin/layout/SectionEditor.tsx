@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Settings2, X, Plus, Trash2 } from "lucide-react";
 import { sectionLabel } from "./constants";
-import type { LayoutSection, BannerSlide, FeatureItem } from "./types";
+import type { LayoutSection, BannerSlide, FeatureItem, PromoStripItem, ShortcutCard } from "./types";
 import { DEFAULT_FEATURES, DEFAULT_BANNERS } from "./constants";
 import IconPicker from "./IconPicker";
 import ImageUploader from "./ImageUploader";
@@ -100,6 +100,48 @@ export default function SectionEditor({ section, onUpdateProps, onClose }: Secti
             onChange={(e) => updateProp("height", e.target.value)}
             className="h-8 text-xs w-24 mt-1"
           />
+        </div>
+      )}
+
+      {/* ─── Promo Strip Editor ─── */}
+      {section.type === "promo_strip" && (
+        <PromoStripEditor
+          items={props.items || []}
+          onChange={(items) => updateProp("items", items)}
+        />
+      )}
+
+      {/* ─── Shortcut Cards Editor ─── */}
+      {section.type === "shortcut_cards" && (
+        <ShortcutCardsEditor
+          cards={props.cards || []}
+          onChange={(cards) => updateProp("cards", cards)}
+        />
+      )}
+
+      {/* ─── Secondary Banner Editor ─── */}
+      {section.type === "secondary_banner" && (
+        <div className="space-y-2">
+          <ImageUploader
+            value={props.image_url || ""}
+            onChange={(url) => updateProp("image_url", url)}
+            folder="banners"
+            label="Imagem Desktop"
+          />
+          <ImageUploader
+            value={props.image_url_mobile || ""}
+            onChange={(url) => updateProp("image_url_mobile", url)}
+            folder="banners"
+            label="Imagem Mobile"
+          />
+          <Input placeholder="Título" value={props.title ?? ""} onChange={(e) => updateProp("title", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Subtítulo" value={props.subtitle ?? ""} onChange={(e) => updateProp("subtitle", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Texto do botão" value={props.cta_text ?? ""} onChange={(e) => updateProp("cta_text", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Link de destino" value={props.link ?? ""} onChange={(e) => updateProp("link", e.target.value)} className="h-7 text-xs" />
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
+            <ColorPickerField value={props.bg_color ?? ""} onChange={(v) => updateProp("bg_color", v)} size="sm" placeholder="332 60% 80%" />
+          </div>
         </div>
       )}
 
