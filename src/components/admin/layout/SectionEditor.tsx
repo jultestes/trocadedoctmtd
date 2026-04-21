@@ -383,3 +383,146 @@ function ShortcutCardsEditor({ cards, onChange }: { cards: ShortcutCard[]; onCha
     </div>
   );
 }
+
+/* ─── Secondary Banner Carousel Sub-Editor ─── */
+function SecondaryBannerCarouselEditor({
+  slides,
+  onChange,
+}: { slides: SecondaryBannerSlide[]; onChange: (s: SecondaryBannerSlide[]) => void }) {
+  const update = (idx: number, key: keyof SecondaryBannerSlide, value: any) => {
+    const next = [...slides];
+    next[idx] = { ...next[idx], [key]: value };
+    onChange(next);
+  };
+  const add = () =>
+    onChange([
+      ...slides,
+      { title: "Novo Slide", subtitle: "", cta_text: "Ver mais", link: "/", bg_color: "332 60% 80%", active: true },
+    ]);
+  const remove = (idx: number) => onChange(slides.filter((_, i) => i !== idx));
+  const move = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= slides.length) return;
+    const n = [...slides];
+    [n[idx], n[j]] = [n[j], n[idx]];
+    onChange(n);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          Slides ({slides.length})
+        </label>
+        <Button size="sm" variant="outline" onClick={add} className="h-6 text-[10px] gap-1">
+          <Plus className="w-3 h-3" /> Adicionar
+        </Button>
+      </div>
+      {slides.map((s, i) => (
+        <div key={i} className="border border-border rounded-lg p-2 space-y-2 bg-muted/20">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-semibold text-muted-foreground">Slide {i + 1}</span>
+            <div className="flex items-center gap-1">
+              <button disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowUp className="w-3 h-3"/></button>
+              <button disabled={i === slides.length-1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowDown className="w-3 h-3"/></button>
+              <Switch checked={s.active !== false} onCheckedChange={(v) => update(i, "active", v)} />
+              <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive ml-1"><Trash2 className="w-3 h-3"/></button>
+            </div>
+          </div>
+          <ImageUploader value={s.image_url || ""} onChange={(url) => update(i, "image_url", url)} folder="banners" label="Imagem Desktop" />
+          <ImageUploader value={s.image_url_mobile || ""} onChange={(url) => update(i, "image_url_mobile", url)} folder="banners" label="Imagem Mobile" />
+          <Input placeholder="Título" value={s.title ?? ""} onChange={(e) => update(i, "title", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Subtítulo" value={s.subtitle ?? ""} onChange={(e) => update(i, "subtitle", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Texto do botão" value={s.cta_text ?? ""} onChange={(e) => update(i, "cta_text", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Link" value={s.link ?? ""} onChange={(e) => update(i, "link", e.target.value)} className="h-7 text-xs" />
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
+            <ColorPickerField value={s.bg_color ?? ""} onChange={(v) => update(i, "bg_color", v)} size="sm" placeholder="332 60% 80%" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Mini Banners Sub-Editor ─── */
+const WIDTH_OPTIONS: { value: MiniBannerWidth; label: string }[] = [
+  { value: "third", label: "1/3 (pequeno)" },
+  { value: "half", label: "1/2 (médio)" },
+  { value: "two_thirds", label: "2/3 (grande)" },
+  { value: "full", label: "Largura total" },
+];
+
+function MiniBannersEditor({
+  items,
+  onChange,
+}: { items: MiniBannerItem[]; onChange: (i: MiniBannerItem[]) => void }) {
+  const update = (idx: number, key: keyof MiniBannerItem, value: any) => {
+    const next = [...items];
+    next[idx] = { ...next[idx], [key]: value };
+    onChange(next);
+  };
+  const add = () =>
+    onChange([
+      ...items,
+      { title: "Novo banner", cta_text: "Ver", link: "/", bg_color: "199 80% 90%", width: "third", active: true },
+    ]);
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+  const move = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= items.length) return;
+    const n = [...items];
+    [n[idx], n[j]] = [n[j], n[idx]];
+    onChange(n);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          Mini banners ({items.length})
+        </label>
+        <Button size="sm" variant="outline" onClick={add} className="h-6 text-[10px] gap-1">
+          <Plus className="w-3 h-3" /> Adicionar
+        </Button>
+      </div>
+      <p className="text-[10px] text-muted-foreground italic">
+        Combine larguras para montar linhas: ex. 2× "1/2", 3× "1/3", ou "2/3" + "1/3".
+      </p>
+      {items.map((item, i) => (
+        <div key={i} className="border border-border rounded-lg p-2 space-y-2 bg-muted/20">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-semibold text-muted-foreground">Banner {i + 1}</span>
+            <div className="flex items-center gap-1">
+              <button disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowUp className="w-3 h-3"/></button>
+              <button disabled={i === items.length-1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowDown className="w-3 h-3"/></button>
+              <Switch checked={item.active !== false} onCheckedChange={(v) => update(i, "active", v)} />
+              <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive ml-1"><Trash2 className="w-3 h-3"/></button>
+            </div>
+          </div>
+          <ImageUploader value={item.image_url || ""} onChange={(url) => update(i, "image_url", url)} folder="banners" label="Imagem Desktop" />
+          <ImageUploader value={item.image_url_mobile || ""} onChange={(url) => update(i, "image_url_mobile", url)} folder="banners" label="Imagem Mobile" />
+          <Input placeholder="Título (opcional)" value={item.title ?? ""} onChange={(e) => update(i, "title", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Texto do botão (opcional)" value={item.cta_text ?? ""} onChange={(e) => update(i, "cta_text", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Link" value={item.link ?? ""} onChange={(e) => update(i, "link", e.target.value)} className="h-7 text-xs" />
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Largura</label>
+            <select
+              value={item.width || "third"}
+              onChange={(e) => update(i, "width", e.target.value as MiniBannerWidth)}
+              className="mt-1 h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+            >
+              {WIDTH_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
+            <ColorPickerField value={item.bg_color ?? ""} onChange={(v) => update(i, "bg_color", v)} size="sm" placeholder="199 80% 90%" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
