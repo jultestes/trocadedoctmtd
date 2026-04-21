@@ -298,40 +298,26 @@ const Category = () => {
       <TopBar />
       <Header />
 
-      {/* Category Hero - compact with soft clouds */}
+      {/* Category Hero - soft sky with diffused clouds */}
       <div
-        className={`relative overflow-hidden bg-gradient-to-br ${gradient} py-5 md:py-8 min-h-[120px] md:min-h-[150px] flex items-center`}
+        className={`relative overflow-hidden bg-gradient-to-b ${gradient} py-5 md:py-8 min-h-[120px] md:min-h-[150px] flex items-center`}
       >
-        {/* Soft decorative clouds */}
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute -top-4 -left-6 w-40 md:w-56 text-white/40"
-          viewBox="0 0 200 80"
-          fill="currentColor"
-        >
-          <ellipse cx="50" cy="50" rx="40" ry="22" />
-          <ellipse cx="90" cy="40" rx="35" ry="26" />
-          <ellipse cx="130" cy="52" rx="38" ry="20" />
-        </svg>
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute -bottom-6 right-4 w-44 md:w-60 text-white/30"
-          viewBox="0 0 200 80"
-          fill="currentColor"
-        >
-          <ellipse cx="60" cy="50" rx="42" ry="22" />
-          <ellipse cx="110" cy="42" rx="36" ry="26" />
-          <ellipse cx="150" cy="54" rx="34" ry="20" />
-        </svg>
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute top-2 right-1/3 w-24 md:w-32 text-white/25 hidden sm:block"
-          viewBox="0 0 200 80"
-          fill="currentColor"
-        >
-          <ellipse cx="60" cy="45" rx="38" ry="20" />
-          <ellipse cx="100" cy="38" rx="30" ry="22" />
-        </svg>
+        {/* Diffused, organic clouds (blurred for natural sky look) */}
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          {/* Top-left cloud cluster */}
+          <div className="absolute -top-8 -left-10 w-56 md:w-72 h-20 md:h-24 bg-white/50 rounded-full blur-2xl" />
+          <div className="absolute -top-4 left-16 w-32 md:w-40 h-14 md:h-16 bg-white/40 rounded-full blur-xl" />
+
+          {/* Bottom-right cloud cluster */}
+          <div className="absolute -bottom-10 -right-8 w-64 md:w-80 h-20 md:h-28 bg-white/45 rounded-full blur-2xl" />
+          <div className="absolute -bottom-4 right-24 w-32 md:w-44 h-14 md:h-16 bg-white/35 rounded-full blur-xl" />
+
+          {/* Bottom-left subtle cloud */}
+          <div className="absolute -bottom-6 left-1/4 w-40 md:w-52 h-16 md:h-20 bg-white/30 rounded-full blur-2xl" />
+
+          {/* Top-right small cloud (desktop only) */}
+          <div className="absolute top-2 right-1/3 w-28 md:w-36 h-10 md:h-12 bg-white/30 rounded-full blur-xl hidden sm:block" />
+        </div>
 
         <div className="container relative">
           <Link
