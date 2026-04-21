@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CreditCard, Banknote, QrCode, ShoppingBag, Minus, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  CreditCard,
+  Banknote,
+  QrCode,
+  ShoppingBag,
+  Minus,
+  Plus,
+  Clock,
+  ChevronDown,
+} from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { useIsMobile } from "@/hooks/use-mobile";
 import ProductImageCarousel from "@/components/ProductImageCarousel";
 
 export type BottomSheetProduct = {
@@ -28,16 +40,42 @@ type Props = {
   onAddedToCart?: () => void;
 };
 
-const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Props) => {
+const formatBRL = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
+
+const ProductContent = ({
+  product,
+  onClose,
+  onAdded,
+  isMobile,
+}: {
+  product: BottomSheetProduct;
+  onClose: () => void;
+  onAdded?: () => void;
+  isMobile: boolean;
+}) => {
   const [imgIdx, setImgIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [showPayments, setShowPayments] = useState(false);
   const { addItem } = useCart();
-
-  if (!product) return null;
 
   const allImages = [product.image, ...(product.extraImages || [])].filter(Boolean);
   const isUnique = product.stock === 1;
   const gender = product.category === "meninas" ? "Menina" : "Menino";
+
+  // Auto-calculated values
+  const savings =
+    product.oldPrice && product.oldPrice > product.price
+      ? product.oldPrice - product.price
+      : 0;
+  const computedDiscount =
+    product.discount > 0
+      ? product.discount
+      : product.oldPrice && product.oldPrice > product.price
+      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+      : 0;
+
+  // Card 1x with juros (~3.29% — typical InfinitePay)
+  const cardInstallment = product.price * 1.0329;
 
   const handleChoose = () => {
     for (let i = 0; i < quantity; i++) {
@@ -53,44 +91,46 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
         stock: product.stock,
       });
     }
-    onOpenChange(false);
+    onClose();
     setImgIdx(0);
     setQuantity(1);
-    onAddedToCart?.();
+    onAdded?.();
   };
 
   return (
     <>
-      <Drawer open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) { setImgIdx(0); setQuantity(1); } }}>
-        <DrawerContent className="max-h-[92vh] rounded-t-3xl">
-          {/* Header with back button */}
-          <div className="flex items-center gap-3 px-4 pt-2 pb-3 border-b border-border">
-            <button
-              onClick={() => onOpenChange(false)}
-              className="w-9 h-9 rounded-full bg-muted flex items-center justify-center"
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            <span className="text-sm font-semibold text-foreground truncate flex-1">
-              {product.name}
-            </span>
-          </div>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 pt-2 pb-3 border-b border-border">
+        {isMobile && (
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-muted flex items-center justify-center"
+          >
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+        )}
+        <span className="text-sm font-semibold text-foreground truncate flex-1">
+          {product.name}
+        </span>
+      </div>
 
-          <div className="overflow-y-auto flex-1">
-            {/* Product Images - swipeable carousel */}
+      <div className="overflow-y-auto flex-1 md:max-h-[70vh]">
+        <div className="md:grid md:grid-cols-2 md:gap-0">
+          {/* Image area */}
+          <div>
             <div className="relative aspect-square bg-muted">
               <ProductImageCarousel
                 images={allImages}
                 alt={product.name}
                 eager
-                showArrows={false}
+                showArrows={!isMobile}
                 showDots
                 optimized={false}
-                sizes="100vw"
+                sizes={isMobile ? "100vw" : "50vw"}
               />
-              {product.discount > 0 && (
+              {computedDiscount > 0 && (
                 <span className="absolute top-3 left-3 bg-badge-discount text-accent-foreground text-xs font-bold px-2.5 py-1 rounded-full z-10">
-                  {product.discount}% OFF
+                  {computedDiscount}% OFF
                 </span>
               )}
               {isUnique && (
@@ -100,7 +140,6 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
               )}
             </div>
 
-            {/* Image thumbnails */}
             {allImages.length > 1 && (
               <div className="flex gap-2 px-4 py-3 overflow-x-auto">
                 {allImages.map((img, i) => (
@@ -116,110 +155,206 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
                 ))}
               </div>
             )}
-
-            {/* Product Info */}
-            <div className="px-4 pt-3 pb-4 space-y-4">
-              {/* Brand + Name */}
-              <div>
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">
-                  {product.brand}
-                </p>
-                <h2 className="text-lg font-bold text-foreground mt-0.5">{product.name}</h2>
-                {product.sku && (
-                  <p className="text-[10px] font-mono text-muted-foreground">SKU: {product.sku}</p>
-                )}
-              </div>
-
-              {/* Price */}
-              <div className="flex items-baseline gap-2">
-                {product.oldPrice && (
-                  <span className="text-sm text-price-old line-through">
-                    R$ {product.oldPrice.toFixed(2).replace(".", ",")}
-                  </span>
-                )}
-                <span className="text-2xl font-extrabold text-price-new">
-                  R$ {product.price.toFixed(2).replace(".", ",")}
-                </span>
-              </div>
-
-              {/* Tags: Age, Gender, Stock */}
-              <div className="flex flex-wrap gap-2">
-                {product.sizes.map((size) => (
-                  <span
-                    key={size}
-                    className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1.5 rounded-lg"
-                  >
-                    {size}
-                  </span>
-                ))}
-                <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-lg">
-                  {gender}
-                </span>
-                {isUnique ? (
-                  <span className="bg-destructive/10 text-destructive text-xs font-bold px-3 py-1.5 rounded-lg">
-                    Peça Única
-                  </span>
-                ) : (
-                  <span className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1.5 rounded-lg">
-                    {product.stock} em estoque
-                  </span>
-                )}
-              </div>
-
-              {/* Payment Methods */}
-              <div className="border border-border rounded-xl p-3">
-                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-2">
-                  Formas de Pagamento
-                </p>
-                <div className="flex gap-3">
-                  <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
-                    <QrCode className="w-4 h-4 text-primary" />
-                    Pix
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
-                    <Banknote className="w-4 h-4 text-primary" />
-                    Dinheiro
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
-                    <CreditCard className="w-4 h-4 text-primary" />
-                    Cartão
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* Fixed bottom CTA */}
-          <div className="p-4 border-t border-border bg-background space-y-3">
-            {/* Quantity counter - only show when stock > 1 */}
-            {!isUnique && product.stock > 1 && (
-              <div className="flex items-center justify-center gap-4">
-                <button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  disabled={quantity <= 1}
-                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
-                >
-                  <Minus className="w-4 h-4 text-foreground" />
-                </button>
-                <span className="text-lg font-bold text-foreground w-8 text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
-                  disabled={quantity >= product.stock}
-                  className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
-                >
-                  <Plus className="w-4 h-4 text-foreground" />
-                </button>
+          {/* Info area */}
+          <div className="px-4 pt-3 pb-4 space-y-4 md:border-l md:border-border">
+            <div>
+              <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">
+                {product.brand}
+              </p>
+              <h2 className="text-lg md:text-xl font-bold text-foreground mt-0.5 font-heading">
+                {product.name}
+              </h2>
+              {product.sku && (
+                <p className="text-[10px] font-mono text-muted-foreground">
+                  SKU: {product.sku}
+                </p>
+              )}
+            </div>
+
+            {/* Price block */}
+            <div className="space-y-1">
+              {product.oldPrice && (
+                <span className="text-sm text-price-old line-through block">
+                  De {formatBRL(product.oldPrice)}
+                </span>
+              )}
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-3xl font-extrabold text-price-new">
+                  {formatBRL(product.price)}
+                </span>
+                {computedDiscount > 0 && (
+                  <span className="bg-badge-discount text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                    {computedDiscount}% OFF
+                  </span>
+                )}
+              </div>
+              {savings > 0 && (
+                <p className="text-sm font-bold text-emerald-600">
+                  Economize {formatBRL(savings)}
+                </p>
+              )}
+            </div>
+
+            {/* Limited time offer */}
+            {savings > 0 && (
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
+                <Clock className="w-4 h-4 shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-wide">
+                  Oferta por tempo limitado
+                </span>
               </div>
             )}
-            <Button onClick={handleChoose} className="w-full gap-2 h-12 text-base font-bold" size="lg">
-              <ShoppingBag className="w-5 h-5" />
-              Adicionar ao pedido
-            </Button>
+
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2">
+              {product.sizes.map((size) => (
+                <span
+                  key={size}
+                  className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1.5 rounded-lg"
+                >
+                  {size}
+                </span>
+              ))}
+              <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-lg">
+                {gender}
+              </span>
+              {isUnique ? (
+                <span className="bg-destructive/10 text-destructive text-xs font-bold px-3 py-1.5 rounded-lg">
+                  Peça Única
+                </span>
+              ) : (
+                <span className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1.5 rounded-lg">
+                  {product.stock} em estoque
+                </span>
+              )}
+            </div>
+
+            {/* Payment methods (collapsible) */}
+            <div className="border border-border rounded-xl overflow-hidden">
+              <button
+                onClick={() => setShowPayments((v) => !v)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-muted/50 transition-colors"
+              >
+                <span className="text-xs font-bold text-foreground uppercase tracking-wide">
+                  Formas de pagamento
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-muted-foreground transition-transform ${
+                    showPayments ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              {showPayments && (
+                <div className="px-3 pb-3 pt-1 space-y-2 border-t border-border">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-foreground">
+                      <QrCode className="w-4 h-4 text-primary" />
+                      Pix
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {formatBRL(product.price)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-foreground">
+                      <Banknote className="w-4 h-4 text-primary" />
+                      Dinheiro
+                    </span>
+                    <span className="font-bold text-foreground">
+                      {formatBRL(product.price)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-foreground">
+                      <CreditCard className="w-4 h-4 text-primary" />
+                      Cartão de crédito
+                    </span>
+                    <span className="font-bold text-foreground">
+                      1x de {formatBRL(cardInstallment)}{" "}
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        (com juros)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="p-4 border-t border-border bg-background space-y-3">
+        {!isUnique && product.stock > 1 && (
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1}
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+            >
+              <Minus className="w-4 h-4 text-foreground" />
+            </button>
+            <span className="text-lg font-bold text-foreground w-8 text-center">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+              disabled={quantity >= product.stock}
+              className="w-10 h-10 rounded-full border border-border flex items-center justify-center disabled:opacity-30 hover:bg-muted transition-colors"
+            >
+              <Plus className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
+        )}
+        <Button
+          onClick={handleChoose}
+          className="w-full gap-2 h-12 text-base font-bold"
+          size="lg"
+        >
+          <ShoppingBag className="w-5 h-5" />
+          Adicionar ao pedido
+        </Button>
+      </div>
+    </>
+  );
+};
+
+const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Props) => {
+  const isMobile = useIsMobile();
+
+  if (!product) return null;
+
+  const handleClose = () => onOpenChange(false);
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="max-h-[92vh] rounded-t-3xl">
+          <ProductContent
+            product={product}
+            onClose={handleClose}
+            onAdded={onAddedToCart}
+            isMobile
+          />
         </DrawerContent>
       </Drawer>
+    );
+  }
 
-    </>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl p-0 overflow-hidden gap-0 flex flex-col max-h-[90vh]">
+        <DialogTitle className="sr-only">{product.name}</DialogTitle>
+        <ProductContent
+          product={product}
+          onClose={handleClose}
+          onAdded={onAddedToCart}
+          isMobile={false}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 
