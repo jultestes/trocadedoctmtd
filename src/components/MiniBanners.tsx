@@ -66,8 +66,17 @@ const MiniBanners = ({ items }: MiniBannersProps) => {
                 )}
               </div>
             );
+            const aspect = item.aspect_desktop || "16/9";
+            const aspectMobile = item.aspect_mobile || aspect;
             return (
-              <div key={i} className={`${widthClass(item.width)} aspect-[16/9]`}>
+              <div
+                key={i}
+                className={widthClass(item.width)}
+                style={{
+                  aspectRatio: aspect,
+                  ["--mb-aspect-mobile" as any]: aspectMobile,
+                }}
+              >
                 {item.link ? (
                   <Link to={item.link} className="block w-full h-full">
                     {inner}
