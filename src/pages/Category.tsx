@@ -91,10 +91,17 @@ type CategoryData = {
 };
 
 const bannerStyles: Record<string, string> = {
-  meninas: "from-pink-400 to-rose-300",
-  meninos: "from-sky-400 to-blue-300",
-  bebes: "from-amber-300 to-yellow-200",
-  outlet: "from-emerald-400 to-green-300",
+  meninas: "from-pink-300 via-pink-200 to-rose-200",
+  meninos: "from-sky-300 via-sky-200 to-blue-200",
+  bebes: "from-amber-200 via-amber-100 to-yellow-100",
+  outlet: "from-emerald-300 via-emerald-200 to-green-200",
+};
+
+const cloudColor: Record<string, string> = {
+  meninas: "text-white/70",
+  meninos: "text-white/70",
+  bebes: "text-white/70",
+  outlet: "text-white/70",
 };
 
 const filterBgStyles: Record<string, string> = {
@@ -291,21 +298,54 @@ const Category = () => {
       <TopBar />
       <Header />
 
-      {/* Category Hero */}
-      <div className={`bg-gradient-to-r ${gradient} py-10 md:py-16`}>
-        <div className="container">
+      {/* Category Hero - compact with soft clouds */}
+      <div
+        className={`relative overflow-hidden bg-gradient-to-br ${gradient} py-5 md:py-8 min-h-[120px] md:min-h-[150px] flex items-center`}
+      >
+        {/* Soft decorative clouds */}
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute -top-4 -left-6 w-40 md:w-56 text-white/40"
+          viewBox="0 0 200 80"
+          fill="currentColor"
+        >
+          <ellipse cx="50" cy="50" rx="40" ry="22" />
+          <ellipse cx="90" cy="40" rx="35" ry="26" />
+          <ellipse cx="130" cy="52" rx="38" ry="20" />
+        </svg>
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute -bottom-6 right-4 w-44 md:w-60 text-white/30"
+          viewBox="0 0 200 80"
+          fill="currentColor"
+        >
+          <ellipse cx="60" cy="50" rx="42" ry="22" />
+          <ellipse cx="110" cy="42" rx="36" ry="26" />
+          <ellipse cx="150" cy="54" rx="34" ry="20" />
+        </svg>
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute top-2 right-1/3 w-24 md:w-32 text-white/25 hidden sm:block"
+          viewBox="0 0 200 80"
+          fill="currentColor"
+        >
+          <ellipse cx="60" cy="45" rx="38" ry="20" />
+          <ellipse cx="100" cy="38" rx="30" ry="22" />
+        </svg>
+
+        <div className="container relative">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 text-white/80 hover:text-white text-sm mb-4 transition-colors"
+            className="inline-flex items-center gap-1 text-white/90 hover:text-white text-xs md:text-sm mb-1.5 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Voltar
           </Link>
-          <h1 className="text-3xl md:text-4xl font-bold font-heading text-white drop-shadow-md">
+          <h1 className="text-2xl md:text-3xl font-bold font-heading text-white drop-shadow-md">
             {category?.name || slug}
           </h1>
           {category?.description && (
-            <p className="text-white/90 mt-2 text-sm md:text-base max-w-lg">
+            <p className="text-white/90 mt-1 text-xs md:text-sm max-w-lg line-clamp-2">
               {category.description}
             </p>
           )}
