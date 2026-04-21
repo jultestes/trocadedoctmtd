@@ -74,18 +74,24 @@ const ProductContent = ({
   const isUnique = product.stock === 1;
   const gender = product.category === "meninas" ? "Menina" : "Menino";
 
-  // Auto-calculated values
-  const hasValidOldPrice = !!(product.oldPrice && product.oldPrice > product.price);
-  const savings = hasValidOldPrice ? (product.oldPrice as number) - product.price : 0;
+  // Normaliza preço promocional vs original — usa sempre o MAIOR como "de" e o MENOR como "por",
+  // protegendo contra cadastros invertidos no Admin.
+  const rawOld = product.oldPrice ?? null;
+  const rawNew = product.price;
+  const hasTwoPrices = rawOld !== null && rawOld !== rawNew;
+  const displayOldPrice = hasTwoPrices ? Math.max(rawOld as number, rawNew) : null;
+  const displayPrice = hasTwoPrices ? Math.min(rawOld as number, rawNew) : rawNew;
+  const hasValidOldPrice = displayOldPrice !== null && displayOldPrice > displayPrice;
+  const savings = hasValidOldPrice ? (displayOldPrice as number) - displayPrice : 0;
   const computedDiscount =
     product.discount > 0
       ? product.discount
       : hasValidOldPrice
-      ? Math.round((((product.oldPrice as number) - product.price) / (product.oldPrice as number)) * 100)
+      ? Math.round(((displayOldPrice as number) - displayPrice) / (displayOldPrice as number) * 100)
       : 0;
 
   // Card 1x with juros (~3.29% — typical InfinitePay)
-  const cardInstallment = product.price * 1.0329;
+  const cardInstallment = displayPrice * 1.0329;
 
   const handleChoose = () => {
     for (let i = 0; i < quantity; i++) {
@@ -94,8 +100,8 @@ const ProductContent = ({
         name: product.name,
         brand: product.brand,
         image: product.image,
-        price: product.price,
-        oldPrice: product.oldPrice,
+        price: displayPrice,
+        oldPrice: displayOldPrice,
         size: product.sizes[0] || "",
         sku: product.sku,
         stock: product.stock,
@@ -187,12 +193,12 @@ const ProductContent = ({
             <div className="space-y-1">
               {hasValidOldPrice && (
                 <span className="text-sm text-price-old line-through block">
-                  De {formatBRL(product.oldPrice as number)}
+                  De {formatBRL(displayOldPrice as number)}
                 </span>
               )}
               <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="text-3xl font-extrabold text-price-new">
-                  {formatBRL(product.price)}
+                  {formatBRL(displayPrice)}
                 </span>
                 {computedDiscount > 0 && (
                   <span className="bg-badge-discount text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
@@ -284,7 +290,7 @@ const ProductContent = ({
                       Pix
                     </span>
                     <span className="font-bold text-foreground">
-                      {formatBRL(product.price)}
+                      {formatBRL(displayPrice)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -293,7 +299,7 @@ const ProductContent = ({
                       Dinheiro
                     </span>
                     <span className="font-bold text-foreground">
-                      {formatBRL(product.price)}
+                      {formatBRL(displayPrice)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
