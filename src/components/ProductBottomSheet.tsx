@@ -31,6 +31,7 @@ export type BottomSheetProduct = {
   sku?: string;
   stock: number;
   category: "meninas" | "meninos";
+  description?: string;
 };
 
 type Props = {
@@ -74,15 +75,13 @@ const ProductContent = ({
   const gender = product.category === "meninas" ? "Menina" : "Menino";
 
   // Auto-calculated values
-  const savings =
-    product.oldPrice && product.oldPrice > product.price
-      ? product.oldPrice - product.price
-      : 0;
+  const hasValidOldPrice = !!(product.oldPrice && product.oldPrice > product.price);
+  const savings = hasValidOldPrice ? (product.oldPrice as number) - product.price : 0;
   const computedDiscount =
     product.discount > 0
       ? product.discount
-      : product.oldPrice && product.oldPrice > product.price
-      ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+      : hasValidOldPrice
+      ? Math.round((((product.oldPrice as number) - product.price) / (product.oldPrice as number)) * 100)
       : 0;
 
   // Card 1x with juros (~3.29% — typical InfinitePay)
@@ -186,9 +185,9 @@ const ProductContent = ({
 
             {/* Price block */}
             <div className="space-y-1">
-              {product.oldPrice && (
+              {hasValidOldPrice && (
                 <span className="text-sm text-price-old line-through block">
-                  De {formatBRL(product.oldPrice)}
+                  De {formatBRL(product.oldPrice as number)}
                 </span>
               )}
               <div className="flex items-baseline gap-2 flex-wrap">
