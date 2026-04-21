@@ -111,7 +111,7 @@ const ProductCard = memo(({ product, onClick, index }: { product: Product; onCli
             }}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            Escolher
+            Adicionar ao pedido
           </Button>
         </div>
       </div>
