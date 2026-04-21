@@ -67,6 +67,7 @@ export interface BannerSlide {
   bg_color?: string;
   clickable?: boolean;
   link?: string;
+  active?: boolean;
 }
 
 export interface FeatureItem {
