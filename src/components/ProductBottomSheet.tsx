@@ -193,12 +193,12 @@ const ProductContent = ({
             <div className="space-y-1">
               {hasValidOldPrice && (
                 <span className="text-sm text-price-old line-through block">
-                  De {formatBRL(product.oldPrice as number)}
+                  De {formatBRL(displayOldPrice as number)}
                 </span>
               )}
               <div className="flex items-baseline gap-2 flex-wrap">
                 <span className="text-3xl font-extrabold text-price-new">
-                  {formatBRL(product.price)}
+                  {formatBRL(displayPrice)}
                 </span>
                 {computedDiscount > 0 && (
                   <span className="bg-badge-discount text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
