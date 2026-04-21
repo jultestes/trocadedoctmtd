@@ -102,7 +102,8 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
             </>
           )}
         </div>
-      ))}
+        );
+      })}
 
       {slides.length > 1 && (
         <>
