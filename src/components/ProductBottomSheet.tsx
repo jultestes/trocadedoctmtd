@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,18 @@ const ProductContent = ({
   const [imgIdx, setImgIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showPayments, setShowPayments] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(20 * 60);
   const { addItem } = useCart();
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSecondsLeft((s) => (s <= 1 ? 20 * 60 : s - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const ss = String(secondsLeft % 60).padStart(2, "0");
 
   const allImages = [product.image, ...(product.extraImages || [])].filter(Boolean);
   const isUnique = product.stock === 1;
@@ -199,11 +210,19 @@ const ProductContent = ({
 
             {/* Limited time offer */}
             {savings > 0 && (
-              <div className="flex items-center gap-2 bg-badge-discount/15 border border-badge-discount/40 text-accent-foreground rounded-lg px-3 py-2">
-                <Clock className="w-4 h-4 shrink-0 text-badge-discount" />
-                <span className="text-xs font-bold uppercase tracking-wide text-foreground">
-                  Oferta por tempo limitado
-                </span>
+              <div className="bg-badge-discount/15 border border-badge-discount/40 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 shrink-0 text-badge-discount" />
+                  <span className="text-xs font-bold uppercase tracking-wide text-foreground">
+                    Oferta por tempo limitado
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 ml-6">
+                  Promoção termina em:{" "}
+                  <span className="font-mono font-bold text-primary tabular-nums">
+                    {mm}:{ss}
+                  </span>
+                </p>
               </div>
             )}
 
