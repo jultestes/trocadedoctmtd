@@ -1,22 +1,15 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroBanner1 from "@/assets/hero-banner-1.jpg";
-import heroBanner2 from "@/assets/hero-banner-2.jpg";
 import type { BannerSlide } from "@/components/admin/layout/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-const FALLBACK_SLIDES: BannerSlide[] = [
-  { image_url: heroBanner1, title: "Coleção Verão 2026", subtitle: "Looks fresquinhos e cheios de estilo para os pequenos!", cta_text: "Ver Coleção" },
-  { image_url: heroBanner2, title: "Promoção de Inverno", subtitle: "Até 50% OFF em peças selecionadas!", cta_text: "Aproveitar" },
-];
 
 interface HeroBannerProps {
   banners?: BannerSlide[];
 }
 
 const HeroBanner = ({ banners }: HeroBannerProps) => {
-  const slides = banners && banners.length > 0 ? banners : FALLBACK_SLIDES;
+  const slides = banners && banners.length > 0 ? banners : [];
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -28,6 +21,8 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
     }, 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  if (slides.length === 0) return null;
 
   const prev = () => setCurrent((c) => (c === 0 ? slides.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c + 1) % slides.length);
@@ -71,18 +66,22 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
             />
           )}
 
-          {!slide.clickable && (
+          {!slide.clickable && (slide.title || slide.subtitle || slide.cta_text) && (
             <>
               <div className="absolute inset-0 bg-gradient-to-r from-foreground/50 to-transparent" />
               <div className="absolute inset-0 flex items-center">
                 <div className="container">
                   <div className="max-w-lg space-y-4 animate-fade-in">
-                    <h2 className="text-3xl md:text-5xl font-bold font-heading text-primary-foreground drop-shadow-lg">
-                      {slide.title}
-                    </h2>
-                    <p className="text-base md:text-lg text-primary-foreground/90 drop-shadow">
-                      {slide.subtitle}
-                    </p>
+                    {slide.title && (
+                      <h2 className="text-3xl md:text-5xl font-bold font-heading text-primary-foreground drop-shadow-lg">
+                        {slide.title}
+                      </h2>
+                    )}
+                    {slide.subtitle && (
+                      <p className="text-base md:text-lg text-primary-foreground/90 drop-shadow">
+                        {slide.subtitle}
+                      </p>
+                    )}
                     {slide.cta_text && (
                       <button className="bg-accent text-accent-foreground font-bold px-6 py-3 rounded-full text-sm hover:brightness-110 transition-all shadow-lg">
                         {slide.cta_text}
