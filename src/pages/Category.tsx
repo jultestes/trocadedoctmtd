@@ -156,6 +156,7 @@ const Category = () => {
       sku: product.sku,
       stock: product.stock,
       category: product.rawSizes?.some(s => s.startsWith("menina")) ? "meninas" : "meninos",
+      description: product.description,
     };
     setSheetProduct(bsProduct);
     setProductSheetOpen(true);
@@ -207,7 +208,7 @@ const Category = () => {
       if (productIds.length > 0) {
         const { data: prodData } = await supabase
           .from("products")
-          .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
+          .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock, description")
           .in("id", productIds)
           .eq("active", true)
           .order("created_at", { ascending: false });
