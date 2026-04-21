@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Settings2, X, Plus, Trash2 } from "lucide-react";
+import { Settings2, X, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { sectionLabel } from "./constants";
 import type { LayoutSection, BannerSlide, FeatureItem, PromoStripItem, ShortcutCard, SecondaryBannerSlide, MiniBannerItem, MiniBannerWidth } from "./types";
 import { DEFAULT_FEATURES, DEFAULT_BANNERS } from "./constants";
@@ -175,11 +175,16 @@ function BannerEditor({ banners, onChange }: { banners: BannerSlide[]; onChange:
       </div>
       {banners.map((banner, i) => (
         <div key={i} className="border border-border rounded-lg p-2 space-y-2 bg-muted/20">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <span className="text-[10px] font-semibold text-muted-foreground">Banner {i + 1}</span>
-            <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive">
-              <Trash2 className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button disabled={i === 0} onClick={() => { const n=[...banners]; [n[i-1],n[i]]=[n[i],n[i-1]]; onChange(n); }} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowUp className="w-3 h-3"/></button>
+              <button disabled={i === banners.length-1} onClick={() => { const n=[...banners]; [n[i+1],n[i]]=[n[i],n[i+1]]; onChange(n); }} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowDown className="w-3 h-3"/></button>
+              <Switch checked={banner.active !== false} onCheckedChange={(v) => update(i, "active", v)} />
+              <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive ml-1">
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
           </div>
           <ImageUploader
             value={banner.image_url}
