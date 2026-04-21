@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
 import ProductImageCarousel from "@/components/ProductImageCarousel";
+import PromoBanner, { type PromoBannerConfig } from "@/components/PromoBanner";
 import { useCart } from "@/hooks/useCart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -111,8 +112,20 @@ const Category = () => {
   const [loading, setLoading] = useState(true);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
   const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
+  const [promoBanner, setPromoBanner] = useState<PromoBannerConfig | null>(null);
   const { addItem, setProductSheetOpen } = useCart();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "category_promo_banner")
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.value) setPromoBanner(data.value as unknown as PromoBannerConfig);
+      });
+  }, []);
 
   const selectedAge = searchParams.get("idade") || null;
 
@@ -301,6 +314,9 @@ const Category = () => {
 
       {/* Filters + Products */}
       <div className="container py-8 md:py-12">
+        {promoBanner && (slug === "meninos" || slug === "meninas") && (
+          <PromoBanner variant={slug as "meninos" | "meninas"} config={promoBanner} />
+        )}
         {/* Age filter groups — same design as SizeSelector on main site */}
         {!loading && filterGroups.length > 0 && (
           <div className={`rounded-2xl p-6 md:p-8 mb-6 ${filterBg}`}>
