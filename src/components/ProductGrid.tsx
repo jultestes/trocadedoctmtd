@@ -130,28 +130,13 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
   const isMobile = useIsMobile();
 
   const handleClick = useCallback((product: Product) => {
-    if (isMobile) {
-      const bsProduct: BottomSheetProduct = {
-        ...product,
-        extraImages: product.extraImages,
-      };
-      setSheetProduct(bsProduct);
-      setProductSheetOpen(true);
-    } else {
-      addItem({
-        id: product.id,
-        name: product.name,
-        brand: product.brand,
-        image: product.image,
-        price: product.price,
-        oldPrice: product.oldPrice,
-        size: product.sizes[0] || "",
-        sku: product.sku,
-        stock: product.stock,
-      });
-      setShowCartConfirm(true);
-    }
-  }, [addItem, isMobile, setProductSheetOpen]);
+    const bsProduct: BottomSheetProduct = {
+      ...product,
+      extraImages: product.extraImages,
+    };
+    setSheetProduct(bsProduct);
+    setProductSheetOpen(true);
+  }, [setProductSheetOpen]);
 
   useEffect(() => {
     const fetchProducts = async () => {
