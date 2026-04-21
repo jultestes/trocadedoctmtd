@@ -440,6 +440,70 @@ const AdminSettings = () => {
         )}
       </div>
 
+      {/* Promo Banner (Categorias) */}
+      <div className="bg-card border border-border rounded-xl p-6 space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Megaphone className="w-5 h-5 text-muted-foreground" />
+            <div>
+              <h3 className="font-semibold text-foreground text-lg">Banner Promocional (Categorias)</h3>
+              <p className="text-sm text-muted-foreground">Exibido no topo das páginas Meninos / Meninas</p>
+            </div>
+          </div>
+          <Switch
+            checked={promoBanner.enabled}
+            onCheckedChange={(v) => setPromoBanner({ ...promoBanner, enabled: v })}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Título principal</label>
+            <Input
+              value={promoBanner.title}
+              onChange={(e) => setPromoBanner({ ...promoBanner, title: e.target.value })}
+              placeholder="Ex: 3 CONJUNTOS POR R$100 | 5 POR R$150"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Subtítulo</label>
+            <Input
+              value={promoBanner.subtitle}
+              onChange={(e) => setPromoBanner({ ...promoBanner, subtitle: e.target.value })}
+              placeholder="Ex: Desconto automático no pedido"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Texto menor</label>
+            <Textarea
+              rows={2}
+              value={promoBanner.small_text}
+              onChange={(e) => setPromoBanner({ ...promoBanner, small_text: e.target.value })}
+              placeholder="Ex: Válido enquanto durar o estoque • Entrega em Manaus"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Exibir em</label>
+            <Select
+              value={promoBanner.show_on}
+              onValueChange={(v) => setPromoBanner({ ...promoBanner, show_on: v as PromoBannerConfig["show_on"] })}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ambos">Ambos (Meninos e Meninas)</SelectItem>
+                <SelectItem value="meninos">Apenas Meninos</SelectItem>
+                <SelectItem value="meninas">Apenas Meninas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <Button onClick={savePromoBanner} disabled={savingPromo} className="gap-2">
+          <Save className="w-4 h-4" />
+          {savingPromo ? "Salvando..." : "Salvar Banner Promocional"}
+        </Button>
+      </div>
+
       {/* Maintenance */}
       <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center justify-between">
