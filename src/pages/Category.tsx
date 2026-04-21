@@ -229,6 +229,7 @@ const Category = () => {
               sku: p.sku || undefined,
               stock: (p as any).stock ?? 0,
               categoryIds: productCatMap.get(p.id) || [],
+              description: p.description || undefined,
             }))
           );
         }
