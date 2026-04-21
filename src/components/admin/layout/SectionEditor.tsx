@@ -304,3 +304,77 @@ function FeaturesEditor({ features, onChange }: { features: FeatureItem[]; onCha
     </div>
   );
 }
+
+/* ─── Promo Strip Sub-Editor ─── */
+function PromoStripEditor({ items, onChange }: { items: PromoStripItem[]; onChange: (i: PromoStripItem[]) => void }) {
+  const update = (idx: number, key: keyof PromoStripItem, value: string) => {
+    const next = [...items];
+    next[idx] = { ...next[idx], [key]: value };
+    onChange(next);
+  };
+  const add = () => onChange([...items, { text: "Nova oferta", link: "" }]);
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Ofertas ({items.length})</label>
+        <Button size="sm" variant="outline" onClick={add} className="h-6 text-[10px] gap-1">
+          <Plus className="w-3 h-3" /> Adicionar
+        </Button>
+      </div>
+      {items.map((item, i) => (
+        <div key={i} className="border border-border rounded-lg p-2 space-y-2 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-muted-foreground">Oferta {i + 1}</span>
+            <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive">
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+          <Input placeholder="Texto da oferta" value={item.text} onChange={(e) => update(i, "text", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Link (ex: /categoria/meninas)" value={item.link ?? ""} onChange={(e) => update(i, "link", e.target.value)} className="h-7 text-xs" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Shortcut Cards Sub-Editor ─── */
+function ShortcutCardsEditor({ cards, onChange }: { cards: ShortcutCard[]; onChange: (c: ShortcutCard[]) => void }) {
+  const update = (idx: number, key: keyof ShortcutCard, value: string) => {
+    const next = [...cards];
+    next[idx] = { ...next[idx], [key]: value };
+    onChange(next);
+  };
+  const add = () => onChange([...cards, { title: "Novo", subtitle: "", link: "/", bg_color: "199 80% 90%" }]);
+  const remove = (idx: number) => onChange(cards.filter((_, i) => i !== idx));
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cards ({cards.length})</label>
+        <Button size="sm" variant="outline" onClick={add} className="h-6 text-[10px] gap-1">
+          <Plus className="w-3 h-3" /> Adicionar
+        </Button>
+      </div>
+      {cards.map((card, i) => (
+        <div key={i} className="border border-border rounded-lg p-2 space-y-2 bg-muted/20">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-muted-foreground">Card {i + 1}</span>
+            <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive">
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+          <ImageUploader value={card.image_url || ""} onChange={(url) => update(i, "image_url", url)} folder="banners" label="Imagem (opcional)" />
+          <Input placeholder="Título" value={card.title} onChange={(e) => update(i, "title", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Subtítulo" value={card.subtitle ?? ""} onChange={(e) => update(i, "subtitle", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Link" value={card.link} onChange={(e) => update(i, "link", e.target.value)} className="h-7 text-xs" />
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
+            <ColorPickerField value={card.bg_color ?? ""} onChange={(v) => update(i, "bg_color", v)} size="sm" placeholder="199 80% 90%" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
