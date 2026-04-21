@@ -290,7 +290,7 @@ const ProductContent = ({
                       Pix
                     </span>
                     <span className="font-bold text-foreground">
-                      {formatBRL(product.price)}
+                      {formatBRL(displayPrice)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -299,7 +299,7 @@ const ProductContent = ({
                       Dinheiro
                     </span>
                     <span className="font-bold text-foreground">
-                      {formatBRL(product.price)}
+                      {formatBRL(displayPrice)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
