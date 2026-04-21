@@ -4,6 +4,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const PHONE = "5592993339711";
 const MESSAGE = "Oi! Vim pelo site e quero fazer um pedido 😊";
+// wa.me é o formato oficial e não é bloqueado por extensões/adblockers como api.whatsapp.com
 const WHATSAPP_URL = `https://wa.me/${PHONE}?text=${encodeURIComponent(MESSAGE)}`;
 
 const WhatsAppFloatingButton = () => {
