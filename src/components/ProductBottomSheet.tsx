@@ -213,7 +213,7 @@ const ProductBottomSheet = ({ product, open, onOpenChange, onAddedToCart }: Prop
             )}
             <Button onClick={handleChoose} className="w-full gap-2 h-12 text-base font-bold" size="lg">
               <ShoppingBag className="w-5 h-5" />
-              Escolher
+              Adicionar ao pedido
             </Button>
           </div>
         </DrawerContent>
