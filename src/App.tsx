@@ -11,6 +11,7 @@ import { SiteSettingsProvider } from "@/hooks/useSiteSettings";
 import CartDrawer from "@/components/CartDrawer";
 import MaintenanceGuard from "@/components/MaintenanceGuard";
 import FloatingCartBadge from "@/components/FloatingCartBadge";
+import WhatsAppFloatingButton from "@/components/WhatsAppFloatingButton";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 
@@ -67,6 +68,7 @@ const App = () => (
               <CouponProvider>
                 <CartDrawer />
                 <FloatingCartBadge />
+                <WhatsAppFloatingButton />
                 <Suspense fallback={<Loading />}>
                   <Routes>
                     <Route path="/" element={<MaintenanceGuard><Index /></MaintenanceGuard>} />
