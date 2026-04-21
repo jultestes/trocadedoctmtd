@@ -57,6 +57,7 @@ type RawProduct = {
   discount: number | null;
   sizes: string[] | null;
   sku: string | null;
+  description?: string | null;
 };
 
 type Product = {
@@ -73,6 +74,7 @@ type Product = {
   sku?: string;
   stock: number;
   categoryIds: string[];
+  description?: string;
 };
 
 type SubcategoryInfo = {
