@@ -96,7 +96,7 @@ export const DEFAULT_LAYOUT: LayoutSection[] = [
   { id: "shortcut_cards_1", type: "shortcut_cards", visible: true },
   { id: "size_selector_1", type: "size_selector", visible: true },
   { id: "product_grid_meninas", type: "product_grid", visible: true, props: { title: "Meninas", category: "meninas", product_ids: [], max_count: "10" } },
-  { id: "secondary_banner_1", type: "secondary_banner", visible: true, props: { title: "Promoção Especial", subtitle: "Aproveite os melhores preços", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%" } },
+  { id: "secondary_banner_1", type: "secondary_banner", visible: true, props: { slides: [{ title: "Promoção Especial", subtitle: "Aproveite os melhores preços", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%", active: true }] } },
   { id: "product_grid_meninos", type: "product_grid", visible: true, props: { title: "Meninos", category: "meninos", product_ids: [], max_count: "10" } },
 ];
 
