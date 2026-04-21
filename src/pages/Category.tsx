@@ -57,6 +57,7 @@ type RawProduct = {
   discount: number | null;
   sizes: string[] | null;
   sku: string | null;
+  description?: string | null;
 };
 
 type Product = {
@@ -73,6 +74,7 @@ type Product = {
   sku?: string;
   stock: number;
   categoryIds: string[];
+  description?: string;
 };
 
 type SubcategoryInfo = {
@@ -154,6 +156,7 @@ const Category = () => {
       sku: product.sku,
       stock: product.stock,
       category: product.rawSizes?.some(s => s.startsWith("menina")) ? "meninas" : "meninos",
+      description: product.description,
     };
     setSheetProduct(bsProduct);
     setProductSheetOpen(true);
@@ -205,7 +208,7 @@ const Category = () => {
       if (productIds.length > 0) {
         const { data: prodData } = await supabase
           .from("products")
-          .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
+          .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock, description")
           .in("id", productIds)
           .eq("active", true)
           .order("created_at", { ascending: false });
@@ -226,6 +229,7 @@ const Category = () => {
               sku: p.sku || undefined,
               stock: (p as any).stock ?? 0,
               categoryIds: productCatMap.get(p.id) || [],
+              description: p.description || undefined,
             }))
           );
         }

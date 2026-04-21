@@ -21,6 +21,7 @@ type Product = {
   category: "meninas" | "meninos";
   sku?: string;
   stock: number;
+  description?: string;
 };
 
 const AGE_LABELS: Record<string, string> = {
@@ -142,7 +143,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
     const fetchProducts = async () => {
       let query = supabase
         .from("products")
-        .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock")
+        .select("id, name, brand, image_url, extra_images, old_price, price, discount, sizes, sku, stock, description")
         .eq("active", true)
         .order("created_at", { ascending: false })
         .limit(maxCount);
@@ -171,6 +172,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
           category: detectCategory(p.sizes),
           sku: p.sku || undefined,
           stock: p.stock ?? 0,
+          description: p.description || undefined,
         }));
         setDbProducts(mapped);
       }
