@@ -249,6 +249,18 @@ const ProductContent = ({
               )}
             </div>
 
+            {/* Description */}
+            {product.description && product.description.trim() && (
+              <div className="space-y-1.5">
+                <p className="text-[11px] font-bold text-foreground uppercase tracking-wide">
+                  Descrição
+                </p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {product.description}
+                </p>
+              </div>
+            )}
+
             {/* Payment methods (collapsible) */}
             <div className="border border-border rounded-xl overflow-hidden">
               <button
