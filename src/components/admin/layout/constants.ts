@@ -49,8 +49,21 @@ export const SECTION_CATALOG: {
     defaultProps: { title: "Nova Seção", category: "", product_ids: [], max_count: "8" },
   },
   {
-    type: "secondary_banner", label: "Banner Secundário", icon: React.createElement(Image, { className: "w-5 h-5" }),
-    defaultProps: { title: "Promoção Especial", subtitle: "Confira nossas ofertas", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%" },
+    type: "secondary_banner", label: "Banner Secundário (carrossel)", icon: React.createElement(Image, { className: "w-5 h-5" }),
+    defaultProps: {
+      slides: [
+        { title: "Promoção Especial", subtitle: "Confira nossas ofertas", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%", active: true },
+      ],
+    },
+  },
+  {
+    type: "mini_banners", label: "Mini Banners (grid)", icon: React.createElement(LayoutGrid, { className: "w-5 h-5" }),
+    defaultProps: {
+      items: [
+        { title: "Meninas", cta_text: "Ver tudo", link: "/categoria/meninas", bg_color: "332 80% 90%", width: "half", active: true },
+        { title: "Meninos", cta_text: "Ver tudo", link: "/categoria/meninos", bg_color: "199 80% 90%", width: "half", active: true },
+      ],
+    },
   },
   {
     type: "features_bar", label: "Barra de Vantagens", icon: React.createElement(Star, { className: "w-5 h-5" }),
@@ -83,7 +96,7 @@ export const DEFAULT_LAYOUT: LayoutSection[] = [
   { id: "shortcut_cards_1", type: "shortcut_cards", visible: true },
   { id: "size_selector_1", type: "size_selector", visible: true },
   { id: "product_grid_meninas", type: "product_grid", visible: true, props: { title: "Meninas", category: "meninas", product_ids: [], max_count: "10" } },
-  { id: "secondary_banner_1", type: "secondary_banner", visible: true, props: { title: "Promoção Especial", subtitle: "Aproveite os melhores preços", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%" } },
+  { id: "secondary_banner_1", type: "secondary_banner", visible: true, props: { slides: [{ title: "Promoção Especial", subtitle: "Aproveite os melhores preços", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%", active: true }] } },
   { id: "product_grid_meninos", type: "product_grid", visible: true, props: { title: "Meninos", category: "meninos", product_ids: [], max_count: "10" } },
 ];
 

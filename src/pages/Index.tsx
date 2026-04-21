@@ -10,6 +10,7 @@ import BrandsCarousel from "@/components/BrandsCarousel";
 import PromoStrip from "@/components/PromoStrip";
 import ShortcutCards from "@/components/ShortcutCards";
 import SecondaryBanner from "@/components/SecondaryBanner";
+import MiniBanners from "@/components/MiniBanners";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import type { LayoutSection } from "@/components/admin/layout/types";
@@ -44,6 +45,8 @@ const renderSection = (section: LayoutSection) => {
       return <ShortcutCards cards={section.props?.cards} />;
     case "secondary_banner":
       return <SecondaryBanner {...(section.props || {})} />;
+    case "mini_banners":
+      return <MiniBanners items={section.props?.items} />;
     case "spacer":
       return <div style={{ height: `${section.props?.height || 40}px` }} />;
     default:

@@ -9,7 +9,7 @@ interface HeroBannerProps {
 }
 
 const HeroBanner = ({ banners }: HeroBannerProps) => {
-  const slides = banners && banners.length > 0 ? banners : [];
+  const slides = (banners || []).filter((b) => b.active !== false);
   const [current, setCurrent] = useState(0);
   const navigate = useNavigate();
   const isMobile = useIsMobile();

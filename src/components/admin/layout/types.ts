@@ -8,7 +8,32 @@ export type SectionType =
   | "promo_strip"
   | "shortcut_cards"
   | "secondary_banner"
+  | "mini_banners"
   | "spacer";
+
+export type MiniBannerWidth = "full" | "two_thirds" | "half" | "third";
+
+export interface MiniBannerItem {
+  image_url?: string;
+  image_url_mobile?: string;
+  title?: string;
+  cta_text?: string;
+  link?: string;
+  bg_color?: string;
+  width?: MiniBannerWidth; // grid width (default: third)
+  active?: boolean;
+}
+
+export interface SecondaryBannerSlide {
+  image_url?: string;
+  image_url_mobile?: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  link?: string;
+  bg_color?: string;
+  active?: boolean;
+}
 
 export interface PromoStripItem {
   text: string;
@@ -42,6 +67,7 @@ export interface BannerSlide {
   bg_color?: string;
   clickable?: boolean;
   link?: string;
+  active?: boolean;
 }
 
 export interface FeatureItem {
