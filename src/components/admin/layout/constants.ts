@@ -49,8 +49,21 @@ export const SECTION_CATALOG: {
     defaultProps: { title: "Nova Seção", category: "", product_ids: [], max_count: "8" },
   },
   {
-    type: "secondary_banner", label: "Banner Secundário", icon: React.createElement(Image, { className: "w-5 h-5" }),
-    defaultProps: { title: "Promoção Especial", subtitle: "Confira nossas ofertas", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%" },
+    type: "secondary_banner", label: "Banner Secundário (carrossel)", icon: React.createElement(Image, { className: "w-5 h-5" }),
+    defaultProps: {
+      slides: [
+        { title: "Promoção Especial", subtitle: "Confira nossas ofertas", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%", active: true },
+      ],
+    },
+  },
+  {
+    type: "mini_banners", label: "Mini Banners (grid)", icon: React.createElement(LayoutGrid, { className: "w-5 h-5" }),
+    defaultProps: {
+      items: [
+        { title: "Meninas", cta_text: "Ver tudo", link: "/categoria/meninas", bg_color: "332 80% 90%", width: "half", active: true },
+        { title: "Meninos", cta_text: "Ver tudo", link: "/categoria/meninos", bg_color: "199 80% 90%", width: "half", active: true },
+      ],
+    },
   },
   {
     type: "features_bar", label: "Barra de Vantagens", icon: React.createElement(Star, { className: "w-5 h-5" }),
