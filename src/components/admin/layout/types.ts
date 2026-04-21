@@ -5,7 +5,33 @@ export type SectionType =
   | "features_bar"
   | "brands_carousel"
   | "custom_banner"
+  | "promo_strip"
+  | "shortcut_cards"
+  | "secondary_banner"
   | "spacer";
+
+export interface PromoStripItem {
+  text: string;
+  link?: string;
+}
+
+export interface ShortcutCard {
+  title: string;
+  subtitle?: string;
+  image_url?: string;
+  link: string;
+  bg_color?: string;
+}
+
+export interface SecondaryBannerProps {
+  image_url?: string;
+  image_url_mobile?: string;
+  title?: string;
+  subtitle?: string;
+  cta_text?: string;
+  link?: string;
+  bg_color?: string;
+}
 
 export interface BannerSlide {
   image_url: string;
