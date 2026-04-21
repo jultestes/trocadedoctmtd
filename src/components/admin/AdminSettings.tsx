@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Wrench, MapPin, Phone, Mail, Save, Plus, Trash2, Share2, Instagram, Facebook, MessageCircle, Youtube, Twitter, Send, Moon, Sun } from "lucide-react";
+import { Wrench, MapPin, Phone, Mail, Save, Plus, Trash2, Share2, Instagram, Facebook, MessageCircle, Youtube, Twitter, Send, Moon, Sun, Megaphone } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import type { PromoBannerConfig } from "@/components/PromoBanner";
 
 const PLATFORM_ICONS: Record<string, React.ElementType> = {
   instagram: Instagram,
@@ -60,6 +62,14 @@ const AdminSettings = () => {
   });
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [savingSocial, setSavingSocial] = useState(false);
+  const [promoBanner, setPromoBanner] = useState<PromoBannerConfig>({
+    enabled: false,
+    show_on: "ambos",
+    title: "3 CONJUNTOS POR R$100 | 5 POR R$150",
+    subtitle: "Desconto automático no pedido",
+    small_text: "Válido enquanto durar o estoque • Entrega em Manaus",
+  });
+  const [savingPromo, setSavingPromo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [savingStore, setSavingStore] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -72,7 +82,7 @@ const AdminSettings = () => {
     const { data } = await supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["maintenance", "store_info", "social_links"]);
+      .in("key", ["maintenance", "store_info", "social_links", "category_promo_banner"]);
 
     if (data) {
       for (const row of data) {
@@ -85,9 +95,41 @@ const AdminSettings = () => {
         if (row.key === "social_links") {
           setSocialLinks(row.value as unknown as SocialLink[]);
         }
+        if (row.key === "category_promo_banner") {
+          setPromoBanner(row.value as unknown as PromoBannerConfig);
+        }
       }
     }
     setLoading(false);
+  };
+
+  const savePromoBanner = async () => {
+    setSavingPromo(true);
+    const { data: existing } = await supabase
+      .from("site_settings")
+      .select("id")
+      .eq("key", "category_promo_banner")
+      .maybeSingle();
+
+    const value = JSON.parse(JSON.stringify(promoBanner));
+    let error;
+    if (existing) {
+      ({ error } = await supabase
+        .from("site_settings")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("key", "category_promo_banner"));
+    } else {
+      ({ error } = await supabase
+        .from("site_settings")
+        .insert({ key: "category_promo_banner", value }));
+    }
+
+    setSavingPromo(false);
+    if (error) {
+      toast({ title: "Erro ao salvar banner promocional", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Banner promocional salvo!" });
   };
 
   useEffect(() => {
