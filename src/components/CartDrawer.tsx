@@ -237,7 +237,7 @@ const CartDrawer = () => {
                   size="lg"
                   onClick={handleCheckout}
                 >
-                  Por aqui mesmo!
+                  Finalizar aqui no catálogo
                 </Button>
                 <Button
                   variant="outline"
