@@ -91,10 +91,17 @@ type CategoryData = {
 };
 
 const bannerStyles: Record<string, string> = {
-  meninas: "from-pink-400 to-rose-300",
-  meninos: "from-sky-400 to-blue-300",
-  bebes: "from-amber-300 to-yellow-200",
-  outlet: "from-emerald-400 to-green-300",
+  meninas: "from-pink-300 via-pink-200 to-rose-200",
+  meninos: "from-sky-300 via-sky-200 to-blue-200",
+  bebes: "from-amber-200 via-amber-100 to-yellow-100",
+  outlet: "from-emerald-300 via-emerald-200 to-green-200",
+};
+
+const cloudColor: Record<string, string> = {
+  meninas: "text-white/70",
+  meninos: "text-white/70",
+  bebes: "text-white/70",
+  outlet: "text-white/70",
 };
 
 const filterBgStyles: Record<string, string> = {
