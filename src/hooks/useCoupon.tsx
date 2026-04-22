@@ -10,12 +10,16 @@ export type AppliedCoupon = {
   min_quantity: number;
   bundle_price: number;
   active: boolean;
+  display_title?: string | null;
+  display_order?: number | null;
+  show_in_cart?: boolean | null;
 };
 
 type CouponContextType = {
   coupon: AppliedCoupon | null;
   loading: boolean;
   applyByCode: (code: string) => Promise<{ ok: boolean; message: string }>;
+  applyCoupon: (c: AppliedCoupon) => void;
   remove: () => void;
 };
 
@@ -52,6 +56,11 @@ export const CouponProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [fetchByCode]);
 
+  const applyCoupon = useCallback((c: AppliedCoupon) => {
+    setCoupon(c);
+    try { localStorage.setItem(COUPON_STORAGE_KEY, c.utm_code || c.id); } catch {}
+  }, []);
+
   const remove = useCallback(() => {
     setCoupon(null);
     try { localStorage.removeItem(COUPON_STORAGE_KEY); } catch {}
@@ -78,7 +87,7 @@ export const CouponProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <CouponContext.Provider value={{ coupon, loading, applyByCode, remove }}>
+    <CouponContext.Provider value={{ coupon, loading, applyByCode, applyCoupon, remove }}>
       {children}
     </CouponContext.Provider>
   );

@@ -22,6 +22,9 @@ type Coupon = {
   active: boolean;
   created_at: string;
   utm_code: string | null;
+  show_in_cart?: boolean | null;
+  display_order?: number | null;
+  display_title?: string | null;
 };
 
 const SITE_URL = "https://tmtdkids.vercel.app/";
@@ -46,11 +49,15 @@ const AdminCoupons = () => {
   const [bundlePrice, setBundlePrice] = useState(100);
   const [utmCode, setUtmCode] = useState("");
   const [utmTouched, setUtmTouched] = useState(false);
+  const [showInCart, setShowInCart] = useState(true);
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [displayTitle, setDisplayTitle] = useState("");
 
   const fetchCoupons = async () => {
     const { data, error } = await (supabase as any)
       .from("coupons")
       .select("*")
+      .order("display_order", { ascending: true })
       .order("created_at", { ascending: false });
     if (!error && data) setCoupons(data as Coupon[]);
     setLoading(false);
@@ -72,6 +79,9 @@ const AdminCoupons = () => {
     setBundlePrice(100);
     setUtmCode("");
     setUtmTouched(false);
+    setShowInCart(true);
+    setDisplayOrder(0);
+    setDisplayTitle("");
     setEditingId(null);
     setShowForm(false);
   };
@@ -83,6 +93,9 @@ const AdminCoupons = () => {
     setBundlePrice(c.bundle_price);
     setUtmCode(c.utm_code || slugifyUtm(c.name));
     setUtmTouched(true); // preserve existing utm
+    setShowInCart(c.show_in_cart ?? true);
+    setDisplayOrder(c.display_order ?? 0);
+    setDisplayTitle(c.display_title || "");
     setEditingId(c.id);
     setShowForm(true);
   };
@@ -105,6 +118,9 @@ const AdminCoupons = () => {
       min_quantity: minQuantity,
       bundle_price: bundlePrice,
       utm_code: finalUtm,
+      show_in_cart: showInCart,
+      display_order: displayOrder,
+      display_title: displayTitle.trim() || null,
     };
 
     if (editingId) {
@@ -236,6 +252,32 @@ const AdminCoupons = () => {
                   <LinkIcon className="w-3 h-3 shrink-0" /> {buildCouponLink(utmCode)}
                 </p>
               )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Título no carrinho <span className="text-muted-foreground/70 font-normal">(opcional)</span>
+              </label>
+              <Input
+                placeholder="Ex: 3 POR R$ 100"
+                value={displayTitle}
+                onChange={(e) => setDisplayTitle(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Ordem de exibição</label>
+              <Input
+                type="number"
+                value={displayOrder}
+                onChange={(e) => setDisplayOrder(Number(e.target.value))}
+              />
+            </div>
+            <div className="md:col-span-2 flex items-center justify-between bg-muted/40 border border-border rounded-md px-3 py-2">
+              <div>
+                <p className="text-sm font-medium text-foreground">Mostrar no carrinho</p>
+                <p className="text-xs text-muted-foreground">Permite que o cliente selecione este cupom direto no carrinho.</p>
+              </div>
+              <Switch checked={showInCart} onCheckedChange={setShowInCart} />
             </div>
           </div>
 
