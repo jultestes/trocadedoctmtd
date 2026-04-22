@@ -56,6 +56,11 @@ export const CouponProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [fetchByCode]);
 
+  const applyCoupon = useCallback((c: AppliedCoupon) => {
+    setCoupon(c);
+    try { localStorage.setItem(COUPON_STORAGE_KEY, c.utm_code || c.id); } catch {}
+  }, []);
+
   const remove = useCallback(() => {
     setCoupon(null);
     try { localStorage.removeItem(COUPON_STORAGE_KEY); } catch {}
@@ -82,7 +87,7 @@ export const CouponProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <CouponContext.Provider value={{ coupon, loading, applyByCode, remove }}>
+    <CouponContext.Provider value={{ coupon, loading, applyByCode, applyCoupon, remove }}>
       {children}
     </CouponContext.Provider>
   );
