@@ -198,7 +198,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10, eager = false
       }
     };
     fetchProducts();
-  }, [category, productIds, maxCount]);
+  }, [category, productIds, maxCount, shouldLoad]);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -207,15 +207,15 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10, eager = false
   };
 
   return (
-    <section className="py-8 md:py-12" id={category}>
+    <section ref={sectionRef} className="py-8 md:py-12" id={category}>
       <div className="container">
         <div className="flex items-center justify-between mb-6">
           <h2 className="section-title">{title}</h2>
           <div className="flex gap-2">
-            <button onClick={() => scroll("left")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors">
+            <button onClick={() => scroll("left")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors" aria-label="Rolar para esquerda">
               <ChevronLeft className="w-4 h-4 text-foreground" />
             </button>
-            <button onClick={() => scroll("right")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors">
+            <button onClick={() => scroll("right")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors" aria-label="Rolar para direita">
               <ChevronRight className="w-4 h-4 text-foreground" />
             </button>
           </div>
@@ -223,9 +223,17 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10, eager = false
 
         <div className="flex gap-4">
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
-            {dbProducts.map((product, idx) => (
-              <ProductCard key={product.id} product={product} onClick={() => handleClick(product)} index={idx} />
-            ))}
+            {!shouldLoad || dbProducts.length === 0
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={`sk-${i}`}
+                    className="shrink-0 w-[180px] md:w-[220px] rounded-xl bg-muted/50 animate-pulse"
+                    style={{ aspectRatio: "3/4.7" }}
+                  />
+                ))
+              : dbProducts.map((product, idx) => (
+                  <ProductCard key={product.id} product={product} onClick={() => handleClick(product)} index={idx} />
+                ))}
           </div>
         </div>
 
