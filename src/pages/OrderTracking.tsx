@@ -122,7 +122,17 @@ const OrderTracking = () => {
     return (data as SaleInfo) || null;
   };
 
-  const fetchItems = async (saleId: string) => {
+  const fetchItems = async (saleId: string, nsu?: string) => {
+    // Direct table SELECT is blocked by RLS for anonymous users.
+    // Use the security-definer RPC when we have the NSU (customer flow).
+    if (nsu) {
+      const { data, error } = await supabase.rpc(
+        // @ts-expect-error - RPC pending migration apply; falls back gracefully
+        "get_sale_items_by_nsu",
+        { _nsu: nsu }
+      );
+      if (!error && data) return (data as SaleItem[]) || [];
+    }
     const { data } = await supabase
       .from("sale_items")
       .select("product_name, unit_price, product_sku")
@@ -158,7 +168,7 @@ const OrderTracking = () => {
       setLoading(false);
 
       // Items: only fetch once
-      const itemsData = await fetchItems(data.id);
+      const itemsData = await fetchItems(data.id, orderNsu);
       if (!cancelled) setItems(itemsData);
     };
 
