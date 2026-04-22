@@ -86,7 +86,7 @@ const CouponPicker = () => {
                   {c.description || `${c.min_quantity} peças por ${formatBRL(Number(c.bundle_price))}`}
                 </p>
                 {!eligible && (
-                  <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">
+                  <p className="text-[11px] text-muted-foreground font-medium mt-0.5">
                     Adicione mais {missing} {missing === 1 ? "produto" : "produtos"} para ativar
                   </p>
                 )}
