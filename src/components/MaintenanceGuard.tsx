@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Wrench } from "lucide-react";
+import { Wrench, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type MaintenanceValue = {
   enabled: boolean;
