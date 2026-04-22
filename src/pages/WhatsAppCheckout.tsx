@@ -217,7 +217,15 @@ const WhatsAppCheckout = () => {
       }
 
       clearCart();
-      navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=${paymentMethod}`);
+
+      // Open WhatsApp with the order number, then redirect to tracking page
+      const waNumber = "5592993339711";
+      const waMsg = `Oi! Quero finalizar o pedido nº ${orderNsu} 🛍️\n\nNome: ${nome.trim()}\nTelefone: ${telefone}`;
+      const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`;
+      // Open in new tab so the user keeps the tracking page in this tab
+      window.open(waUrl, "_blank");
+
+      navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=whatsapp`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("WhatsApp checkout error:", msg, err);
