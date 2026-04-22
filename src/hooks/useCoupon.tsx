@@ -10,12 +10,16 @@ export type AppliedCoupon = {
   min_quantity: number;
   bundle_price: number;
   active: boolean;
+  display_title?: string | null;
+  display_order?: number | null;
+  show_in_cart?: boolean | null;
 };
 
 type CouponContextType = {
   coupon: AppliedCoupon | null;
   loading: boolean;
   applyByCode: (code: string) => Promise<{ ok: boolean; message: string }>;
+  applyCoupon: (c: AppliedCoupon) => void;
   remove: () => void;
 };
 
