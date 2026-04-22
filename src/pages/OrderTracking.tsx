@@ -131,7 +131,7 @@ const OrderTracking = () => {
         "get_sale_items_by_nsu",
         { _nsu: nsu }
       );
-      if (!error && data) return (data as SaleItem[]) || [];
+      if (!error && data) return (data as unknown as SaleItem[]) || [];
     }
     const { data } = await supabase
       .from("sale_items")
