@@ -19,22 +19,26 @@ import { DEFAULT_LAYOUT } from "@/components/admin/layout/constants";
 // Tipos de seção que NÃO devem receber wrapper alternado (já têm largura total ou bg próprio)
 const FULL_BLEED_TYPES = new Set(["hero_banner", "promo_strip", "spacer"]);
 
-const renderSection = (section: LayoutSection) => {
+const renderSection = (section: LayoutSection, gridIndex: { current: number }) => {
   if (!section.visible) return null;
   switch (section.type) {
     case "hero_banner":
       return <HeroBanner banners={section.props?.banners} />;
     case "size_selector":
       return <SizeSelector />;
-    case "product_grid":
+    case "product_grid": {
+      const isEager = gridIndex.current === 0;
+      gridIndex.current += 1;
       return (
         <ProductGrid
           title={section.props?.title || "Produtos"}
           category={section.props?.category || ""}
           productIds={section.props?.product_ids}
           maxCount={Number(section.props?.max_count) || 10}
+          eager={isEager}
         />
       );
+    }
     case "features_bar":
       return <FeaturesBar features={section.props?.features} />;
     case "brands_carousel":
@@ -76,12 +80,14 @@ const Index = () => {
   let altIndex = 0;
   const visible = sections.filter((s) => s.visible);
 
+  const gridIndex = { current: 0 };
+
   return (
     <div className="min-h-screen bg-background">
       <TopBar />
       <Header />
       {visible.map((section) => {
-        const node = renderSection(section);
+        const node = renderSection(section, gridIndex);
         if (!node) return null;
         if (FULL_BLEED_TYPES.has(section.type)) {
           return <div key={section.id}>{node}</div>;

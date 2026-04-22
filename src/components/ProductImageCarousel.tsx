@@ -75,8 +75,8 @@ const ProductImageCarousel = memo(({
                   alt={alt}
                   className="w-full h-full object-cover"
                   sizes={sizes}
-                  widths={[240, 360, 480, 720]}
-                  transformWidth={480}
+                  widths={[220, 360, 480]}
+                  transformWidth={360}
                   quality={45}
                   loading={eager && i === 0 ? "eager" : "lazy"}
                   fetchPriority={eager && i === 0 ? "high" : "low"}
