@@ -1,4 +1,4 @@
-import { Search, User, Menu, X, Shield, ChevronDown } from "lucide-react";
+import { Search, User, Menu, X, Shield, ChevronDown, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -108,6 +108,15 @@ const Header = () => {
             <Search className="w-5 h-5" />
           </button>
 
+          <Link
+            to="/acompanhar-pedido"
+            className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+            title="Acompanhar Pedido"
+          >
+            <Package className="w-4 h-4" />
+            <span className="hidden xl:inline">Meus Pedidos</span>
+          </Link>
+
           {isAdmin && (
             <Link to="/admin" className="text-foreground hover:text-primary transition-colors" title="Admin">
               <Shield className="w-5 h-5" />
@@ -152,6 +161,14 @@ const Header = () => {
       {menuOpen && (
         <nav className="lg:hidden bg-background border-t border-border animate-fade-in">
           <div className="container py-4 flex flex-col gap-1">
+            <Link
+              to="/acompanhar-pedido"
+              className="flex items-center gap-2 text-sm font-semibold text-primary py-2"
+              onClick={() => setMenuOpen(false)}
+            >
+              <Package className="w-4 h-4" />
+              Acompanhar Pedido
+            </Link>
             {categories.map((cat) => (
               <div key={cat.id}>
                 <Link
