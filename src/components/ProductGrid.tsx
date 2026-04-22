@@ -122,11 +122,13 @@ const ProductCard = memo(({ product, onClick, index }: { product: Product; onCli
 
 ProductCard.displayName = "ProductCard";
 
-const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: string; category: string; productIds?: string[]; maxCount?: number }) => {
+const ProductGrid = ({ title, category, productIds, maxCount = 10, eager = false }: { title: string; category: string; productIds?: string[]; maxCount?: number; eager?: boolean }) => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
   const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(eager);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const { addItem, setProductSheetOpen } = useCart();
   const isMobile = useIsMobile();
 
@@ -139,7 +141,25 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
     setProductSheetOpen(true);
   }, [setProductSheetOpen]);
 
+  // Lazy mount via IntersectionObserver — only fetch when near viewport
   useEffect(() => {
+    if (shouldLoad || !sectionRef.current) return;
+    const el = sectionRef.current;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShouldLoad(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    if (!shouldLoad) return;
     const fetchProducts = async () => {
       let query = supabase
         .from("products")
@@ -178,7 +198,7 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
       }
     };
     fetchProducts();
-  }, [category, productIds, maxCount]);
+  }, [category, productIds, maxCount, shouldLoad]);
 
   const scroll = (dir: "left" | "right") => {
     if (!scrollRef.current) return;
@@ -187,15 +207,15 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
   };
 
   return (
-    <section className="py-8 md:py-12" id={category}>
+    <section ref={sectionRef} className="py-8 md:py-12" id={category}>
       <div className="container">
         <div className="flex items-center justify-between mb-6">
           <h2 className="section-title">{title}</h2>
           <div className="flex gap-2">
-            <button onClick={() => scroll("left")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors">
+            <button onClick={() => scroll("left")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors" aria-label="Rolar para esquerda">
               <ChevronLeft className="w-4 h-4 text-foreground" />
             </button>
-            <button onClick={() => scroll("right")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors">
+            <button onClick={() => scroll("right")} className="bg-card border border-border rounded-full p-2 hover:bg-muted transition-colors" aria-label="Rolar para direita">
               <ChevronRight className="w-4 h-4 text-foreground" />
             </button>
           </div>
@@ -203,9 +223,17 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
 
         <div className="flex gap-4">
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2 min-w-0">
-            {dbProducts.map((product, idx) => (
-              <ProductCard key={product.id} product={product} onClick={() => handleClick(product)} index={idx} />
-            ))}
+            {!shouldLoad || dbProducts.length === 0
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={`sk-${i}`}
+                    className="shrink-0 w-[180px] md:w-[220px] rounded-xl bg-muted/50 animate-pulse"
+                    style={{ aspectRatio: "3/4.7" }}
+                  />
+                ))
+              : dbProducts.map((product, idx) => (
+                  <ProductCard key={product.id} product={product} onClick={() => handleClick(product)} index={idx} />
+                ))}
           </div>
         </div>
 
