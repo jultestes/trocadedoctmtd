@@ -22,6 +22,9 @@ type Coupon = {
   active: boolean;
   created_at: string;
   utm_code: string | null;
+  show_in_cart?: boolean | null;
+  display_order?: number | null;
+  display_title?: string | null;
 };
 
 const SITE_URL = "https://tmtdkids.vercel.app/";
@@ -46,11 +49,15 @@ const AdminCoupons = () => {
   const [bundlePrice, setBundlePrice] = useState(100);
   const [utmCode, setUtmCode] = useState("");
   const [utmTouched, setUtmTouched] = useState(false);
+  const [showInCart, setShowInCart] = useState(true);
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [displayTitle, setDisplayTitle] = useState("");
 
   const fetchCoupons = async () => {
     const { data, error } = await (supabase as any)
       .from("coupons")
       .select("*")
+      .order("display_order", { ascending: true })
       .order("created_at", { ascending: false });
     if (!error && data) setCoupons(data as Coupon[]);
     setLoading(false);
@@ -72,6 +79,9 @@ const AdminCoupons = () => {
     setBundlePrice(100);
     setUtmCode("");
     setUtmTouched(false);
+    setShowInCart(true);
+    setDisplayOrder(0);
+    setDisplayTitle("");
     setEditingId(null);
     setShowForm(false);
   };
@@ -83,6 +93,9 @@ const AdminCoupons = () => {
     setBundlePrice(c.bundle_price);
     setUtmCode(c.utm_code || slugifyUtm(c.name));
     setUtmTouched(true); // preserve existing utm
+    setShowInCart(c.show_in_cart ?? true);
+    setDisplayOrder(c.display_order ?? 0);
+    setDisplayTitle(c.display_title || "");
     setEditingId(c.id);
     setShowForm(true);
   };
@@ -105,6 +118,9 @@ const AdminCoupons = () => {
       min_quantity: minQuantity,
       bundle_price: bundlePrice,
       utm_code: finalUtm,
+      show_in_cart: showInCart,
+      display_order: displayOrder,
+      display_title: displayTitle.trim() || null,
     };
 
     if (editingId) {
