@@ -253,6 +253,32 @@ const AdminCoupons = () => {
                 </p>
               )}
             </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">
+                Título no carrinho <span className="text-muted-foreground/70 font-normal">(opcional)</span>
+              </label>
+              <Input
+                placeholder="Ex: 3 POR R$ 100"
+                value={displayTitle}
+                onChange={(e) => setDisplayTitle(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1 block">Ordem de exibição</label>
+              <Input
+                type="number"
+                value={displayOrder}
+                onChange={(e) => setDisplayOrder(Number(e.target.value))}
+              />
+            </div>
+            <div className="md:col-span-2 flex items-center justify-between bg-muted/40 border border-border rounded-md px-3 py-2">
+              <div>
+                <p className="text-sm font-medium text-foreground">Mostrar no carrinho</p>
+                <p className="text-xs text-muted-foreground">Permite que o cliente selecione este cupom direto no carrinho.</p>
+              </div>
+              <Switch checked={showInCart} onCheckedChange={setShowInCart} />
+            </div>
           </div>
 
           <div className="flex gap-2 justify-end">
