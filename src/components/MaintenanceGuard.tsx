@@ -37,7 +37,15 @@ const MaintenanceGuard = ({ children }: MaintenanceGuardProps) => {
 
   if (maintenance?.enabled) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="relative min-h-screen flex flex-col items-center justify-center bg-background px-6 text-center">
+        <div className="absolute top-4 right-4">
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link to="/auth" aria-label="Acessar área administrativa">
+              <Lock className="w-4 h-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Link>
+          </Button>
+        </div>
         <Wrench className="w-16 h-16 text-primary mb-6 animate-pulse" />
         <h1 className="text-3xl md:text-4xl font-bold text-foreground font-heading mb-3">
           {maintenance.title}
