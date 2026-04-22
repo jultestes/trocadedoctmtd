@@ -115,6 +115,7 @@ const Footer = () => {
               Institucional
             </h4>
             <ul className="space-y-2 text-sm opacity-80">
+              <li><a href="/acompanhar-pedido" className="hover:text-accent transition-colors">Acompanhar Pedido</a></li>
               <li><a href="#" className="hover:text-accent transition-colors">Sobre Nós</a></li>
               <li><a href="#" className="hover:text-accent transition-colors">Política de Troca</a></li>
               <li><a href="#" className="hover:text-accent transition-colors">Política de Privacidade</a></li>
