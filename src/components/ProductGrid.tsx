@@ -122,11 +122,13 @@ const ProductCard = memo(({ product, onClick, index }: { product: Product; onCli
 
 ProductCard.displayName = "ProductCard";
 
-const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: string; category: string; productIds?: string[]; maxCount?: number }) => {
+const ProductGrid = ({ title, category, productIds, maxCount = 10, eager = false }: { title: string; category: string; productIds?: string[]; maxCount?: number; eager?: boolean }) => {
   const [dbProducts, setDbProducts] = useState<Product[]>([]);
   const [showCartConfirm, setShowCartConfirm] = useState(false);
   const [sheetProduct, setSheetProduct] = useState<BottomSheetProduct | null>(null);
+  const [shouldLoad, setShouldLoad] = useState(eager);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const { addItem, setProductSheetOpen } = useCart();
   const isMobile = useIsMobile();
 
@@ -139,7 +141,25 @@ const ProductGrid = ({ title, category, productIds, maxCount = 10 }: { title: st
     setProductSheetOpen(true);
   }, [setProductSheetOpen]);
 
+  // Lazy mount via IntersectionObserver — only fetch when near viewport
   useEffect(() => {
+    if (shouldLoad || !sectionRef.current) return;
+    const el = sectionRef.current;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setShouldLoad(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shouldLoad]);
+
+  useEffect(() => {
+    if (!shouldLoad) return;
     const fetchProducts = async () => {
       let query = supabase
         .from("products")
