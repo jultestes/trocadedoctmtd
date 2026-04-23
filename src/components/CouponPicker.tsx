@@ -109,17 +109,15 @@ const CouponPicker = () => {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-2 mb-2"
+        className="w-full flex items-center justify-between gap-2"
       >
         <div className="flex items-center gap-2 min-w-0">
           <div className="shrink-0 w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center shadow">
             <Ticket className="w-4 h-4" strokeWidth={2.5} />
           </div>
-          <div className="text-left min-w-0">
-            <p className="text-sm font-extrabold text-orange-700 dark:text-orange-300 leading-tight tracking-tight truncate">
-              Aplique seu CUPOM
-            </p>
-          </div>
+          <p className="text-sm font-extrabold text-orange-700 dark:text-orange-300 leading-tight tracking-tight truncate">
+            Aplique seu CUPOM
+          </p>
         </div>
         {open ? (
           <ChevronUp className="w-4 h-4 text-orange-700 dark:text-orange-300 shrink-0" />
@@ -127,12 +125,12 @@ const CouponPicker = () => {
           <ChevronDown className="w-4 h-4 text-orange-700 dark:text-orange-300 shrink-0" />
         )}
       </button>
+      <p className="text-[11px] text-orange-900/80 dark:text-orange-200/80 leading-snug mt-1.5 mb-2.5 px-0.5">
+        Selecione a promoção para ativar o desconto automático
+      </p>
 
       {open && (
         <>
-          <p className="text-[11px] text-orange-900/80 dark:text-orange-200/80 leading-snug mb-2.5 px-0.5">
-            Selecione uma promoção para ativar o desconto automático.
-          </p>
           <div className="grid grid-cols-2 gap-2">
             {list.map((c) => {
               const eligible = totalItems >= c.min_quantity;
