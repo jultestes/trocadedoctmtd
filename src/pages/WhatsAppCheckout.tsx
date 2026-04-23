@@ -37,6 +37,10 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 const WhatsAppCheckout = () => {
   const { items, totalPrice, totalItems, clearCart } = useCart();
+  const { coupon } = useCoupon();
+  const couponCalc = calculateCouponDiscount(items, coupon);
+  const subtotalAfterCoupon = couponCalc.finalTotal;
+  const couponDiscount = couponCalc.discount;
   const navigate = useNavigate();
   const checkoutTopRef = useRef<HTMLHeadingElement | null>(null);
 
