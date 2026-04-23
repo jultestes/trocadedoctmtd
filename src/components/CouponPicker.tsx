@@ -10,6 +10,7 @@ const CouponPicker = () => {
   const { coupon, applyCoupon, remove } = useCoupon();
   const [list, setList] = useState<AppliedCoupon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const autoAppliedRef = useRef<string | null>(null);
 
   useEffect(() => {
