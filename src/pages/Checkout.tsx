@@ -277,12 +277,18 @@ const Checkout = () => {
         body: payload,
       });
 
-      if (error) throw error;
+      // Edge function may return non-2xx; data still contains JSON body
+      const fnError = (data && (data as any).error) || null;
+      if (error || fnError) {
+        const detail = fnError || (error instanceof Error ? error.message : "Falha ao contatar gateway de pagamento");
+        console.error("Checkout fn error:", { error, data });
+        throw new Error(detail);
+      }
 
       const checkoutUrl = data?.checkout_url || data?.url || data?.link;
       if (!checkoutUrl) {
         console.log("InfinitePay response:", JSON.stringify(data));
-        throw new Error("Link de pagamento não retornado");
+        throw new Error("Link de pagamento não retornado pelo gateway");
       }
 
       clearCart();
@@ -290,7 +296,7 @@ const Checkout = () => {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error("Checkout error:", msg, err);
-      toast.error(`Erro ao processar pedido: ${msg}`);
+      toast.error(msg, { description: "Tente novamente ou finalize o pedido pelo WhatsApp." });
     } finally {
       setCheckoutLoading(false);
     }
