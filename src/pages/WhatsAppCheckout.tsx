@@ -115,7 +115,7 @@ const WhatsAppCheckout = () => {
     return match ? Number(match.price) : DEFAULT_SHIPPING;
   })();
 
-  const grandTotal = totalPrice + shippingPrice;
+  const grandTotal = subtotalAfterCoupon + shippingPrice;
 
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 8);
