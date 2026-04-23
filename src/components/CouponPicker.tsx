@@ -11,6 +11,7 @@ const CouponPicker = () => {
   const [list, setList] = useState<AppliedCoupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -103,8 +104,6 @@ const CouponPicker = () => {
   }
 
   // STATE 1 — No coupon applied: highlighted card with two big options
-  const [open, setOpen] = useState(true);
-
   return (
     <div className="rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200/80 dark:from-orange-950/40 dark:to-orange-900/30 p-3 shadow-sm">
       <button
