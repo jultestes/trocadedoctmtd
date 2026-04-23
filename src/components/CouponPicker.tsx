@@ -11,7 +11,6 @@ const CouponPicker = () => {
   const [list, setList] = useState<AppliedCoupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
-  const autoAppliedRef = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -30,24 +29,6 @@ const CouponPicker = () => {
     })();
     return () => { mounted = false; };
   }, []);
-
-  // Auto-select the best eligible coupon
-  useEffect(() => {
-    if (loading || list.length === 0) return;
-    const eligible = list.filter((c) => totalItems >= c.min_quantity);
-    if (eligible.length === 0) return;
-    const best = eligible.reduce((a, b) => (a.min_quantity >= b.min_quantity ? a : b));
-    if (!coupon && autoAppliedRef.current !== best.id) {
-      applyCoupon(best);
-      autoAppliedRef.current = best.id;
-    } else if (coupon && coupon.id !== best.id && autoAppliedRef.current !== best.id) {
-      const currentEligible = eligible.find((c) => c.id === coupon.id);
-      if (!currentEligible || best.min_quantity > coupon.min_quantity) {
-        applyCoupon(best);
-        autoAppliedRef.current = best.id;
-      }
-    }
-  }, [totalItems, list, loading, coupon, applyCoupon]);
 
   if (loading || list.length === 0) return null;
 
