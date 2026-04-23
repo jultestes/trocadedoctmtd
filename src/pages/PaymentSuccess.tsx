@@ -70,7 +70,7 @@ const PaymentSuccess = () => {
 
       const { data: items } = await supabase
         .from("sale_items")
-        .select("product_name, unit_price, quantity, size")
+        .select("product_name, unit_price, product_sku")
         .eq("sale_id", sale.id);
 
       const validItems = (items || []).filter((i: any) => i.product_name);
@@ -80,12 +80,20 @@ const PaymentSuccess = () => {
         return;
       }
 
-      const itemsList = validItems
-        .map((i: any, idx: number) => {
-          const variation = i.size ? ` - Tam: ${i.size}` : "";
-          const qty = i.quantity || 1;
-          return `  ${idx + 1}. ${i.product_name}${variation} (Qtd: ${qty}) — ${formatCurrency((i.unit_price || 0) * qty)}`;
-        })
+      // Agrupar itens iguais para mostrar quantidade
+      const grouped = new Map<string, { name: string; price: number; qty: number }>();
+      for (const i of validItems) {
+        const key = `${i.product_name}__${i.unit_price}`;
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          grouped.set(key, { name: i.product_name, price: Number(i.unit_price) || 0, qty: 1 });
+        }
+      }
+
+      const itemsList = Array.from(grouped.values())
+        .map((i, idx) => `  ${idx + 1}. ${i.name} (Qtd: ${i.qty}) — ${formatCurrency(i.price * i.qty)}`)
         .join("\n");
 
       const isPickup = sale.delivery_type === "pickup";
