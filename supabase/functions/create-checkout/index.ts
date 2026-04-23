@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const INFINITEPAY_HANDLE = Deno.env.get("INFINITEPAY_HANDLE") || "";
+const INFINITEPAY_HANDLE = Deno.env.get("INFINITEPAY_HANDLE");
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -14,6 +14,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log(`Using INFINITEPAY_HANDLE: ${INFINITEPAY_HANDLE ? "Configured" : "Not configured"}`);
+
     if (!INFINITEPAY_HANDLE) {
       console.error("INFINITEPAY_HANDLE not configured");
       return new Response(
