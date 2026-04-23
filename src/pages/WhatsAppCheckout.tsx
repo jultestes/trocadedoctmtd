@@ -8,6 +8,8 @@ import { MapPin, Loader2, Truck, ShoppingBag, User, Check, Store, ChevronRight, 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
+import { useCoupon } from "@/hooks/useCoupon";
+import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 
@@ -35,6 +37,10 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 const WhatsAppCheckout = () => {
   const { items, totalPrice, totalItems, clearCart } = useCart();
+  const { coupon } = useCoupon();
+  const couponCalc = calculateCouponDiscount(items, coupon);
+  const subtotalAfterCoupon = couponCalc.finalTotal;
+  const couponDiscount = couponCalc.discount;
   const navigate = useNavigate();
   const checkoutTopRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -109,7 +115,7 @@ const WhatsAppCheckout = () => {
     return match ? Number(match.price) : DEFAULT_SHIPPING;
   })();
 
-  const grandTotal = totalPrice + shippingPrice;
+  const grandTotal = subtotalAfterCoupon + shippingPrice;
 
   const formatCep = (value: string) => {
     const digits = value.replace(/\D/g, "").slice(0, 8);
@@ -178,11 +184,12 @@ const WhatsAppCheckout = () => {
       const orderNsu = `WA-${Date.now()}`;
       const phoneDigits = telefone.replace(/\D/g, "");
 
+      const scale = totalPrice > 0 ? subtotalAfterCoupon / totalPrice : 1;
       const saleItems = items.map((item) => ({
         product_id: item.id,
         product_name: `${item.brand} - ${item.name} (Tam: ${item.size})`,
         product_sku: item.sku || null,
-        unit_price: item.price,
+        unit_price: Number((item.price * scale).toFixed(2)),
       }));
 
       // Store the actual payment method chosen by the customer
@@ -195,7 +202,7 @@ const WhatsAppCheckout = () => {
         _customer_email: email.trim(),
         _customer_phone: phoneDigits,
         _total_original: totalPrice,
-        _discount: 0,
+        _discount: couponDiscount,
         _total_paid: grandTotal,
         _shipping_price: shippingPrice,
         _payment_method: dbPaymentMethod,
@@ -565,6 +572,16 @@ const WhatsAppCheckout = () => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="text-foreground font-medium">R$ {totalPrice.toFixed(2).replace(".", ",")}</span>
               </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Desconto{coupon ? ` (${coupon.name})` : ""}
+                  </span>
+                  <span className="text-primary font-semibold">
+                    − R$ {couponDiscount.toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   {deliveryType === "delivery" ? `Frete (${bairro})` : "Frete (retirada)"}
