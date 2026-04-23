@@ -102,9 +102,10 @@ serve(async (req) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("InfinitePay error:", JSON.stringify(data));
+      console.error("InfinitePay error:", response.status, JSON.stringify(data));
+      const detail = (data && (data.message || data.error)) || "Falha na InfinitePay";
       return new Response(
-        JSON.stringify({ error: "Erro ao criar link de pagamento" }),
+        JSON.stringify({ error: `Erro ao criar link de pagamento: ${detail}`, infinitepay_status: response.status, infinitepay_response: data }),
         { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
