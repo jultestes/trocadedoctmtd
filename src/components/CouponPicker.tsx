@@ -71,13 +71,11 @@ const CouponPicker = () => {
                     disabled={!eligible && !isCurrent}
                     onClick={() => {
                       if (isCurrent) {
-                        autoAppliedRef.current = "__manual__";
                         remove();
                         setExpanded(false);
                         return;
                       }
                       if (!eligible) return;
-                      autoAppliedRef.current = c.id;
                       applyCoupon(c);
                       setExpanded(false);
                     }}
