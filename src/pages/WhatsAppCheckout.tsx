@@ -184,11 +184,12 @@ const WhatsAppCheckout = () => {
       const orderNsu = `WA-${Date.now()}`;
       const phoneDigits = telefone.replace(/\D/g, "");
 
+      const scale = totalPrice > 0 ? subtotalAfterCoupon / totalPrice : 1;
       const saleItems = items.map((item) => ({
         product_id: item.id,
         product_name: `${item.brand} - ${item.name} (Tam: ${item.size})`,
         product_sku: item.sku || null,
-        unit_price: item.price,
+        unit_price: Number((item.price * scale).toFixed(2)),
       }));
 
       // Store the actual payment method chosen by the customer
