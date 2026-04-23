@@ -144,32 +144,32 @@ const CouponPicker = () => {
                   disabled={!eligible}
                   onClick={() => eligible && applyCoupon(c)}
                   className={cn(
-                    "rounded-xl bg-white dark:bg-background border-2 px-3 py-2.5 flex flex-col items-start gap-0.5 transition-all text-left",
+                    "min-w-0 rounded-xl bg-white dark:bg-background border-2 px-2 py-2 flex flex-col items-start gap-0.5 transition-all text-left",
                     eligible
                       ? "border-transparent hover:border-orange-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
                       : "border-dashed border-border opacity-60 cursor-not-allowed",
                   )}
                   title={!eligible ? `Adicione mais ${c.min_quantity - totalItems} para ativar` : undefined}
                 >
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1 min-w-0 w-full">
                     <Ticket
                       className={cn(
-                        "w-4 h-4",
+                        "w-3.5 h-3.5 shrink-0",
                         isPink ? "text-pink-500" : "text-orange-500",
                       )}
                       strokeWidth={2.5}
                     />
                     <span
                       className={cn(
-                        "text-base font-extrabold tracking-tight",
+                        "text-sm font-extrabold tracking-tight truncate",
                         isPink ? "text-pink-500" : "text-orange-500",
                       )}
                     >
                       {c.display_title || c.name}
                     </span>
                   </span>
-                  <span className="text-[11px] text-muted-foreground font-medium leading-tight">
-                    {c.min_quantity} conjuntos por R${Math.round(c.bundle_price)}
+                  <span className="text-[10px] text-muted-foreground font-medium leading-tight truncate w-full">
+                    {c.min_quantity} conjuntos · R${Math.round(c.bundle_price)}
                   </span>
                 </button>
               );
