@@ -67,9 +67,6 @@ const CartDrawer = () => {
           </div>
         ) : (
           <>
-            <div className="mt-3 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-2 text-xs font-bold text-center shadow-sm">
-              🔥 Promoção ativa: escolha entre 3 por R$100 ou 5 por R$150 e economize
-            </div>
             <div className="flex-1 overflow-y-auto space-y-3 py-4">
               {items.map((item) => (
                 <div key={`${item.id}-${item.size}`} className="flex gap-3 bg-muted/50 rounded-lg p-3">
