@@ -51,11 +51,26 @@ const PaymentSuccess = () => {
 
   const handleWhatsApp = async () => {
     if (!orderNsu) return;
+
+    // Open window synchronously to preserve user gesture (avoids popup blockers on mobile)
+    const win = window.open("about:blank", "_blank");
+
     setLoadingWhatsApp(true);
+
+    const buildUrl = (text: string) =>
+      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+
+    const navigate = (url: string) => {
+      if (win && !win.closed) {
+        win.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    };
 
     const fallback = () => {
       const msg = `🛍️ *CONFIRMAÇÃO DE PEDIDO*\n\n📦 *Pedido:* ${orderNsu}\n\nOlá! Gostaria de confirmar meu pedido.`;
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+      navigate(buildUrl(msg));
     };
 
     try {
@@ -127,7 +142,7 @@ const PaymentSuccess = () => {
         `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`,
       ].join("\n");
 
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+      navigate(buildUrl(msg));
     } catch (err) {
       console.error("Error fetching sale for WhatsApp:", err);
       fallback();
