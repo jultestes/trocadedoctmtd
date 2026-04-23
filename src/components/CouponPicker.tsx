@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Ticket, Check, Flame } from "lucide-react";
+import { Ticket, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { useCoupon, type AppliedCoupon } from "@/hooks/useCoupon";
@@ -102,38 +102,82 @@ const CouponPicker = () => {
     );
   }
 
-  // STATE 1 — Compact (default): headline + pill buttons
+  // STATE 1 — No coupon applied: highlighted card with two big options
+  const [open, setOpen] = useState(true);
+
   return (
-    <div className="rounded-xl border border-orange-300/70 bg-orange-50/70 dark:bg-orange-950/20 px-3 py-2.5 space-y-2">
-      <p className="text-[11px] font-semibold text-foreground leading-snug flex items-start gap-1.5">
-        <Flame className="w-3.5 h-3.5 text-orange-500 shrink-0 mt-0.5" />
-        <span>
-          <span className="text-orange-600 dark:text-orange-400 font-bold">Promoção ativa:</span>{" "}
-          escolha entre 3 por R$100 ou 5 por R$150
-        </span>
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {list.map((c) => {
-          const eligible = totalItems >= c.min_quantity;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => applyCoupon(c)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-xs font-extrabold tracking-tight transition-all",
-                eligible
-                  ? "border-orange-400 bg-white dark:bg-background text-orange-600 dark:text-orange-400 hover:border-orange-500 hover:shadow-sm hover:-translate-y-px"
-                  : "border-dashed border-border bg-muted/40 text-muted-foreground",
-              )}
-              title={!eligible ? `Adicione mais ${c.min_quantity - totalItems} para ativar` : undefined}
-            >
-              <Ticket className="w-3.5 h-3.5" />
-              {c.display_title || c.name}
-            </button>
-          );
-        })}
-      </div>
+    <div className="rounded-2xl bg-gradient-to-br from-orange-100 to-orange-200/80 dark:from-orange-950/40 dark:to-orange-900/30 p-3 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 mb-2"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="shrink-0 w-7 h-7 rounded-full bg-orange-500 text-white flex items-center justify-center shadow">
+            <Ticket className="w-4 h-4" strokeWidth={2.5} />
+          </div>
+          <div className="text-left min-w-0">
+            <p className="text-sm font-extrabold text-orange-700 dark:text-orange-300 leading-tight tracking-tight truncate">
+              Aplique seu CUPOM
+            </p>
+          </div>
+        </div>
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-orange-700 dark:text-orange-300 shrink-0" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-orange-700 dark:text-orange-300 shrink-0" />
+        )}
+      </button>
+
+      {open && (
+        <>
+          <p className="text-[11px] text-orange-900/80 dark:text-orange-200/80 leading-snug mb-2.5 px-0.5">
+            Selecione uma promoção para ativar o desconto automático.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {list.map((c) => {
+              const eligible = totalItems >= c.min_quantity;
+              const isPink = c.min_quantity >= 5;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  disabled={!eligible}
+                  onClick={() => eligible && applyCoupon(c)}
+                  className={cn(
+                    "rounded-xl bg-white dark:bg-background border-2 px-3 py-2.5 flex flex-col items-start gap-0.5 transition-all text-left",
+                    eligible
+                      ? "border-transparent hover:border-orange-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                      : "border-dashed border-border opacity-60 cursor-not-allowed",
+                  )}
+                  title={!eligible ? `Adicione mais ${c.min_quantity - totalItems} para ativar` : undefined}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Ticket
+                      className={cn(
+                        "w-4 h-4",
+                        isPink ? "text-pink-500" : "text-orange-500",
+                      )}
+                      strokeWidth={2.5}
+                    />
+                    <span
+                      className={cn(
+                        "text-base font-extrabold tracking-tight",
+                        isPink ? "text-pink-500" : "text-orange-500",
+                      )}
+                    >
+                      {c.display_title || c.name}
+                    </span>
+                  </span>
+                  <span className="text-[11px] text-muted-foreground font-medium leading-tight">
+                    {c.min_quantity} conjuntos por R${Math.round(c.bundle_price)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 };
