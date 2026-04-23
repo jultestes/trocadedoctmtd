@@ -1,4 +1,4 @@
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
@@ -34,7 +34,6 @@ const paymentLabel: Record<string, string> = {
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { clearCart } = useCart();
 
   const orderNsu = searchParams.get("order_nsu");
@@ -54,28 +53,50 @@ const PaymentSuccess = () => {
     if (!orderNsu) return;
     setLoadingWhatsApp(true);
 
+    const fallback = () => {
+      const msg = `🛍️ *CONFIRMAÇÃO DE PEDIDO*\n\n📦 *Pedido:* ${orderNsu}\n\nOlá! Gostaria de confirmar meu pedido.`;
+      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+    };
+
     try {
       const { data: sale } = await supabase
         .rpc("get_sale_by_nsu", { _nsu: orderNsu })
         .maybeSingle();
 
       if (!sale) {
-        // Fallback: open WhatsApp with basic info
-        const msg = `🛒 *CONFIRMAÇÃO DE PEDIDO*\n\n🔢 *NSU:* ${orderNsu}\n\nOlá! Gostaria de confirmar meu pedido.`;
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+        fallback();
         return;
       }
 
-      // Fetch items
       const { data: items } = await supabase
         .from("sale_items")
         .select("product_name, unit_price, product_sku")
         .eq("sale_id", sale.id);
 
-      const itemsList = (items || [])
-        .map((i, idx) => `  ${idx + 1}. ${i.product_name} (SKU: ${i.product_sku || "—"}) — ${formatCurrency(i.unit_price)}`)
+      const validItems = (items || []).filter((i: any) => i.product_name);
+
+      if (validItems.length === 0) {
+        fallback();
+        return;
+      }
+
+      // Agrupar itens iguais para mostrar quantidade
+      const grouped = new Map<string, { name: string; price: number; qty: number }>();
+      for (const i of validItems) {
+        const key = `${i.product_name}__${i.unit_price}`;
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          grouped.set(key, { name: i.product_name, price: Number(i.unit_price) || 0, qty: 1 });
+        }
+      }
+
+      const itemsList = Array.from(grouped.values())
+        .map((i, idx) => `  ${idx + 1}. ${i.name} (Qtd: ${i.qty}) — ${formatCurrency(i.price * i.qty)}`)
         .join("\n");
 
+      const isPickup = sale.delivery_type === "pickup";
       const addressParts = [
         sale.address_street,
         sale.address_number ? `Nº ${sale.address_number}` : null,
@@ -86,36 +107,30 @@ const PaymentSuccess = () => {
         sale.address_cep ? `CEP: ${sale.address_cep}` : null,
       ].filter(Boolean).join(", ");
 
+      const addressLine = isPickup
+        ? "Retirada na loja"
+        : (addressParts || "—");
+
       const msg = [
-        `🛒 *CONFIRMAÇÃO DE PEDIDO*`,
+        `🛍️ *CONFIRMAÇÃO DE PEDIDO*`,
         ``,
-        `🔢 *NSU:* ${sale.order_nsu || "—"}`,
-        `📅 *Data:* ${formatDate(sale.created_at)}`,
-        ``,
+        `📦 *Pedido:* ${sale.order_nsu || orderNsu}`,
         `👤 *Cliente:* ${sale.customer_name || "—"}`,
         `📞 *Telefone:* ${sale.customer_phone || "—"}`,
-        `📧 *Email:* ${sale.customer_email || "—"}`,
+        `📍 *Endereço:* ${addressLine}`,
         ``,
-        `📦 *Itens:*`,
-        itemsList || "  Nenhum item",
+        `🛒 *Produtos:*`,
+        itemsList,
         ``,
-        `💰 *Subtotal:* ${formatCurrency(sale.total_original)}`,
-        sale.discount > 0 ? `🏷️ *Desconto:* -${formatCurrency(sale.discount)}` : null,
-        sale.shipping_price > 0 ? `🚚 *Frete:* ${formatCurrency(sale.shipping_price)}` : null,
-        `✅ *Total Pago:* ${formatCurrency(sale.total_paid)}`,
-        ``,
+        `💰 *Total:* ${formatCurrency(sale.total_paid)}`,
         `💳 *Pagamento:* ${paymentLabel[sale.payment_method] || sale.payment_method}`,
-        sale.payment_method === "cash" && sale.change_for ? `💵 *Troco para:* ${formatCurrency(sale.change_for)}` : null,
-        ``,
-        `🚛 *Tipo:* ${sale.delivery_type === "pickup" ? "Retirada" : "Entrega"}`,
-        sale.delivery_type !== "pickup" && addressParts ? `📍 *Endereço:* ${addressParts}` : null,
-      ].filter(Boolean).join("\n");
+        `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`,
+      ].join("\n");
 
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
     } catch (err) {
       console.error("Error fetching sale for WhatsApp:", err);
-      const msg = `🛒 *CONFIRMAÇÃO DE PEDIDO*\n\n🔢 *NSU:* ${orderNsu}\n\nOlá! Gostaria de confirmar meu pedido.`;
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+      fallback();
     } finally {
       setLoadingWhatsApp(false);
     }
@@ -145,47 +160,29 @@ const PaymentSuccess = () => {
               Pedido: <span className="font-semibold text-foreground">{orderNsu}</span>
             </p>
           )}
-          {methodLabel && !isWhatsApp && (
+          {methodLabel && (
             <p className="text-sm text-muted-foreground">
               Pagamento: <span className="font-semibold text-foreground">{methodLabel}</span>
             </p>
           )}
 
           <div className="flex flex-col gap-2 pt-2">
-            {isWhatsApp ? (
-              <>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Clique no botão abaixo para acompanhar seu pedido pelo WhatsApp
-                </p>
-                <Button
-                  className="w-full gap-3 bg-[hsl(142,70%,45%)] hover:bg-[hsl(142,70%,38%)] text-white text-lg font-bold py-7 rounded-xl shadow-lg"
-                  size="lg"
-                  onClick={handleWhatsApp}
-                  disabled={loadingWhatsApp}
-                >
-                  {loadingWhatsApp ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <WhatsAppIcon className="w-6 h-6" />
-                  )}
-                  Acompanhar no WhatsApp
-                </Button>
-              </>
-            ) : (
-              <>
-                {orderNsu && (
-                  <Button
-                    className="w-full gap-2"
-                    onClick={() => navigate(`/acompanhar-pedido?order_nsu=${orderNsu}`)}
-                  >
-                    Acompanhe seu Pedido
-                  </Button>
-                )}
-                <Button variant="outline" asChild className="w-full">
-                  <a href="/">Voltar à Loja</a>
-                </Button>
-              </>
-            )}
+            <Button
+              className="w-full gap-3 bg-[hsl(142,70%,45%)] hover:bg-[hsl(142,70%,38%)] text-white text-lg font-bold py-7 rounded-xl shadow-lg"
+              size="lg"
+              onClick={handleWhatsApp}
+              disabled={loadingWhatsApp || !orderNsu}
+            >
+              {loadingWhatsApp ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <WhatsAppIcon className="w-6 h-6" />
+              )}
+              Enviar pedido no WhatsApp
+            </Button>
+            <Button variant="outline" asChild className="w-full">
+              <a href="/">Voltar à Loja</a>
+            </Button>
           </div>
         </div>
       </main>
