@@ -202,7 +202,7 @@ const WhatsAppCheckout = () => {
         _customer_email: email.trim(),
         _customer_phone: phoneDigits,
         _total_original: totalPrice,
-        _discount: 0,
+        _discount: couponDiscount,
         _total_paid: grandTotal,
         _shipping_price: shippingPrice,
         _payment_method: dbPaymentMethod,
