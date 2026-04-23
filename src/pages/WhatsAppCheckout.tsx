@@ -572,6 +572,16 @@ const WhatsAppCheckout = () => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="text-foreground font-medium">R$ {totalPrice.toFixed(2).replace(".", ",")}</span>
               </div>
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Desconto{coupon ? ` (${coupon.name})` : ""}
+                  </span>
+                  <span className="text-primary font-semibold">
+                    − R$ {couponDiscount.toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
                   {deliveryType === "delivery" ? `Frete (${bairro})` : "Frete (retirada)"}
