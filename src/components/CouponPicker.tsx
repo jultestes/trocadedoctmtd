@@ -50,7 +50,7 @@ const CouponPicker = () => {
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="shrink-0 text-xs font-bold text-blue-600 bg-white border-2 border-blue-500 hover:bg-blue-50 rounded-full px-3 py-1.5 transition-colors"
+            className="shrink-0 text-xs font-bold text-sky-400 bg-white border-2 border-sky-300 hover:bg-sky-50 rounded-full px-3 py-1.5 transition-colors"
           >
             {expanded ? "Fechar" : "Alterar"}
           </button>
