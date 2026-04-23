@@ -84,6 +84,7 @@ const PaymentSuccess = () => {
         .rpc("get_sale_by_nsu", { _nsu: orderNsu })
         .maybeSingle();
 
+      // Só usa fallback curto se realmente não houver pedido
       if (!sale) {
         shortFallback();
         return;
@@ -94,35 +95,29 @@ const PaymentSuccess = () => {
         .select("product_name, unit_price, product_sku")
         .eq("sale_id", sale.id);
 
-      const validItems = (items || []).filter((i: any) => i.product_name);
-
       // Agrupar itens iguais (nome + sku/variação + preço) para mostrar quantidade
+      // Fallbacks inteligentes: nunca descartar item por campo faltando
       const grouped = new Map<
         string,
-        { name: string; sku: string | null; price: number; qty: number }
+        { name: string; variant: string; price: number; qty: number }
       >();
-      for (const i of validItems) {
-        const sku = (i.product_sku || "").trim() || null;
-        const key = `${i.product_name}__${sku || ""}__${i.unit_price}`;
+      for (const i of (items || []) as any[]) {
+        const name = (i.product_name || "").trim() || "Produto";
+        const variant = (i.product_sku || "").trim() || "-";
+        const price = Number(i.unit_price) || 0;
+        const key = `${name}__${variant}__${price}`;
         const existing = grouped.get(key);
         if (existing) {
           existing.qty += 1;
         } else {
-          grouped.set(key, {
-            name: i.product_name,
-            sku,
-            price: Number(i.unit_price) || 0,
-            qty: 1,
-          });
+          grouped.set(key, { name, variant, price, qty: 1 });
         }
       }
 
       const itemsList = Array.from(grouped.values())
-        .map((i, idx) => {
-          const variant = i.sku ? ` [${i.sku}]` : "";
-          return `  ${idx + 1}. ${i.name}${variant} (Qtd: ${i.qty}) — ${formatCurrency(
-            i.price * i.qty
-          )}`;
+        .map((i) => {
+          const variantLabel = i.variant && i.variant !== "-" ? ` (Tam: ${i.variant})` : "";
+          return `• ${i.name}${variantLabel} x${i.qty} — ${formatCurrency(i.price * i.qty)}`;
         })
         .join("\n");
 
@@ -150,18 +145,14 @@ const PaymentSuccess = () => {
         `👤 *Cliente:* ${sale.customer_name || "A informar"}`,
         `📞 *Telefone:* ${sale.customer_phone || "A informar"}`,
         `📍 *Endereço:* ${addressLine}`,
-      ];
-
-      if (itemsList) {
-        lines.push(``, `🛒 *Produtos:*`, itemsList);
-      }
-
-      lines.push(
+        ``,
+        `🛒 *Produtos:*`,
+        itemsList || `• Produto x1 — ${formatCurrency(Number(sale.total_paid) || 0)}`,
         ``,
         `💰 *Total:* ${formatCurrency(sale.total_paid)}`,
         `💳 *Pagamento:* ${paymentLabel[sale.payment_method] || sale.payment_method || "A definir"}`,
-        `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`
-      );
+        `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`,
+      ];
 
       navigate(buildUrl(lines.join("\n")));
     } catch (err) {
