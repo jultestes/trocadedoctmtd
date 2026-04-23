@@ -6,21 +6,29 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const INFINITEPAY_HANDLE = Deno.env.get("INFINITEPAY_HANDLE");
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log(`Using INFINITEPAY_HANDLE: ${INFINITEPAY_HANDLE ? "Configured" : "Not configured"}`);
+    const INFINITEPAY_HANDLE = Deno.env.get("INFINITEPAY_HANDLE");
+
+    console.log(
+      `[create-checkout] INFINITEPAY_HANDLE status: ${
+        INFINITEPAY_HANDLE ? "configured" : "missing"
+      }`
+    );
 
     if (!INFINITEPAY_HANDLE) {
-      console.error("INFINITEPAY_HANDLE not configured");
       return new Response(
-        JSON.stringify({ error: "Gateway de pagamento não configurado (handle ausente)" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Gateway de pagamento não configurado (handle ausente)",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -33,47 +41,75 @@ serve(async (req) => {
     if (!items || !Array.isArray(items) || items.length === 0) {
       return new Response(
         JSON.stringify({ error: "Carrinho vazio: nenhum item enviado" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
     if (items.length > 100) {
       return new Response(
         JSON.stringify({ error: "Máximo de 100 itens por pedido" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    // Validate each item
     for (const item of items) {
-      if (!item.description || typeof item.description !== "string" || item.description.length > 200) {
+      if (
+        !item.description ||
+        typeof item.description !== "string" ||
+        item.description.length > 200
+      ) {
         return new Response(
           JSON.stringify({ error: "Item description inválida" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
-      if (typeof item.quantity !== "number" || item.quantity < 1 || item.quantity > 999 || !Number.isInteger(item.quantity)) {
+      if (
+        typeof item.quantity !== "number" ||
+        item.quantity < 1 ||
+        item.quantity > 999 ||
+        !Number.isInteger(item.quantity)
+      ) {
         return new Response(
           JSON.stringify({ error: "Item quantity inválido" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
-      if (typeof item.price !== "number" || item.price <= 0 || item.price > 100000) {
+      if (
+        typeof item.price !== "number" ||
+        item.price <= 0 ||
+        item.price > 100000
+      ) {
         return new Response(
           JSON.stringify({ error: "Item price inválido" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
     }
 
-    // Validate order_nsu if provided
     if (order_nsu && (typeof order_nsu !== "string" || order_nsu.length > 50)) {
       return new Response(
         JSON.stringify({ error: "order_nsu inválido" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    // Validate redirect_url if provided
     if (redirect_url && typeof redirect_url === "string") {
       try {
         const parsed = new URL(redirect_url);
@@ -83,26 +119,31 @@ serve(async (req) => {
       } catch {
         return new Response(
           JSON.stringify({ error: "redirect_url inválido" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
     }
 
-    // Build webhook URL
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://bdipjvkpasiuekqtaiev.supabase.co";
+    const supabaseUrl =
+      Deno.env.get("SUPABASE_URL") || "https://bdipjvkpasiuekqtaiev.supabase.co";
     const webhookUrl = `${supabaseUrl}/functions/v1/infinitepay-webhook`;
 
-    // Convert prices to centavos
-    const normalizedItems = items.map((item: { description: string; quantity: number; price: number }) => ({
-      description: item.description.slice(0, 200),
-      quantity: item.quantity,
-      price: Math.round(item.price * 100),
-    }));
+    const normalizedItems = items.map(
+      (item: { description: string; quantity: number; price: number }) => ({
+        description: item.description.slice(0, 200),
+        quantity: item.quantity,
+        price: Math.round(item.price * 100),
+      })
+    );
 
-    // Normalize customer (InfinitePay expects digits-only phone, no +55 prefix)
     let normalizedCustomer: Record<string, unknown> | undefined;
     if (customer && typeof customer === "object") {
-      const rawPhone = String((customer as any).phone_number || (customer as any).phone || "");
+      const rawPhone = String(
+        (customer as any).phone_number || (customer as any).phone || ""
+      );
       const phoneDigits = rawPhone.replace(/\D/g, "");
       normalizedCustomer = {
         name: String((customer as any).name || "").slice(0, 120),
@@ -111,7 +152,6 @@ serve(async (req) => {
       };
     }
 
-    // Normalize address (digits-only cep)
     let normalizedAddress: Record<string, unknown> | undefined;
     if (address && typeof address === "object") {
       normalizedAddress = {
@@ -136,12 +176,10 @@ serve(async (req) => {
     if (normalizedCustomer) payload.customer = normalizedCustomer;
     if (normalizedAddress) payload.address = normalizedAddress;
 
-    const itemsTotalCents = normalizedItems.reduce(
-      (s: number, it: { price: number; quantity: number }) => s + it.price * it.quantity,
-      0
+    console.log(
+      "[create-checkout] outgoing payload:",
+      JSON.stringify(payload)
     );
-    console.log("[create-checkout] outgoing payload:", JSON.stringify(payload));
-    console.log("[create-checkout] items total (centavos):", itemsTotalCents);
 
     const response = await fetch(
       "https://api.infinitepay.io/invoices/public/checkout/links",
@@ -161,9 +199,16 @@ serve(async (req) => {
     }
 
     if (!response.ok) {
-      console.error("[create-checkout] InfinitePay error:", response.status, rawText);
+      console.error(
+        "[create-checkout] InfinitePay error:",
+        response.status,
+        rawText
+      );
       const detail =
-        (data && (data.message || data.error || (data.errors && JSON.stringify(data.errors)))) ||
+        (data &&
+          (data.message ||
+            data.error ||
+            (data.errors && JSON.stringify(data.errors)))) ||
         `HTTP ${response.status}`;
       return new Response(
         JSON.stringify({
@@ -171,7 +216,10 @@ serve(async (req) => {
           infinitepay_status: response.status,
           infinitepay_response: data,
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -184,7 +232,10 @@ serve(async (req) => {
     console.error("[create-checkout] internal error:", error);
     return new Response(
       JSON.stringify({ error: "Erro interno ao processar pagamento" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });
