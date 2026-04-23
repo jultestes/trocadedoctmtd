@@ -68,8 +68,14 @@ const PaymentSuccess = () => {
       }
     };
 
-    const fallback = () => {
-      const msg = `🛍️ *CONFIRMAÇÃO DE PEDIDO*\n\n📦 *Pedido:* ${orderNsu}\n\nOlá! Gostaria de confirmar meu pedido.`;
+    const shortFallback = () => {
+      const msg = [
+        `🛍️ *CONFIRMAÇÃO DE PEDIDO*`,
+        ``,
+        `📦 *Pedido:* ${orderNsu}`,
+        ``,
+        `Olá! Gostaria de confirmar meu pedido.`,
+      ].join("\n");
       navigate(buildUrl(msg));
     };
 
@@ -79,7 +85,7 @@ const PaymentSuccess = () => {
         .maybeSingle();
 
       if (!sale) {
-        fallback();
+        shortFallback();
         return;
       }
 
@@ -90,25 +96,34 @@ const PaymentSuccess = () => {
 
       const validItems = (items || []).filter((i: any) => i.product_name);
 
-      if (validItems.length === 0) {
-        fallback();
-        return;
-      }
-
-      // Agrupar itens iguais para mostrar quantidade
-      const grouped = new Map<string, { name: string; price: number; qty: number }>();
+      // Agrupar itens iguais (nome + sku/variação + preço) para mostrar quantidade
+      const grouped = new Map<
+        string,
+        { name: string; sku: string | null; price: number; qty: number }
+      >();
       for (const i of validItems) {
-        const key = `${i.product_name}__${i.unit_price}`;
+        const sku = (i.product_sku || "").trim() || null;
+        const key = `${i.product_name}__${sku || ""}__${i.unit_price}`;
         const existing = grouped.get(key);
         if (existing) {
           existing.qty += 1;
         } else {
-          grouped.set(key, { name: i.product_name, price: Number(i.unit_price) || 0, qty: 1 });
+          grouped.set(key, {
+            name: i.product_name,
+            sku,
+            price: Number(i.unit_price) || 0,
+            qty: 1,
+          });
         }
       }
 
       const itemsList = Array.from(grouped.values())
-        .map((i, idx) => `  ${idx + 1}. ${i.name} (Qtd: ${i.qty}) — ${formatCurrency(i.price * i.qty)}`)
+        .map((i, idx) => {
+          const variant = i.sku ? ` [${i.sku}]` : "";
+          return `  ${idx + 1}. ${i.name}${variant} (Qtd: ${i.qty}) — ${formatCurrency(
+            i.price * i.qty
+          )}`;
+        })
         .join("\n");
 
       const isPickup = sale.delivery_type === "pickup";
@@ -120,32 +135,38 @@ const PaymentSuccess = () => {
         sale.address_city,
         sale.address_uf,
         sale.address_cep ? `CEP: ${sale.address_cep}` : null,
-      ].filter(Boolean).join(", ");
+      ]
+        .filter(Boolean)
+        .join(", ");
 
       const addressLine = isPickup
         ? "Retirada na loja"
-        : (addressParts || "—");
+        : addressParts || "A combinar";
 
-      const msg = [
+      const lines: string[] = [
         `🛍️ *CONFIRMAÇÃO DE PEDIDO*`,
         ``,
         `📦 *Pedido:* ${sale.order_nsu || orderNsu}`,
-        `👤 *Cliente:* ${sale.customer_name || "—"}`,
-        `📞 *Telefone:* ${sale.customer_phone || "—"}`,
+        `👤 *Cliente:* ${sale.customer_name || "A informar"}`,
+        `📞 *Telefone:* ${sale.customer_phone || "A informar"}`,
         `📍 *Endereço:* ${addressLine}`,
-        ``,
-        `🛒 *Produtos:*`,
-        itemsList,
+      ];
+
+      if (itemsList) {
+        lines.push(``, `🛒 *Produtos:*`, itemsList);
+      }
+
+      lines.push(
         ``,
         `💰 *Total:* ${formatCurrency(sale.total_paid)}`,
-        `💳 *Pagamento:* ${paymentLabel[sale.payment_method] || sale.payment_method}`,
-        `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`,
-      ].join("\n");
+        `💳 *Pagamento:* ${paymentLabel[sale.payment_method] || sale.payment_method || "A definir"}`,
+        `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`
+      );
 
-      navigate(buildUrl(msg));
+      navigate(buildUrl(lines.join("\n")));
     } catch (err) {
       console.error("Error fetching sale for WhatsApp:", err);
-      fallback();
+      shortFallback();
     } finally {
       setLoadingWhatsApp(false);
     }
