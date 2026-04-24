@@ -103,6 +103,30 @@ const AdminCaixa = () => {
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
 
+  // Delete movement state
+  const [deleteTarget, setDeleteTarget] = useState<
+    | { kind: "deposit" | "withdrawal"; id: string; description: string; value: number }
+    | null
+  >(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteMovement = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const table = deleteTarget.kind === "deposit" ? "cash_deposits" : "cash_withdrawals";
+    const { error } = await supabase.from(table).delete().eq("id", deleteTarget.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: deleteTarget.kind === "deposit" ? "Entrada excluída" : "Sangria excluída",
+    });
+    setDeleteTarget(null);
+    loadData();
+  };
+
   const loadData = useCallback(async () => {
     setLoading(true);
 
