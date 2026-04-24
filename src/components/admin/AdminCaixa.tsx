@@ -316,12 +316,16 @@ const AdminCaixa = () => {
       value: Number(d.amount),
       description: d.description || "Entrada manual",
       time: d.created_at,
+      manualId: d.id,
+      manualKind: "deposit" as const,
     })) : []),
     ...(paymentFilter === "all" ? withdrawals.map((w) => ({
       type: "saida" as const,
       value: Number(w.amount),
       description: w.description,
       time: w.created_at,
+      manualId: w.id,
+      manualKind: "withdrawal" as const,
     })) : []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
