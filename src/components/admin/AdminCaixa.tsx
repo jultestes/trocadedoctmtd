@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DollarSign,
   TrendingUp,
@@ -21,9 +22,12 @@ import {
   ArrowUpCircle,
   Lock,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { DateRangeFilter, computeRange, type PeriodPreset } from "./DateRangeFilter";
+import type { DateRange } from "react-day-picker";
 
 interface CashRegister {
   id: string;
