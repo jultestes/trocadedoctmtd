@@ -87,6 +87,11 @@ const AdminCaixa = () => {
   const [depositAmount, setDepositAmount] = useState("");
   const [depositDesc, setDepositDesc] = useState("");
 
+  // Period & payment filters (for movements list)
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>("today");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+
   const loadData = useCallback(async () => {
     setLoading(true);
 
