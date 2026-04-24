@@ -561,35 +561,79 @@ const AdminCaixa = () => {
 
       {/* Movements Table */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base sm:text-lg">Movimentações do Dia</CardTitle>
+        <CardHeader className="pb-3 gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <CardTitle className="text-base sm:text-lg">Movimentações</CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <DateRangeFilter
+                preset={periodPreset}
+                customRange={customRange}
+                onChange={(p, r) => {
+                  setPeriodPreset(p);
+                  if (p === "custom" && r) setCustomRange(r);
+                }}
+              />
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <CreditCard className="w-4 h-4 mr-1 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as formas</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="credit">Cartão de Crédito</SelectItem>
+                  <SelectItem value="debit">Cartão de Débito</SelectItem>
+                  <SelectItem value="cash">Dinheiro</SelectItem>
+                  <SelectItem value="other">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {paymentFilter !== "all" && (
+            <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2 text-sm">
+              <span className="text-muted-foreground">
+                Total vendido em <span className="font-medium text-foreground">{paymentLabel(paymentFilter)}</span>
+              </span>
+              <span className="font-bold text-primary">{fmt(totalFiltered)}</span>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0 sm:p-6 sm:pt-0">
           {movements.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
-              Nenhuma movimentação registrada hoje.
+              Nenhuma movimentação no período selecionado.
             </p>
           ) : (
-            <div className="divide-y">
-              {movements.map((m, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 sm:px-2 py-3">
-                  {m.type === "entrada" ? (
-                    <ArrowUpCircle className="w-5 h-5 text-green-600 shrink-0" />
-                  ) : (
-                    <ArrowDownCircle className="w-5 h-5 text-destructive shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{m.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(m.time), "HH:mm")}
-                    </p>
+            <>
+              <div className="divide-y">
+                {movements.map((m, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 sm:px-2 py-3">
+                    {m.type === "entrada" ? (
+                      <ArrowUpCircle className="w-5 h-5 text-green-600 shrink-0" />
+                    ) : (
+                      <ArrowDownCircle className="w-5 h-5 text-destructive shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{m.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(m.time), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                    <Badge variant={m.type === "entrada" ? "default" : "destructive"} className="shrink-0 text-xs">
+                      {m.type === "entrada" ? "+" : "-"} {fmt(m.value)}
+                    </Badge>
                   </div>
-                  <Badge variant={m.type === "entrada" ? "default" : "destructive"} className="shrink-0 text-xs">
-                    {m.type === "entrada" ? "+" : "-"} {fmt(m.value)}
-                  </Badge>
+                ))}
+              </div>
+              {paymentFilter !== "all" && filteredSales.length > 0 && (
+                <div className="flex items-center justify-between border-t border-border px-4 sm:px-2 py-3 bg-muted/30">
+                  <span className="text-sm font-semibold">
+                    Total vendido em {paymentLabel(paymentFilter)}
+                  </span>
+                  <span className="text-sm font-bold text-primary">{fmt(totalFiltered)}</span>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
