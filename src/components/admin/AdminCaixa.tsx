@@ -319,22 +319,22 @@ const AdminCaixa = () => {
         description: `Frete - ${s.customer_name || s.order_nsu || "Pedido"}`,
         time: s.created_at,
       })),
-    ...(paymentFilter === "all" ? deposits.map((d) => ({
+    ...deposits.map((d) => ({
       type: "entrada" as const,
       value: Number(d.amount),
       description: d.description || "Entrada manual",
       time: d.created_at,
       manualId: d.id,
       manualKind: "deposit" as const,
-    })) : []),
-    ...(paymentFilter === "all" ? withdrawals.map((w) => ({
+    })),
+    ...withdrawals.map((w) => ({
       type: "saida" as const,
       value: Number(w.amount),
       description: w.description,
       time: w.created_at,
       manualId: w.id,
       manualKind: "withdrawal" as const,
-    })) : []),
+    })),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
   if (loading) {
