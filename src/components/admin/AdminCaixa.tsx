@@ -23,7 +23,18 @@ import {
   Lock,
   Loader2,
   CreditCard,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateRangeFilter, computeRange, type PeriodPreset } from "./DateRangeFilter";
@@ -91,6 +102,30 @@ const AdminCaixa = () => {
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>("today");
   const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
+
+  // Delete movement state
+  const [deleteTarget, setDeleteTarget] = useState<
+    | { kind: "deposit" | "withdrawal"; id: string; description: string; value: number }
+    | null
+  >(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteMovement = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const table = deleteTarget.kind === "deposit" ? "cash_deposits" : "cash_withdrawals";
+    const { error } = await supabase.from(table).delete().eq("id", deleteTarget.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: "Erro ao excluir", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: deleteTarget.kind === "deposit" ? "Entrada excluída" : "Sangria excluída",
+    });
+    setDeleteTarget(null);
+    loadData();
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -261,7 +296,15 @@ const AdminCaixa = () => {
   const totalFiltered = filteredSales.reduce((s, sale) => s + Number(sale.total_paid), 0);
 
   // Merge all movements (apenas vendas filtradas + manuais do dia)
-  const movements = [
+  type Movement = {
+    type: "entrada" | "saida";
+    value: number;
+    description: string;
+    time: string;
+    manualId?: string;
+    manualKind?: "deposit" | "withdrawal";
+  };
+  const movements: Movement[] = [
     ...filteredSales.map((s) => ({
       type: "entrada" as const,
       value: Number(s.total_paid),
@@ -281,12 +324,16 @@ const AdminCaixa = () => {
       value: Number(d.amount),
       description: d.description || "Entrada manual",
       time: d.created_at,
+      manualId: d.id,
+      manualKind: "deposit" as const,
     })) : []),
     ...(paymentFilter === "all" ? withdrawals.map((w) => ({
       type: "saida" as const,
       value: Number(w.amount),
       description: w.description,
       time: w.created_at,
+      manualId: w.id,
+      manualKind: "withdrawal" as const,
     })) : []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
@@ -622,6 +669,24 @@ const AdminCaixa = () => {
                     <Badge variant={m.type === "entrada" ? "default" : "destructive"} className="shrink-0 text-xs">
                       {m.type === "entrada" ? "+" : "-"} {fmt(m.value)}
                     </Badge>
+                    {m.manualId && m.manualKind && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                        onClick={() =>
+                          setDeleteTarget({
+                            kind: m.manualKind!,
+                            id: m.manualId!,
+                            description: m.description,
+                            value: m.value,
+                          })
+                        }
+                        aria-label="Excluir movimentação"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -637,6 +702,38 @@ const AdminCaixa = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete movement confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Excluir {deleteTarget?.kind === "deposit" ? "entrada" : "sangria"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A movimentação{" "}
+              <span className="font-medium text-foreground">"{deleteTarget?.description}"</span>{" "}
+              no valor de{" "}
+              <span className="font-medium text-foreground">{deleteTarget ? fmt(deleteTarget.value) : ""}</span>{" "}
+              será removida do caixa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteMovement();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
