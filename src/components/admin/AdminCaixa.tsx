@@ -702,6 +702,38 @@ const AdminCaixa = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete movement confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Excluir {deleteTarget?.kind === "deposit" ? "entrada" : "sangria"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A movimentação{" "}
+              <span className="font-medium text-foreground">"{deleteTarget?.description}"</span>{" "}
+              no valor de{" "}
+              <span className="font-medium text-foreground">{deleteTarget ? fmt(deleteTarget.value) : ""}</span>{" "}
+              será removida do caixa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteMovement();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting && <Loader2 className="w-4 h-4 animate-spin mr-1" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
