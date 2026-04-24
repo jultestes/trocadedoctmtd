@@ -50,7 +50,7 @@ type SaleItem = {
   product_image_url?: string | null;
 };
 
-type DateFilter = "today" | "7days" | "30days" | "all";
+
 
 const ITEMS_PER_PAGE = 10;
 
@@ -58,7 +58,8 @@ const AdminSales = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [saleItems, setSaleItems] = useState<Record<string, SaleItem[]>>({});
-  const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>("today");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
   const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
@@ -69,24 +70,7 @@ const AdminSales = () => {
   const [invoiceSale, setInvoiceSale] = useState<Sale | null>(null);
   const [deliveryCostInputs, setDeliveryCostInputs] = useState<Record<string, string>>({});
   const getDateRange = () => {
-    const now = new Date();
-    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-
-    switch (dateFilter) {
-      case "today":
-        return { from: startOfDay(now).toISOString(), to: endOfDay(now).toISOString() };
-      case "7days": {
-        const d = new Date(now); d.setDate(d.getDate() - 7);
-        return { from: startOfDay(d).toISOString(), to: endOfDay(now).toISOString() };
-      }
-      case "30days": {
-        const d = new Date(now); d.setDate(d.getDate() - 30);
-        return { from: startOfDay(d).toISOString(), to: endOfDay(now).toISOString() };
-      }
-      case "all":
-        return null;
-    }
+    return computeRange(periodPreset, customRange ? { from: customRange.from, to: customRange.to } : undefined);
   };
 
   const fetchSales = async () => {
