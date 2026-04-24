@@ -74,11 +74,11 @@ const AdminSales = () => {
   };
 
   const fetchSales = async () => {
-    let query = supabase.from("sales").select("*").order("created_at", { ascending: false });
     const range = getDateRange();
-    if (range) {
-      query = query.gte("created_at", range.from).lte("created_at", range.to);
-    }
+    const query = supabase.from("sales").select("*")
+      .gte("created_at", range.from.toISOString())
+      .lte("created_at", range.to.toISOString())
+      .order("created_at", { ascending: false });
     const { data } = await query;
     if (data) setSales(data as Sale[]);
   };
@@ -114,7 +114,7 @@ const AdminSales = () => {
     }
   };
 
-  useEffect(() => { fetchSales(); setPage(1); setSelectedIds(new Set()); }, [dateFilter]);
+  useEffect(() => { fetchSales(); setPage(1); setSelectedIds(new Set()); }, [periodPreset, customRange]);
 
   const totalPages = Math.max(1, Math.ceil(sales.length / ITEMS_PER_PAGE));
   const paginatedSales = sales.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -346,17 +346,15 @@ const AdminSales = () => {
               <Trash2 className="w-4 h-4" /> Apagar ({selectedIds.size})
             </Button>
           )}
-          <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as DateFilter)}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="7days">7 dias</SelectItem>
-              <SelectItem value="30days">30 dias</SelectItem>
-              <SelectItem value="all">Tudo</SelectItem>
-            </SelectContent>
-          </Select>
+          <DateRangeFilter
+            preset={periodPreset}
+            customRange={customRange}
+            onChange={(p, r) => {
+              setPeriodPreset(p);
+              if (p === "custom" && r) setCustomRange(r);
+            }}
+          />
+
         </div>
       </div>
 
