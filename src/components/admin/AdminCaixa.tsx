@@ -103,6 +103,7 @@ const AdminCaixa = () => {
 
     setRegister(reg);
 
+    // Withdrawals/deposits são do caixa do dia (sempre)
     if (reg) {
       const [{ data: wds }, { data: deps }] = await Promise.all([
         supabase
@@ -118,25 +119,24 @@ const AdminCaixa = () => {
       ]);
       setWithdrawals(wds || []);
       setDeposits(deps || []);
-
-      const startOfDay = `${today}T00:00:00`;
-      const endOfDay = `${today}T23:59:59`;
-      const { data: sales } = await supabase
-        .from("sales")
-        .select("id, total_paid, customer_name, created_at, order_nsu, payment_method, actual_delivery_cost, shipping_price")
-        .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
-        .gte("created_at", startOfDay)
-        .lte("created_at", endOfDay)
-        .order("created_at", { ascending: false });
-      setCashSales(sales || []);
     } else {
       setWithdrawals([]);
       setDeposits([]);
-      setCashSales([]);
     }
 
+    // Vendas seguem o filtro de período
+    const range = computeRange(periodPreset, customRange ? { from: customRange.from, to: customRange.to } : undefined);
+    const { data: sales } = await supabase
+      .from("sales")
+      .select("id, total_paid, customer_name, created_at, order_nsu, payment_method, actual_delivery_cost, shipping_price")
+      .in("status", ["paid", "completed", "separating", "delivering", "ready_pickup"])
+      .gte("created_at", range.from.toISOString())
+      .lte("created_at", range.to.toISOString())
+      .order("created_at", { ascending: false });
+    setCashSales(sales || []);
+
     setLoading(false);
-  }, [today]);
+  }, [today, periodPreset, customRange]);
 
   useEffect(() => {
     loadData();
