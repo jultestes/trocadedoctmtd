@@ -669,14 +669,14 @@ const AdminCaixa = () => {
                     <Badge variant={m.type === "entrada" ? "default" : "destructive"} className="shrink-0 text-xs">
                       {m.type === "entrada" ? "+" : "-"} {fmt(m.value)}
                     </Badge>
-                    {"manualId" in m && m.manualId && (
+                    {m.manualId && m.manualKind && (
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                         onClick={() =>
                           setDeleteTarget({
-                            kind: m.manualKind,
+                            kind: m.manualKind!,
                             id: m.manualId!,
                             description: m.description,
                             value: m.value,
