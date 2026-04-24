@@ -72,7 +72,10 @@ export const DateRangeFilter = ({ preset, customRange, onChange, className }: Pr
   const handlePreset = (val: string) => {
     const p = val as PeriodPreset;
     if (p === "custom") {
-      setOpen(true);
+      setTempRange(customRange);
+      onChange("custom", customRange);
+      // abre o calendário no próximo tick para não conflitar com o fechamento do Select
+      setTimeout(() => setOpen(true), 50);
       return;
     }
     onChange(p);
@@ -100,40 +103,51 @@ export const DateRangeFilter = ({ preset, customRange, onChange, className }: Pr
         </SelectContent>
       </Select>
 
-      {preset === "custom" && (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="shrink-0">
-              <CalendarIcon className="w-4 h-4" />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0 gap-2"
+            onClick={() => {
+              setTempRange(customRange);
+              setOpen(true);
+            }}
+          >
+            <CalendarIcon className="w-4 h-4" />
+            {preset === "custom" && customRange?.from && customRange?.to
+              ? customLabel
+              : "Datas"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 z-50 bg-popover" align="end">
+          <Calendar
+            mode="range"
+            selected={tempRange}
+            onSelect={setTempRange}
+            locale={ptBR}
+            numberOfMonths={2}
+            className={cn("p-3 pointer-events-auto")}
+          />
+          <div className="flex justify-end gap-2 p-3 border-t border-border">
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancelar
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="range"
-              selected={tempRange}
-              onSelect={setTempRange}
-              locale={ptBR}
-              numberOfMonths={2}
-              className={cn("p-3 pointer-events-auto")}
-            />
-            <div className="flex justify-end gap-2 p-3 border-t border-border">
-              <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancelar</Button>
-              <Button
-                size="sm"
-                disabled={!tempRange?.from || !tempRange?.to}
-                onClick={() => {
-                  if (tempRange?.from && tempRange?.to) {
-                    onChange("custom", tempRange);
-                    setOpen(false);
-                  }
-                }}
-              >
-                Aplicar
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
+            <Button
+              size="sm"
+              disabled={!tempRange?.from || !tempRange?.to}
+              onClick={() => {
+                if (tempRange?.from && tempRange?.to) {
+                  onChange("custom", tempRange);
+                  setOpen(false);
+                }
+              }}
+            >
+              Aplicar
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
