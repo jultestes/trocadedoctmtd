@@ -66,32 +66,43 @@ const PRESET_LABELS: Record<PeriodPreset, string> = {
 };
 
 export const DateRangeFilter = ({ preset, customRange, onChange, className }: Props) => {
-  const [open, setOpen] = useState(false);
-  const [tempRange, setTempRange] = useState<DateRange | undefined>(customRange);
+  const [openFrom, setOpenFrom] = useState(false);
+  const [openTo, setOpenTo] = useState(false);
 
   const handlePreset = (val: string) => {
     const p = val as PeriodPreset;
     if (p === "custom") {
-      setTempRange(customRange);
       onChange("custom", customRange);
-      // abre o calendário no próximo tick para não conflitar com o fechamento do Select
-      setTimeout(() => setOpen(true), 50);
       return;
     }
     onChange(p);
   };
 
-  const customLabel = customRange?.from && customRange?.to
-    ? `${format(customRange.from, "dd/MM")} - ${format(customRange.to, "dd/MM")}`
-    : "Personalizado";
+  const handleFromSelect = (date: Date | undefined) => {
+    if (!date) return;
+    const newRange: DateRange = {
+      from: date,
+      to: customRange?.to && customRange.to >= date ? customRange.to : undefined,
+    };
+    onChange("custom", newRange);
+    setOpenFrom(false);
+  };
+
+  const handleToSelect = (date: Date | undefined) => {
+    if (!date) return;
+    const newRange: DateRange = {
+      from: customRange?.from,
+      to: date,
+    };
+    onChange("custom", newRange);
+    setOpenTo(false);
+  };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn("flex items-center gap-2 flex-wrap", className)}>
       <Select value={preset} onValueChange={handlePreset}>
         <SelectTrigger className="w-[150px]">
-          <SelectValue>
-            {preset === "custom" ? customLabel : PRESET_LABELS[preset]}
-          </SelectValue>
+          <SelectValue>{PRESET_LABELS[preset]}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="today">Hoje</SelectItem>
@@ -103,51 +114,48 @@ export const DateRangeFilter = ({ preset, customRange, onChange, className }: Pr
         </SelectContent>
       </Select>
 
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className="shrink-0 gap-2"
-            onClick={() => {
-              setTempRange(customRange);
-              setOpen(true);
-            }}
-          >
-            <CalendarIcon className="w-4 h-4" />
-            {preset === "custom" && customRange?.from && customRange?.to
-              ? customLabel
-              : "Datas"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 z-50 bg-popover" align="end">
-          <Calendar
-            mode="range"
-            selected={tempRange}
-            onSelect={setTempRange}
-            locale={ptBR}
-            numberOfMonths={2}
-            className={cn("p-3 pointer-events-auto")}
-          />
-          <div className="flex justify-end gap-2 p-3 border-t border-border">
-            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              size="sm"
-              disabled={!tempRange?.from || !tempRange?.to}
-              onClick={() => {
-                if (tempRange?.from && tempRange?.to) {
-                  onChange("custom", tempRange);
-                  setOpen(false);
-                }
-              }}
-            >
-              Aplicar
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
+      {preset === "custom" && (
+        <>
+          <Popover open={openFrom} onOpenChange={setOpenFrom}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <CalendarIcon className="w-4 h-4" />
+                {customRange?.from ? format(customRange.from, "dd/MM/yyyy") : "De"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+              <Calendar
+                mode="single"
+                selected={customRange?.from}
+                onSelect={handleFromSelect}
+                locale={ptBR}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Popover open={openTo} onOpenChange={setOpenTo}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <CalendarIcon className="w-4 h-4" />
+                {customRange?.to ? format(customRange.to, "dd/MM/yyyy") : "Até"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+              <Calendar
+                mode="single"
+                selected={customRange?.to}
+                onSelect={handleToSelect}
+                disabled={(date) => (customRange?.from ? date < customRange.from : false)}
+                locale={ptBR}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </>
+      )}
     </div>
   );
 };
