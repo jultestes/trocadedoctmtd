@@ -232,25 +232,43 @@ const AdminCaixa = () => {
   const fmt = (v: number) =>
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+  // Normaliza método para uma das categorias do filtro
+  const normalizePayment = (method: string): "pix" | "credit" | "debit" | "cash" | "other" => {
+    const m = (method || "").toLowerCase();
+    if (m === "pix") return "pix";
+    if (m === "cash" || m === "dinheiro") return "cash";
+    if (m === "credit" || m === "credit_card" || m === "cartao_credito" || m === "cartão_crédito") return "credit";
+    if (m === "debit" || m === "debit_card" || m === "cartao_debito") return "debit";
+    return "other";
+  };
+
   const paymentLabel = (method: string) => {
-    switch (method) {
+    switch (normalizePayment(method)) {
       case "cash": return "Dinheiro";
       case "pix": return "PIX";
-      case "credit": return "Crédito";
-      case "debit": return "Débito";
-      default: return method;
+      case "credit": return "Cartão de Crédito";
+      case "debit": return "Cartão de Débito";
+      default: return "Outros";
     }
   };
 
-  // Merge all movements
+  // Vendas filtradas pela forma de pagamento
+  const filteredSales = useMemo(() => {
+    if (paymentFilter === "all") return cashSales;
+    return cashSales.filter((s) => normalizePayment(s.payment_method) === paymentFilter);
+  }, [cashSales, paymentFilter]);
+
+  const totalFiltered = filteredSales.reduce((s, sale) => s + Number(sale.total_paid), 0);
+
+  // Merge all movements (apenas vendas filtradas + manuais do dia)
   const movements = [
-    ...cashSales.map((s) => ({
+    ...filteredSales.map((s) => ({
       type: "entrada" as const,
       value: Number(s.total_paid),
       description: `${s.customer_name || s.order_nsu || "Venda"} (${paymentLabel(s.payment_method)})`,
       time: s.created_at,
     })),
-    ...cashSales
+    ...filteredSales
       .filter((s) => s.actual_delivery_cost && Number(s.actual_delivery_cost) > 0)
       .map((s) => ({
         type: "saida" as const,
@@ -258,18 +276,18 @@ const AdminCaixa = () => {
         description: `Frete - ${s.customer_name || s.order_nsu || "Pedido"}`,
         time: s.created_at,
       })),
-    ...deposits.map((d) => ({
+    ...(paymentFilter === "all" ? deposits.map((d) => ({
       type: "entrada" as const,
       value: Number(d.amount),
       description: d.description || "Entrada manual",
       time: d.created_at,
-    })),
-    ...withdrawals.map((w) => ({
+    })) : []),
+    ...(paymentFilter === "all" ? withdrawals.map((w) => ({
       type: "saida" as const,
       value: Number(w.amount),
       description: w.description,
       time: w.created_at,
-    })),
+    })) : []),
   ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
   if (loading) {
