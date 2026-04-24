@@ -296,7 +296,15 @@ const AdminCaixa = () => {
   const totalFiltered = filteredSales.reduce((s, sale) => s + Number(sale.total_paid), 0);
 
   // Merge all movements (apenas vendas filtradas + manuais do dia)
-  const movements = [
+  type Movement = {
+    type: "entrada" | "saida";
+    value: number;
+    description: string;
+    time: string;
+    manualId?: string;
+    manualKind?: "deposit" | "withdrawal";
+  };
+  const movements: Movement[] = [
     ...filteredSales.map((s) => ({
       type: "entrada" as const,
       value: Number(s.total_paid),
