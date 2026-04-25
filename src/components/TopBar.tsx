@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ICON_MAP } from "@/components/admin/layout/constants";
-import { Truck, Package } from "lucide-react";
+import { Truck, Package, Repeat } from "lucide-react";
 
 const DEFAULT_ITEMS = [
   { icon: "Truck", text: "Frete Grátis a partir de R$299" },
@@ -17,10 +17,15 @@ const TopBar = () => {
     <div className="bg-topbar text-topbar-foreground py-2 text-sm">
       <div className="container flex items-center justify-between gap-4">
         <div className="flex items-center justify-center gap-6 md:gap-10 flex-wrap flex-1">
+          {/* Mobile: item fixo "Troca em até 7 dias" */}
+          <div className="flex md:hidden items-center gap-2">
+            <Repeat className="w-4 h-4" />
+            <span>Troca em até 7 dias</span>
+          </div>
           {items.map((item, i) => {
             const Icon = ICON_MAP[item.icon] || Truck;
             return (
-              <div key={i} className={`flex items-center gap-2 ${i > 0 ? "hidden md:flex" : ""}`}>
+              <div key={i} className={`items-center gap-2 ${i === 0 ? "hidden md:flex" : "hidden md:flex"}`}>
                 <Icon className="w-4 h-4" />
                 <span dangerouslySetInnerHTML={{ __html: item.text }} />
               </div>
