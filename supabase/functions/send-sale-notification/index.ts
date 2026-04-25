@@ -43,6 +43,12 @@ function concat(...arrs: Uint8Array[]): Uint8Array {
   }
   return out;
 }
+// Force Uint8Array -> standalone ArrayBuffer (avoids SharedArrayBuffer typing issues in Deno)
+function toBuf(u: Uint8Array): ArrayBuffer {
+  const ab = new ArrayBuffer(u.byteLength);
+  new Uint8Array(ab).set(u);
+  return ab;
+}
 
 // ---------- VAPID JWT (ES256) ----------
 async function importVapidPrivateKey(): Promise<CryptoKey> {
