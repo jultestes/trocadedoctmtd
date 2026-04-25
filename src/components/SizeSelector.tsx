@@ -173,9 +173,11 @@ const SizeSelector = () => {
                 <div className="space-y-3 md:space-y-5">
                   {rows.map((row) => (
                     <div key={row.label}>
-                      <p className="text-[11px] md:text-xs font-bold text-foreground/60 uppercase tracking-wider mb-2 md:mb-3">
-                        {row.label}
-                      </p>
+                      {row.label !== parent.name && (
+                        <p className="text-[11px] md:text-xs font-bold text-foreground/60 uppercase tracking-wider mb-2 md:mb-3">
+                          {row.label}
+                        </p>
+                      )}
                       <div className="grid grid-cols-4 sm:grid-cols-5 md:flex md:flex-wrap gap-2">
                         {row.ages.map((ageKey) => (
                           <button
