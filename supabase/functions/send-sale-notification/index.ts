@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 // Web Push (RFC 8291 / aes128gcm) — pure WebCrypto for Deno edge runtime.
-// v1.0.2 — force deploy without stale Deno lock
+// v1.0.4 — detailed errors per subscription
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const corsHeaders = {
@@ -189,28 +189,52 @@ Deno.serve(async (req) => {
     let sent = 0;
     let failed = 0;
     const stale: string[] = [];
+    const errors: Array<{
+      endpoint_host: string;
+      status: number | null;
+      response_text: string;
+      error_message: string | null;
+    }> = [];
 
     await Promise.all((subs ?? []).map(async (s: any) => {
+      let host = "";
+      try {
+        host = new URL(s.endpoint).host;
+      } catch { host = "invalid-url"; }
       try {
         const res = await sendOne(s, payloadStr);
         if (res.status >= 200 && res.status < 300) {
           sent++;
-        } else if (res.status === 404 || res.status === 410) {
-          stale.push(s.id);
-          failed++;
-        } else {
-          failed++;
-          console.error("push status", res.status, await res.text().catch(() => ""));
+          return;
         }
+        const text = await res.text().catch(() => "");
+        if (res.status === 404 || res.status === 410) {
+          stale.push(s.id);
+        }
+        failed++;
+        errors.push({
+          endpoint_host: host,
+          status: res.status,
+          response_text: text.slice(0, 500),
+          error_message: null,
+        });
+        console.error(`[send-sale-notification] push fail host=${host} status=${res.status} body=${text.slice(0, 300)}`);
       } catch (err: any) {
         failed++;
-        console.error("push error", err?.message || err);
+        const msg = err?.message || String(err);
+        errors.push({
+          endpoint_host: host,
+          status: null,
+          response_text: "",
+          error_message: msg,
+        });
+        console.error(`[send-sale-notification] push error host=${host} err=${msg}`);
       }
     }));
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length };
+    const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length, errors };
     console.log(`[send-sale-notification] result=`, result);
     return new Response(JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
