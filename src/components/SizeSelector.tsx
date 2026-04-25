@@ -166,17 +166,17 @@ const SizeSelector = () => {
             }
 
             return (
-              <div key={parent.id} className={`${bgClass} rounded-3xl p-6 md:p-8 shadow-sm`}>
-                <h3 className="text-2xl md:text-3xl font-extrabold font-heading text-foreground mb-6">
+              <div key={parent.id} className={`${bgClass} rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-sm`}>
+                <h3 className="text-xl md:text-3xl font-extrabold font-heading text-foreground mb-3 md:mb-6">
                   {parent.name}
                 </h3>
-                <div className="space-y-5">
+                <div className="space-y-3 md:space-y-5">
                   {rows.map((row) => (
                     <div key={row.label}>
-                      <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider mb-3">
+                      <p className="text-[11px] md:text-xs font-bold text-foreground/60 uppercase tracking-wider mb-2 md:mb-3">
                         {row.label}
                       </p>
-                      <div className="flex gap-2 flex-wrap">
+                      <div className="grid grid-cols-4 sm:grid-cols-5 md:flex md:flex-wrap gap-2">
                         {row.ages.map((ageKey) => (
                           <button
                             key={ageKey}
@@ -186,7 +186,7 @@ const SizeSelector = () => {
                               params.set("idade", ageKey);
                               navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
                             }}
-                            className="px-5 h-11 rounded-full bg-background border-2 border-primary/40 text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap"
+                            className="h-9 md:h-11 px-2.5 md:px-5 rounded-full bg-background/80 border border-primary/30 md:border-2 md:border-primary/40 text-xs md:text-sm font-semibold md:font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap flex items-center justify-center"
                           >
                             {AGE_DISPLAY[ageKey] || ageKey}
                           </button>
