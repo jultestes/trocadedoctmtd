@@ -14,6 +14,11 @@ const INFANTIL_AGES = ["idade1", "idade2", "idade3", "idade4", "idade6", "idade8
 const TEEN_AGES = ["idade12", "idade14", "idade16"];
 
 const ALL_AGE_KEYS = [...LETTER_SIZES, ...INFANTIL_AGES, ...TEEN_AGES].sort((a, b) => b.length - a.length);
+
+// Ordem de exibição: P, M, G, depois idades crescentes (1, 2, 3, 4, 6, 8, 10, 12, 14, 16)
+const AGE_SORT_ORDER = ["p", "m", "g", "idade1", "idade2", "idade3", "idade4", "idade6", "idade8", "idade10", "idade12", "idade14", "idade16"];
+const sortAges = (ages: string[]) =>
+  [...ages].sort((a, b) => AGE_SORT_ORDER.indexOf(a) - AGE_SORT_ORDER.indexOf(b));
 const extractAgeKey = (raw: string): string | null => {
   for (const key of ALL_AGE_KEYS) {
     const regex = new RegExp(`(^|[-_])${key}($|[-_])`);
