@@ -1,6 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 // Web Push (RFC 8291 / aes128gcm) — pure WebCrypto for Deno edge runtime.
-// v1.0.1 — deploy trigger
+// v1.0.2 — force deploy without stale Deno lock
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const corsHeaders = {
