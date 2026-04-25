@@ -113,13 +113,13 @@ const SizeSelector = () => {
           const realAges = categoryProductAges.get(sub.id);
           const filteredAges = parent.ages.filter(a => realAges?.has(a));
           if (filteredAges.length > 0) {
-            subcategories.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: filteredAges });
+            subcategories.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: sortAges(filteredAges) });
           }
         }
 
         // Also show the parent itself with its own direct product ages
         const parentRealAges = categoryProductAges.get(parent.id);
-        const parentFilteredAges = parent.ages.filter(a => parentRealAges?.has(a));
+        const parentFilteredAges = sortAges(parent.ages.filter(a => parentRealAges?.has(a)));
 
         if (subcategories.length > 0 || parentFilteredAges.length > 0) {
           result.push({
