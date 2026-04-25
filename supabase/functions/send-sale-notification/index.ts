@@ -154,18 +154,21 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { sale_id, order_nsu, total_paid, customer_name } = body || {};
 
-    const { data: admins, error: adminsErr } = await supabase
-      .from("user_roles").select("user_id").eq("role", "admin");
-    if (adminsErr) throw adminsErr;
-    const adminIds = (admins ?? []).map((a: any) => a.user_id);
-    if (adminIds.length === 0) {
-      return new Response(JSON.stringify({ ok: true, sent: 0, reason: "no admins" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
+    // Buscar TODAS as subscriptions (sem filtro de role) — admins são quem se inscreve
     const { data: subs, error: subsErr } = await supabase
-      .from("push_subscriptions").select("id, endpoint, p256dh, auth").in("user_id", adminIds);
+      .from("push_subscriptions")
+      .select("id, endpoint, p256dh, auth");
     if (subsErr) throw subsErr;
+
+    const subscriptions_found = (subs ?? []).length;
+    console.log(`[send-sale-notification] subscriptions_found=${subscriptions_found}`);
+
+    if (subscriptions_found === 0) {
+      return new Response(
+        JSON.stringify({ ok: true, subscriptions_found: 0, sent: 0, failed: 0, removed: 0, reason: "no subscriptions" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     const orderLabel = order_nsu
       ? `Pedido #${order_nsu}`
@@ -184,22 +187,32 @@ Deno.serve(async (req) => {
     });
 
     let sent = 0;
+    let failed = 0;
     const stale: string[] = [];
 
     await Promise.all((subs ?? []).map(async (s: any) => {
       try {
         const res = await sendOne(s, payloadStr);
-        if (res.status >= 200 && res.status < 300) sent++;
-        else if (res.status === 404 || res.status === 410) stale.push(s.id);
-        else console.error("push status", res.status, await res.text().catch(() => ""));
+        if (res.status >= 200 && res.status < 300) {
+          sent++;
+        } else if (res.status === 404 || res.status === 410) {
+          stale.push(s.id);
+          failed++;
+        } else {
+          failed++;
+          console.error("push status", res.status, await res.text().catch(() => ""));
+        }
       } catch (err: any) {
+        failed++;
         console.error("push error", err?.message || err);
       }
     }));
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    return new Response(JSON.stringify({ ok: true, sent, removed: stale.length }),
+    const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length };
+    console.log(`[send-sale-notification] result=`, result);
+    return new Response(JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
     console.error(e);
