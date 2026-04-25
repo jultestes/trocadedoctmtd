@@ -187,22 +187,32 @@ Deno.serve(async (req) => {
     });
 
     let sent = 0;
+    let failed = 0;
     const stale: string[] = [];
 
     await Promise.all((subs ?? []).map(async (s: any) => {
       try {
         const res = await sendOne(s, payloadStr);
-        if (res.status >= 200 && res.status < 300) sent++;
-        else if (res.status === 404 || res.status === 410) stale.push(s.id);
-        else console.error("push status", res.status, await res.text().catch(() => ""));
+        if (res.status >= 200 && res.status < 300) {
+          sent++;
+        } else if (res.status === 404 || res.status === 410) {
+          stale.push(s.id);
+          failed++;
+        } else {
+          failed++;
+          console.error("push status", res.status, await res.text().catch(() => ""));
+        }
       } catch (err: any) {
+        failed++;
         console.error("push error", err?.message || err);
       }
     }));
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    return new Response(JSON.stringify({ ok: true, sent, removed: stale.length }),
+    const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length };
+    console.log(`[send-sale-notification] result=`, result);
+    return new Response(JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
     console.error(e);
