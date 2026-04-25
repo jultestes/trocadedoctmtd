@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
+import EnableSalesNotificationsButton from "./EnableSalesNotificationsButton";
 
 type Sale = {
   id: string;
@@ -255,7 +256,10 @@ const AdminOverview = () => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-foreground font-heading">Visão Geral</h2>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-2xl font-bold text-foreground font-heading">Visão Geral</h2>
+          <EnableSalesNotificationsButton />
+        </div>
         <div className="flex items-center gap-3 flex-wrap">
           <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as DateFilter)}>
             <SelectTrigger className="w-[160px]">
