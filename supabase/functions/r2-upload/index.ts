@@ -105,16 +105,22 @@ function toHex(data: Uint8Array): string {
   return Array.from(data).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+function toAB(u: Uint8Array): ArrayBuffer {
+  const ab = new ArrayBuffer(u.byteLength);
+  new Uint8Array(ab).set(u);
+  return ab;
+}
+
 async function sha256(data: Uint8Array | string): Promise<string> {
   const encoded = typeof data === "string" ? new TextEncoder().encode(data) : data;
-  const hash = await crypto.subtle.digest("SHA-256", encoded);
+  const hash = await crypto.subtle.digest("SHA-256", toAB(encoded));
   return toHex(new Uint8Array(hash));
 }
 
 async function hmacSha256(key: Uint8Array | string, data: string): Promise<Uint8Array> {
   const keyData = typeof key === "string" ? new TextEncoder().encode(key) : key;
-  const cryptoKey = await crypto.subtle.importKey("raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(data));
+  const cryptoKey = await crypto.subtle.importKey("raw", toAB(keyData), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", cryptoKey, toAB(new TextEncoder().encode(data)));
   return new Uint8Array(sig);
 }
 
@@ -177,7 +183,7 @@ async function putObject(key: string, body: Uint8Array, contentType: string) {
   for (let attempt = 1; attempt <= R2_MAX_RETRIES + 1; attempt++) {
     try {
       const { url, headers } = await signRequest("PUT", `/${encodedKey}`, body, safeContentType, config);
-      const res = await fetchWithTimeout(url, { method: "PUT", headers, body });
+      const res = await fetchWithTimeout(url, { method: "PUT", headers, body: toAB(body) });
 
       if (res.ok) return;
 
