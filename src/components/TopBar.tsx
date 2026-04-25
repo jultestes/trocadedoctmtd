@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { ICON_MAP } from "@/components/admin/layout/constants";
-import { Truck, Package } from "lucide-react";
+import { Truck, Package, Repeat } from "lucide-react";
 
 const DEFAULT_ITEMS = [
   { icon: "Truck", text: "Frete Grátis a partir de R$299" },
