@@ -141,16 +141,16 @@ const SizeSelector = () => {
   if (parents.length === 0) return null;
 
   return (
-    <section className="py-14 md:py-20">
+    <section className="py-8 md:py-20">
       <div className="container">
-        <div className="text-center mb-10 md:mb-12">
-          <span className="inline-block text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-primary mb-3">
+        <div className="text-center mb-6 md:mb-12">
+          <span className="inline-block text-[11px] md:text-sm font-bold uppercase tracking-[0.2em] text-primary mb-2 md:mb-3">
             Encontre o tamanho ideal
           </span>
-          <h2 className="font-heading font-extrabold text-3xl md:text-5xl text-foreground">
+          <h2 className="font-heading font-extrabold text-2xl md:text-5xl text-foreground">
             Compre por Tamanho
           </h2>
-          <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4" />
+          <div className="w-12 md:w-16 h-1 bg-primary rounded-full mx-auto mt-3 md:mt-4" />
         </div>
 
         <div className={`grid grid-cols-1 ${parents.length >= 2 ? "md:grid-cols-2" : ""} gap-6 md:gap-8`}>
