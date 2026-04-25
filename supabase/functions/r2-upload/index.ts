@@ -183,7 +183,7 @@ async function putObject(key: string, body: Uint8Array, contentType: string) {
   for (let attempt = 1; attempt <= R2_MAX_RETRIES + 1; attempt++) {
     try {
       const { url, headers } = await signRequest("PUT", `/${encodedKey}`, body, safeContentType, config);
-      const res = await fetchWithTimeout(url, { method: "PUT", headers, body });
+      const res = await fetchWithTimeout(url, { method: "PUT", headers, body: toAB(body) });
 
       if (res.ok) return;
 
