@@ -14,6 +14,11 @@ const INFANTIL_AGES = ["idade1", "idade2", "idade3", "idade4", "idade6", "idade8
 const TEEN_AGES = ["idade12", "idade14", "idade16"];
 
 const ALL_AGE_KEYS = [...LETTER_SIZES, ...INFANTIL_AGES, ...TEEN_AGES].sort((a, b) => b.length - a.length);
+
+// Ordem de exibição: P, M, G, depois idades crescentes (1, 2, 3, 4, 6, 8, 10, 12, 14, 16)
+const AGE_SORT_ORDER = ["p", "m", "g", "idade1", "idade2", "idade3", "idade4", "idade6", "idade8", "idade10", "idade12", "idade14", "idade16"];
+const sortAges = (ages: string[]) =>
+  [...ages].sort((a, b) => AGE_SORT_ORDER.indexOf(a) - AGE_SORT_ORDER.indexOf(b));
 const extractAgeKey = (raw: string): string | null => {
   for (const key of ALL_AGE_KEYS) {
     const regex = new RegExp(`(^|[-_])${key}($|[-_])`);
@@ -108,13 +113,13 @@ const SizeSelector = () => {
           const realAges = categoryProductAges.get(sub.id);
           const filteredAges = parent.ages.filter(a => realAges?.has(a));
           if (filteredAges.length > 0) {
-            subcategories.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: filteredAges });
+            subcategories.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: sortAges(filteredAges) });
           }
         }
 
         // Also show the parent itself with its own direct product ages
         const parentRealAges = categoryProductAges.get(parent.id);
-        const parentFilteredAges = parent.ages.filter(a => parentRealAges?.has(a));
+        const parentFilteredAges = sortAges(parent.ages.filter(a => parentRealAges?.has(a)));
 
         if (subcategories.length > 0 || parentFilteredAges.length > 0) {
           result.push({
@@ -136,16 +141,16 @@ const SizeSelector = () => {
   if (parents.length === 0) return null;
 
   return (
-    <section className="py-14 md:py-20">
+    <section className="py-8 md:py-20">
       <div className="container">
-        <div className="text-center mb-10 md:mb-12">
-          <span className="inline-block text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-primary mb-3">
+        <div className="text-center mb-6 md:mb-12">
+          <span className="inline-block text-[11px] md:text-sm font-bold uppercase tracking-[0.2em] text-primary mb-2 md:mb-3">
             Encontre o tamanho ideal
           </span>
-          <h2 className="font-heading font-extrabold text-3xl md:text-5xl text-foreground">
+          <h2 className="font-heading font-extrabold text-2xl md:text-5xl text-foreground">
             Compre por Tamanho
           </h2>
-          <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4" />
+          <div className="w-12 md:w-16 h-1 bg-primary rounded-full mx-auto mt-3 md:mt-4" />
         </div>
 
         <div className={`grid grid-cols-1 ${parents.length >= 2 ? "md:grid-cols-2" : ""} gap-6 md:gap-8`}>
@@ -161,17 +166,17 @@ const SizeSelector = () => {
             }
 
             return (
-              <div key={parent.id} className={`${bgClass} rounded-3xl p-6 md:p-8 shadow-sm`}>
-                <h3 className="text-2xl md:text-3xl font-extrabold font-heading text-foreground mb-6">
+              <div key={parent.id} className={`${bgClass} rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-sm`}>
+                <h3 className="text-xl md:text-3xl font-extrabold font-heading text-foreground mb-3 md:mb-6">
                   {parent.name}
                 </h3>
-                <div className="space-y-5">
+                <div className="space-y-3 md:space-y-5">
                   {rows.map((row) => (
                     <div key={row.label}>
-                      <p className="text-xs font-bold text-foreground/60 uppercase tracking-wider mb-3">
+                      <p className="text-[11px] md:text-xs font-bold text-foreground/60 uppercase tracking-wider mb-2 md:mb-3">
                         {row.label}
                       </p>
-                      <div className="flex gap-2 flex-wrap">
+                      <div className="grid grid-cols-4 sm:grid-cols-5 md:flex md:flex-wrap gap-2">
                         {row.ages.map((ageKey) => (
                           <button
                             key={ageKey}
@@ -181,7 +186,7 @@ const SizeSelector = () => {
                               params.set("idade", ageKey);
                               navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
                             }}
-                            className="px-5 h-11 rounded-full bg-background border-2 border-primary/40 text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap"
+                            className="h-9 md:h-11 px-2.5 md:px-5 rounded-full bg-background/80 border border-primary/30 md:border-2 md:border-primary/40 text-xs md:text-sm font-semibold md:font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap flex items-center justify-center"
                           >
                             {AGE_DISPLAY[ageKey] || ageKey}
                           </button>
