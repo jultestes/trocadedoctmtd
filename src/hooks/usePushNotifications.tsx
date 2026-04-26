@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Public VAPID key (safe to expose in frontend)
 const VAPID_PUBLIC_KEY =
-  "BI5kvQd7No49tSwxMTmPhaxsG86iWT6iKt8ieHAra5v0PDGnf2mJM71Wq-3aOD7e5-w0j4dqycez3rs4Xat0h4U";
+  "BFvOc8BICHb_5jW8PjTvjZMjtsa6fCWtGrjvEO6zeNr6kePaFRmpkn4xr0wida7pPtSIHTphvs5i1ReXBmCbIvo";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -21,6 +21,10 @@ function arrayBufferToBase64(buffer: ArrayBuffer | null) {
   let binary = "";
   for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
+}
+
+function arrayBufferToUrlBase64(buffer: ArrayBuffer | null) {
+  return arrayBufferToBase64(buffer).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 export type PushStatus = "unsupported" | "denied" | "granted" | "default" | "loading";
@@ -71,6 +75,15 @@ export function usePushNotifications() {
       await navigator.serviceWorker.ready;
 
       let sub = await reg.pushManager.getSubscription();
+      const currentApplicationServerKey = arrayBufferToUrlBase64(
+        sub?.options.applicationServerKey ?? null
+      );
+      if (sub && currentApplicationServerKey !== VAPID_PUBLIC_KEY) {
+        await (supabase as any).from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+        await sub.unsubscribe();
+        sub = null;
+      }
+
       if (!sub) {
         sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
