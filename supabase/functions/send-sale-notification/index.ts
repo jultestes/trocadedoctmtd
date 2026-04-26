@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { sale_id, order_nsu, total_paid, customer_name } = body || {};
+    const { sale_id, total_paid } = body || {};
 
     // Buscar TODAS as subscriptions (sem filtro de role) — admins são quem se inscreve
     const { data: subs, error: subsErr } = await supabase
@@ -170,17 +170,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    const valorNumber = typeof total_paid === "number" && !isNaN(total_paid) ? total_paid : 0;
-    const bodyText = `Valor: R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
-
-    const payloadStr = JSON.stringify({
+    const parsedTotal = typeof total_paid === "number"
+      ? total_paid
+      : Number.parseFloat(String(total_paid ?? "0").replace(",", "."));
+    const valorNumber = Number.isFinite(parsedTotal) ? parsedTotal : 0;
+    const notificationPayload = {
       title: "Venda aprovada!",
-      body: bodyText,
+      body: `Valor: R$ ${valorNumber.toFixed(2).replace(".", ",")}`,
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
       tag: `sale-${sale_id || Date.now()}`,
       url: "/admin",
-    });
+    };
+
+    const payloadStr = JSON.stringify(notificationPayload);
+    console.log("[send-sale-notification] notification_payload=", notificationPayload);
 
     let sent = 0;
     let failed = 0;
