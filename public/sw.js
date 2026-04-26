@@ -14,35 +14,29 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("push", (event) => {
   let data = {};
   try {
-    if (event.data) {
-      const txt = event.data.text();
-      try {
-        data = JSON.parse(txt);
-      } catch {
-        data = { title: "Nova venda recebida!", body: txt };
-      }
-    }
+    data = event.data ? event.data.json() : {};
   } catch (e) {
-    data = { title: "Nova venda recebida!", body: "Um novo pedido entrou." };
+    data = {
+      title: "Nova venda recebida!",
+      body: event.data ? event.data.text() : "Você recebeu uma nova notificação",
+    };
   }
 
   const title = data.title || "Nova venda recebida!";
   const options = {
-    body: data.body || "Um novo pedido acabou de entrar no site.",
+    body: data.body || "Você recebeu um novo pedido no site.",
     icon: data.icon || "/pwa-icon-192.png",
     badge: data.badge || "/pwa-icon-192.png",
-    tag: data.tag || "new-sale",
+    tag: data.tag || "nova-venda",
     renotify: true,
     requireInteraction: false,
     vibrate: [200, 100, 200],
-    data: { url: data.url || "/admin" },
+    data: {
+      url: data.url || "/admin",
+    },
   };
 
-  event.waitUntil(
-    self.registration
-      .showNotification(title, options)
-      .catch((err) => console.error("[SW] showNotification error:", err))
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener("notificationclick", (event) => {
