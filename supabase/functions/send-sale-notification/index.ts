@@ -234,7 +234,7 @@ Deno.serve(async (req) => {
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length, errors };
+    const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length, notification_payload: notificationPayload, errors };
     console.log(`[send-sale-notification] result=`, result);
     return new Response(JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
