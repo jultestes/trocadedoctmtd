@@ -223,9 +223,7 @@ const Checkout = () => {
       // Fire-and-forget push notification (never blocks checkout)
       notifyNewSale({
         sale_id: saleId,
-        order_nsu: orderNsu,
         total_paid: grandTotal,
-        customer_name: nome.trim(),
       });
 
       if (paymentMethod === "cash") {
