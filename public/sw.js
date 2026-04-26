@@ -1,11 +1,6 @@
-/* Custom Service Worker — Web Push + PWA
- * Importante: este arquivo é a fonte para o build (injectManifest).
+/* Custom Service Worker — Web Push notifications.
+ * Servido diretamente de /public/sw.js (não passa por bundler).
  */
-
-// Placeholder para o vite-plugin-pwa injetar a precache list (necessário no injectManifest).
-// Não remover.
-const __PRECACHE = self.__WB_MANIFEST;
-void __PRECACHE;
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
