@@ -224,6 +224,14 @@ const WhatsAppCheckout = () => {
         throw new Error("Erro ao registrar venda");
       }
 
+      // Fire-and-forget push notification (never blocks checkout)
+      notifyNewSale({
+        sale_id: (data as any).sale_id,
+        order_nsu: orderNsu,
+        total_paid: grandTotal,
+        customer_name: nome.trim(),
+      });
+
       clearCart();
 
       // Open WhatsApp with the order number, then redirect to tracking page
