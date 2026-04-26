@@ -13,6 +13,7 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { notifyNewSale } from "@/lib/notifySale";
 
 interface ViaCepResponse {
   cep: string;
@@ -217,7 +218,15 @@ const Checkout = () => {
       const orderNsu = `TMTD-${Date.now()}`;
 
       // Save sale
-      await saveSaleToDB(orderNsu);
+      const { saleId } = await saveSaleToDB(orderNsu);
+
+      // Fire-and-forget push notification (never blocks checkout)
+      notifyNewSale({
+        sale_id: saleId,
+        order_nsu: orderNsu,
+        total_paid: grandTotal,
+        customer_name: nome.trim(),
+      });
 
       if (paymentMethod === "cash") {
         // Cash: go directly to success page
