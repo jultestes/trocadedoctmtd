@@ -2,9 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface NotifySalePayload {
   sale_id: string;
-  order_nsu: string;
   total_paid: number;
-  customer_name: string;
 }
 
 /**
