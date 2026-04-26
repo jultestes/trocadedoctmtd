@@ -227,9 +227,7 @@ const WhatsAppCheckout = () => {
       // Fire-and-forget push notification (never blocks checkout)
       notifyNewSale({
         sale_id: (data as any).sale_id,
-        order_nsu: orderNsu,
         total_paid: grandTotal,
-        customer_name: nome.trim(),
       });
 
       clearCart();

@@ -17,14 +17,14 @@ self.addEventListener("push", (event) => {
     data = event.data ? event.data.json() : {};
   } catch (e) {
     data = {
-      title: "Nova venda recebida!",
-      body: event.data ? event.data.text() : "Você recebeu uma nova notificação",
+      title: "Venda aprovada!",
+      body: "Valor: R$ 0,00",
     };
   }
 
-  const title = data.title || "Nova venda recebida!";
+  const title = data.title || "Venda aprovada!";
   const options = {
-    body: data.body || "Você recebeu um novo pedido no site.",
+    body: data.body || "Valor: R$ 0,00",
     icon: data.icon || "/pwa-icon-192.png",
     badge: data.badge || "/pwa-icon-192.png",
     tag: data.tag || "nova-venda",
