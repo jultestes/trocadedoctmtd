@@ -4,7 +4,8 @@
 
 // Placeholder para o vite-plugin-pwa injetar a precache list (necessário no injectManifest).
 // Não remover.
-self.__WB_MANIFEST;
+const __PRECACHE = self.__WB_MANIFEST;
+void __PRECACHE;
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
