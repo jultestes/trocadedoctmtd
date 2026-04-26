@@ -170,18 +170,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    const orderLabel = order_nsu
-      ? `Pedido #${order_nsu}`
-      : sale_id ? `Pedido ${String(sale_id).slice(0, 8)}` : "";
-    const valueLabel = typeof total_paid === "number"
-      ? ` — R$ ${Number(total_paid).toFixed(2).replace(".", ",")}` : "";
-    const bodyText = `Um novo pedido acabou de entrar no site.${
-      orderLabel ? `\n${orderLabel}${valueLabel}` : ""
-    }${customer_name ? `\nCliente: ${customer_name}` : ""}`;
+    const valorNumber = typeof total_paid === "number" && !isNaN(total_paid) ? total_paid : 0;
+    const bodyText = `Valor: R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
 
     const payloadStr = JSON.stringify({
-      title: "Nova venda recebida!",
+      title: "Venda aprovada!",
       body: bodyText,
+      icon: "/pwa-icon-192.png",
+      badge: "/pwa-icon-192.png",
       tag: `sale-${sale_id || Date.now()}`,
       url: "/admin",
     });
