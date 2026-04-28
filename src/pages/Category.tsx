@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
-import FeaturesBar from "@/components/FeaturesBar";
+
 import Footer from "@/components/Footer";
 import CartConfirmDialog from "@/components/CartConfirmDialog";
 import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
@@ -518,7 +518,6 @@ const Category = () => {
         onClose={() => setShowCartConfirm(false)}
       />
 
-      <FeaturesBar />
       <Footer />
     </div>
   );
