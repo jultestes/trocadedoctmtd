@@ -1,6 +1,6 @@
 {
-  "name": "Admin - Painel de Gestão",
-  "short_name": "Admin",
+  "name": "TMTD Kids",
+  "short_name": "TMTD",
   "description": "Painel administrativo de gestão de produtos e estoque",
   "start_url": "/admin",
   "scope": "/",
