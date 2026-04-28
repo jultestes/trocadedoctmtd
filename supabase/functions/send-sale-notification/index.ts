@@ -174,9 +174,10 @@ Deno.serve(async (req) => {
       ? total_paid
       : Number.parseFloat(String(total_paid ?? "0").replace(",", "."));
     const valorNumber = Number.isFinite(parsedTotal) ? parsedTotal : 0;
+    const valorFormatado = `R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
     const notificationPayload = {
       title: "Venda aprovada!",
-      body: `Valor: R$ ${valorNumber.toFixed(2).replace(".", ",")}`,
+      body: `Valor: ${valorFormatado}`,
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
       tag: `sale-${sale_id || Date.now()}`,
