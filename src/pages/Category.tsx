@@ -518,7 +518,6 @@ const Category = () => {
         onClose={() => setShowCartConfirm(false)}
       />
 
-      <FeaturesBar />
       <Footer />
     </div>
   );
