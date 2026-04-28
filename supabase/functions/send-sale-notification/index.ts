@@ -176,8 +176,8 @@ Deno.serve(async (req) => {
     const valorNumber = Number.isFinite(parsedTotal) ? parsedTotal : 0;
     const valorFormatado = `R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
     const notificationPayload = {
-      title: `Venda aprovada! Valor: ${valorFormatado}`,
-      body: "",
+      title: "Venda aprovada!",
+      body: `Valor: ${valorFormatado}`,
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
       tag: `sale-${sale_id || Date.now()}`,
