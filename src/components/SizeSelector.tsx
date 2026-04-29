@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import HorizontalScroller from "@/components/HorizontalScroller";
 
 const AGE_DISPLAY: Record<string, string> = {
   "p": "P", "m": "M", "g": "G",
@@ -179,25 +180,22 @@ const SizeSelector = () => {
                         </p>
                       )}
                       {/* Mobile: horizontal scroll. Desktop: wrap grid */}
-                      <div className="relative md:hidden -mx-4">
-                        <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory">
-                          {row.ages.map((ageKey) => (
-                            <button
-                              key={ageKey}
-                              onClick={() => {
-                                const params = new URLSearchParams();
-                                if (row.catSlug) params.set("cat", row.catSlug);
-                                params.set("idade", ageKey);
-                                navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
-                              }}
-                              className="snap-start shrink-0 h-8 px-3.5 rounded-full bg-background/90 border border-primary/30 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all whitespace-nowrap flex items-center justify-center"
-                            >
-                              {AGE_DISPLAY[ageKey] || ageKey}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-black/10 to-transparent" />
-                      </div>
+                      <HorizontalScroller className="md:hidden -mx-4">
+                        {row.ages.map((ageKey) => (
+                          <button
+                            key={ageKey}
+                            onClick={() => {
+                              const params = new URLSearchParams();
+                              if (row.catSlug) params.set("cat", row.catSlug);
+                              params.set("idade", ageKey);
+                              navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
+                            }}
+                            className="snap-start shrink-0 h-8 px-3.5 rounded-full bg-background/90 border border-primary/30 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all whitespace-nowrap flex items-center justify-center"
+                          >
+                            {AGE_DISPLAY[ageKey] || ageKey}
+                          </button>
+                        ))}
+                      </HorizontalScroller>
                       <div className="hidden md:flex md:flex-wrap gap-2">
                         {row.ages.map((ageKey) => (
                           <button
