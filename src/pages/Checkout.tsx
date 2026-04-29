@@ -249,8 +249,9 @@ const Checkout = () => {
 
       // Fire-and-forget push notification
       notifyNewSale({ sale_id: saleId, total_paid: grandTotal });
-      // Fire-and-forget order confirmation email
-      sendOrderEmail(saleId);
+      // Order confirmation email — await briefly so request leaves the browser
+      // before the WhatsApp redirect kills the tab.
+      await sendOrderEmail(saleId);
 
       const waText =
         `Oi! 😊\n\n` +
@@ -295,8 +296,9 @@ const Checkout = () => {
         sale_id: saleId,
         total_paid: grandTotal,
       });
-      // Fire-and-forget order confirmation email
-      sendOrderEmail(saleId);
+      // Order confirmation email — await briefly so request leaves the browser
+      // before any redirect to success page.
+      await sendOrderEmail(saleId);
 
       if (paymentMethod === "cash") {
         // Cash: go directly to success page
