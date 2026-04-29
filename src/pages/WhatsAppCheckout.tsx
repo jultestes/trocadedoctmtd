@@ -280,7 +280,7 @@ const WhatsAppCheckout = () => {
       { id: "pix", icon: QrCode, label: "PIX" },
       { id: "credit_card", icon: CreditCard, label: "Cartão de Crédito" },
     ];
-    if (deliveryType === "delivery") {
+    if (deliveryType === "delivery" && !shippingToCombine) {
       base.push({ id: "cash", icon: Banknote, label: "Dinheiro" });
     }
     return base;
