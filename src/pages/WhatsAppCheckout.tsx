@@ -13,7 +13,6 @@ import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { notifyNewSale } from "@/lib/notifySale";
-import { sendOrderEmail } from "@/lib/sendOrderEmail";
 
 interface ViaCepResponse {
   cep: string;
@@ -237,10 +236,6 @@ const WhatsAppCheckout = () => {
         sale_id: (data as any).sale_id,
         total_paid: grandTotal,
       });
-
-      // Order confirmation email — await briefly so request leaves the browser
-      // before the WhatsApp tab opens.
-      await sendOrderEmail((data as any).sale_id);
 
       clearCart();
 
