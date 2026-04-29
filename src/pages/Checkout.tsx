@@ -540,11 +540,11 @@ const Checkout = () => {
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" /> Forma de Pagamento
               </h2>
-              <div className={`grid gap-3 ${deliveryType === "pickup" ? "grid-cols-2" : "grid-cols-3"}`}>
+              <div className={`grid gap-3 ${deliveryType === "pickup" || shippingToCombine ? "grid-cols-2" : "grid-cols-3"}`}>
                 {([
                   { id: "pix" as PaymentMethod, icon: QrCode, label: "PIX" },
                   { id: "credit_card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito" },
-                  ...(deliveryType === "delivery" ? [{ id: "cash" as PaymentMethod, icon: Banknote, label: "Dinheiro" }] : []),
+                  ...(deliveryType === "delivery" && !shippingToCombine ? [{ id: "cash" as PaymentMethod, icon: Banknote, label: "Dinheiro" }] : []),
                 ]).map((opt) => (
                   <button
                     key={opt.id}
