@@ -606,10 +606,18 @@ const WhatsAppCheckout = () => {
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {deliveryType === "delivery" ? `Frete (${bairro})` : "Frete (retirada)"}
+                  {deliveryType === "pickup"
+                    ? "Frete (retirada)"
+                    : shippingToCombine
+                      ? "Frete"
+                      : `Frete (${bairro})`}
                 </span>
                 <span className="text-foreground font-medium">
-                  {shippingPrice === 0 ? "Grátis" : `R$ ${shippingPrice.toFixed(2).replace(".", ",")}`}
+                  {shippingToCombine
+                    ? "A combinar"
+                    : shippingPrice === 0
+                      ? "Grátis"
+                      : `R$ ${shippingPrice.toFixed(2).replace(".", ",")}`}
                 </span>
               </div>
               <div className="border-t border-border pt-3 flex justify-between items-center">
