@@ -349,39 +349,56 @@ const Category = () => {
         )}
         {/* Age filter groups — same design as SizeSelector on main site */}
         {!loading && filterGroups.length > 0 && (
-          <div className={`rounded-2xl p-6 md:p-8 mb-6 ${filterBg}`}>
+          <div className={`rounded-2xl p-4 md:p-8 mb-6 ${filterBg}`}>
             <div className="space-y-4">
               {filterGroups.map((group) => {
+                const renderButton = (ageKey: string, mobile: boolean) => {
+                  const isActive = selectedAge === ageKey && selectedCatSlug === group.slug;
+                  return (
+                    <button
+                      key={ageKey}
+                      onClick={() => {
+                        if (isActive) {
+                          setSearchParams({}, { replace: true });
+                        } else {
+                          const next: Record<string, string> = { idade: ageKey };
+                          if (group.slug) next.cat = group.slug;
+                          setSearchParams(next, { replace: true });
+                        }
+                      }}
+                      className={
+                        mobile
+                          ? `snap-start shrink-0 px-3.5 h-8 rounded-full text-xs font-semibold border transition-all flex items-center justify-center whitespace-nowrap ${
+                              isActive
+                                ? "bg-primary text-primary-foreground border-primary shadow"
+                                : "border-primary/30 text-primary bg-background/70 hover:bg-primary hover:text-primary-foreground"
+                            }`
+                          : `px-4 h-10 rounded-full text-xs font-bold border-2 transition-all flex items-center justify-center whitespace-nowrap ${
+                              isActive
+                                ? "bg-primary text-primary-foreground border-primary shadow-md scale-110"
+                                : "border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                            }`
+                      }
+                    >
+                      {AGE_DISPLAY[ageKey] || ageKey}
+                    </button>
+                  );
+                };
                 return (
                   <div key={group.id}>
                     <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wider mb-2">
                       {group.name}
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {group.ages.map((ageKey) => {
-                        const isActive = selectedAge === ageKey && selectedCatSlug === group.slug;
-                        return (
-                          <button
-                            key={ageKey}
-                            onClick={() => {
-                              if (isActive) {
-                                setSearchParams({}, { replace: true });
-                              } else {
-                                const next: Record<string, string> = { idade: ageKey };
-                                if (group.slug) next.cat = group.slug;
-                                setSearchParams(next, { replace: true });
-                              }
-                            }}
-                            className={`px-4 h-10 rounded-full text-xs font-bold border-2 transition-all flex items-center justify-center whitespace-nowrap ${
-                              isActive
-                                ? "bg-primary text-primary-foreground border-primary shadow-md scale-110"
-                                : "border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
-                            }`}
-                          >
-                            {AGE_DISPLAY[ageKey] || ageKey}
-                          </button>
-                        );
-                      })}
+                    {/* Mobile: horizontal scroll */}
+                    <div className="relative md:hidden -mx-4">
+                      <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory">
+                        {group.ages.map((ageKey) => renderButton(ageKey, true))}
+                      </div>
+                      <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-black/10 to-transparent" />
+                    </div>
+                    {/* Desktop: wrap grid */}
+                    <div className="hidden md:flex md:flex-wrap gap-2">
+                      {group.ages.map((ageKey) => renderButton(ageKey, false))}
                     </div>
                   </div>
                 );
