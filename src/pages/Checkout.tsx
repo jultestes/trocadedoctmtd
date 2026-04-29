@@ -85,6 +85,9 @@ const Checkout = () => {
     }
   }, [deliveryType]);
 
+  // Reset cash payment if shipping is "to combine" (outside Manaus) — declared as a no-dep guard, runs on every render via effect below
+  // (real effect placed after `shippingToCombine` declaration)
+
   // Checkout
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [storeLocation, setStoreLocation] = useState("");
@@ -128,6 +131,13 @@ const Checkout = () => {
   })();
 
   const shippingToCombine = deliveryType === "delivery" && !!address && !isManaus;
+
+  // Force digital payment when shipping is "to combine" (outside Manaus)
+  useEffect(() => {
+    if (shippingToCombine && paymentMethod === "cash") {
+      setPaymentMethod("pix");
+    }
+  }, [shippingToCombine, paymentMethod]);
 
   const grandTotal = subtotalAfterCoupon + shippingPrice;
 
@@ -238,6 +248,14 @@ const Checkout = () => {
         // Cash: go directly to success page
         clearCart();
         navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=cash`);
+        return;
+      }
+
+      // Shipping "to combine" (outside Manaus): finalize order without payment.
+      // Payment will happen later via WhatsApp once shipping is calculated.
+      if (shippingToCombine) {
+        clearCart();
+        navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=${paymentMethod}&shipping=combine`);
         return;
       }
 
@@ -530,11 +548,11 @@ const Checkout = () => {
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" /> Forma de Pagamento
               </h2>
-              <div className={`grid gap-3 ${deliveryType === "pickup" ? "grid-cols-2" : "grid-cols-3"}`}>
+              <div className={`grid gap-3 ${deliveryType === "pickup" || shippingToCombine ? "grid-cols-2" : "grid-cols-3"}`}>
                 {([
                   { id: "pix" as PaymentMethod, icon: QrCode, label: "PIX" },
                   { id: "credit_card" as PaymentMethod, icon: CreditCard, label: "Cartão de Crédito" },
-                  ...(deliveryType === "delivery" ? [{ id: "cash" as PaymentMethod, icon: Banknote, label: "Dinheiro" }] : []),
+                  ...(deliveryType === "delivery" && !shippingToCombine ? [{ id: "cash" as PaymentMethod, icon: Banknote, label: "Dinheiro" }] : []),
                 ]).map((opt) => (
                   <button
                     key={opt.id}
@@ -687,24 +705,14 @@ const Checkout = () => {
             </div>
 
             {shippingToCombine && (
-              <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-3">
+              <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-2">
                 <p className="font-semibold text-foreground">🚚 Frete a combinar</p>
                 <p className="text-muted-foreground">
-                  Para entregas fora de Manaus, o valor do frete será calculado <strong className="text-foreground">após a finalização do pedido</strong>. Nossa equipe entrará em contato pelo WhatsApp com o valor e o prazo.
+                  Para entregas fora de Manaus, o valor do frete será calculado <strong className="text-foreground">após a confirmação do pedido</strong>.
                 </p>
-                <Button
-                  type="button"
-                  className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => {
-                    const waNumber = "5592993339711";
-                    const cidade = address?.localidade || "";
-                    const cepFmt = cep || "";
-                    const msg = `Oi! 😊\n\nAcabei de fazer um pedido no site e gostaria de calcular o frete.\n\n📦 Pedido: (em finalização)\n📍 CEP: ${cepFmt}\n🏙️ Cidade: ${cidade}`;
-                    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank");
-                  }}
-                >
-                  Calcular frete no WhatsApp
-                </Button>
+                <p className="text-muted-foreground">
+                  Ao confirmar, seu pedido será registrado e nossa equipe entrará em contato pelo <strong className="text-foreground">WhatsApp</strong> para informar o valor do frete e enviar o link de pagamento (Pix ou cartão).
+                </p>
               </div>
             )}
 
@@ -719,7 +727,7 @@ const Checkout = () => {
                     Processando...
                   </>
                 ) : (
-                  "CONFIRMAR E PAGAR"
+                  shippingToCombine ? "CONFIRMAR PEDIDO" : "CONFIRMAR E PAGAR"
                 )}
               </Button>
             </div>

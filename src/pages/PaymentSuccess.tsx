@@ -39,6 +39,7 @@ const PaymentSuccess = () => {
   const orderNsu = searchParams.get("order_nsu");
   const captureMethod = searchParams.get("capture_method") || searchParams.get("payment_method");
   const isWhatsApp = captureMethod === "whatsapp";
+  const shippingToCombine = searchParams.get("shipping") === "combine";
 
   const [loadingWhatsApp, setLoadingWhatsApp] = useState(false);
 
@@ -180,7 +181,9 @@ const PaymentSuccess = () => {
             Pedido Recebido!
           </h1>
           <p className="text-muted-foreground">
-            Seu pedido foi recebido com sucesso. Obrigado pela compra!
+            {shippingToCombine
+              ? "Seu pedido foi recebido! 💖 Nossa equipe entrará em contato pelo WhatsApp para informar o valor do frete e finalizar o pagamento."
+              : "Seu pedido foi recebido com sucesso. Obrigado pela compra!"}
           </p>
           {orderNsu && (
             <p className="text-sm text-muted-foreground">
