@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     const { sale_id } = (await req.json()) as Payload;
+    console.log("sale_id recebido", { sale_id });
     if (!sale_id) {
       return new Response(JSON.stringify({ error: "sale_id required" }), {
         status: 400,
@@ -55,6 +56,11 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    console.log("cliente encontrado", {
+      sale_id,
+      order_nsu: sale.order_nsu,
+      has_customer_email: Boolean(sale.customer_email),
+    });
 
     if (!sale.customer_email) {
       return new Response(
@@ -186,6 +192,13 @@ Qualquer dúvida, estamos por aqui!
 💖 TMTD Kids
 A infância é uma só.`;
 
+    console.log("enviando e-mail", {
+      sale_id,
+      order_nsu: orderId,
+      to: sale.customer_email,
+      from: "TMTD Kids <pedidos@tamaratadelikids.com.br>",
+    });
+
     const resendRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -202,6 +215,13 @@ A infância é uma só.`;
     });
 
     const resendBody = await resendRes.json().catch(() => ({}));
+    console.log("resposta do Resend", {
+      sale_id,
+      status: resendRes.status,
+      ok: resendRes.ok,
+      id: resendBody?.id,
+      error: resendBody?.error ?? resendBody?.message,
+    });
     if (!resendRes.ok) {
       console.error("Resend error:", resendRes.status, resendBody);
       await supabase
@@ -216,11 +236,18 @@ A infância é uma só.`;
     }
 
     // Refresh sent timestamp after successful delivery request.
-    await supabase
+    const finalSentAt = new Date().toISOString();
+    const { error: sentAtErr } = await supabase
       .from("sales")
-      .update({ email_sent_at: new Date().toISOString() })
+      .update({ email_sent_at: finalSentAt })
       .eq("id", sale_id)
       .eq("email_sent_at", emailClaimedAt);
+
+    if (sentAtErr) {
+      console.error("email_sent_at update failed", { sale_id, error: sentAtErr });
+    } else {
+      console.log("email_sent_at atualizado", { sale_id, email_sent_at: finalSentAt });
+    }
 
     return new Response(JSON.stringify({ success: true, id: resendBody?.id }), {
       status: 200,
