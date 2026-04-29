@@ -132,6 +132,13 @@ const Checkout = () => {
 
   const shippingToCombine = deliveryType === "delivery" && !!address && !isManaus;
 
+  // Force digital payment when shipping is "to combine" (outside Manaus)
+  useEffect(() => {
+    if (shippingToCombine && paymentMethod === "cash") {
+      setPaymentMethod("pix");
+    }
+  }, [shippingToCombine, paymentMethod]);
+
   const grandTotal = subtotalAfterCoupon + shippingPrice;
 
   const formatCep = (value: string) => {
