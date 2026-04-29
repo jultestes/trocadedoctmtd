@@ -731,7 +731,7 @@ const Checkout = () => {
               <Button variant="outline" className="gap-2" onClick={() => setStep(3)}>
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
-              <Button className="flex-1 gap-2" size="lg" onClick={handleFinalize} disabled={checkoutLoading}>
+              <Button className={`flex-1 gap-2 ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`} size="lg" onClick={handleFinalize} disabled={checkoutLoading}>
                 {checkoutLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />

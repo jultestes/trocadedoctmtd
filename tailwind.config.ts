@@ -99,6 +99,10 @@ export default {
           "0%, 100%": { transform: "translate(0, -50%)", opacity: "0.55" },
           "50%": { transform: "translate(-3px, -50%)", opacity: "1" },
         },
+        "soft-pulse": {
+          "0%, 100%": { transform: "scale(1)", boxShadow: "0 0 0 0 hsl(var(--primary) / 0.45)" },
+          "50%": { transform: "scale(1.025)", boxShadow: "0 0 0 10px hsl(var(--primary) / 0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -106,6 +110,7 @@ export default {
         marquee: "marquee 25s linear infinite",
         "nudge-right": "nudge-right 1.8s ease-in-out infinite",
         "nudge-left": "nudge-left 1.8s ease-in-out infinite",
+        "soft-pulse": "soft-pulse 1.8s ease-in-out infinite",
       },
     },
   },
