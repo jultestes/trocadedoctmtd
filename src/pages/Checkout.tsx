@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { MapPin, Search, Loader2, Truck, ShoppingBag, User, Check, Store, ChevronRight, ChevronLeft, CreditCard, QrCode, Banknote } from "lucide-react";
+import { MapPin, Search, Loader2, Truck, ShoppingBag, User, Check, Store, ChevronRight, ChevronLeft, CreditCard, QrCode, Banknote, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
