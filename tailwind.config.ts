@@ -91,11 +91,21 @@ export default {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "nudge-right": {
+          "0%, 100%": { transform: "translate(0, -50%)", opacity: "0.55" },
+          "50%": { transform: "translate(3px, -50%)", opacity: "1" },
+        },
+        "nudge-left": {
+          "0%, 100%": { transform: "translate(0, -50%)", opacity: "0.55" },
+          "50%": { transform: "translate(-3px, -50%)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         marquee: "marquee 25s linear infinite",
+        "nudge-right": "nudge-right 1.8s ease-in-out infinite",
+        "nudge-left": "nudge-left 1.8s ease-in-out infinite",
       },
     },
   },
