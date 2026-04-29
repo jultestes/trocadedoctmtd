@@ -482,6 +482,14 @@ const Checkout = () => {
                       </div>
                     </>
                   )}
+
+                  {shippingToCombine && (
+                    <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-2">
+                      <p className="font-semibold text-foreground">🚚 Enviamos para todo o Brasil 🇧🇷 e interior do Amazonas 🛶</p>
+                      <p className="text-muted-foreground">O frete será calculado <strong className="text-foreground">após a finalização do pedido</strong>.</p>
+                      <p className="text-muted-foreground">Nossa equipe entrará em contato pelo WhatsApp com o valor e o prazo.</p>
+                    </div>
+                  )}
                 </div>
               )}
 
