@@ -13,6 +13,7 @@ import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { notifyNewSale } from "@/lib/notifySale";
+import { sendOrderEmail } from "@/lib/sendOrderEmail";
 
 interface ViaCepResponse {
   cep: string;
@@ -236,6 +237,9 @@ const WhatsAppCheckout = () => {
         sale_id: (data as any).sale_id,
         total_paid: grandTotal,
       });
+
+      // Fire-and-forget order confirmation email
+      sendOrderEmail((data as any).sale_id);
 
       clearCart();
 
