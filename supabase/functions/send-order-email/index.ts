@@ -168,7 +168,7 @@ A infância é uma só.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "TMTD Kids <onboarding@resend.dev>",
+        from: "TMTD Kids <pedidos@tamaratadelikids.com.br>",
         to: [sale.customer_email],
         subject,
         html,
