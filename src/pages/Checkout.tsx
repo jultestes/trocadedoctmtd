@@ -112,14 +112,22 @@ const Checkout = () => {
     },
   });
 
+  const isManaus = !!address && address.uf?.toUpperCase() === "AM" &&
+    (address.localidade || "").toLowerCase().includes("manaus");
+
   const shippingPrice = (() => {
     if (deliveryType === "pickup") return 0;
-    if (!bairro) return DEFAULT_SHIPPING;
+    if (!address) return 0;
+    // Fora de Manaus: frete a combinar via WhatsApp (sem taxa fixa)
+    if (!isManaus) return 0;
+    if (!bairro) return 0;
     const match = neighborhoods.find(
       (n) => n.name.toLowerCase().trim() === bairro.toLowerCase().trim()
     );
     return match ? Number(match.price) : DEFAULT_SHIPPING;
   })();
+
+  const shippingToCombine = deliveryType === "delivery" && !!address && !isManaus;
 
   const grandTotal = subtotalAfterCoupon + shippingPrice;
 
@@ -474,6 +482,14 @@ const Checkout = () => {
                       </div>
                     </>
                   )}
+
+                  {shippingToCombine && (
+                    <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-2">
+                      <p className="font-semibold text-foreground">🚚 Enviamos para todo o Brasil 🇧🇷 e interior do Amazonas 🛶</p>
+                      <p className="text-muted-foreground">O frete será calculado <strong className="text-foreground">após a finalização do pedido</strong>.</p>
+                      <p className="text-muted-foreground">Nossa equipe entrará em contato pelo WhatsApp com o valor e o prazo.</p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -648,10 +664,18 @@ const Checkout = () => {
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">
-                  {deliveryType === "delivery" ? `Frete (${bairro})` : "Frete (retirada)"}
+                  {deliveryType === "pickup"
+                    ? "Frete (retirada)"
+                    : shippingToCombine
+                      ? "Frete"
+                      : `Frete (${bairro})`}
                 </span>
                 <span className="text-foreground font-medium">
-                  {shippingPrice === 0 ? "Grátis" : `R$ ${shippingPrice.toFixed(2).replace(".", ",")}`}
+                  {shippingToCombine
+                    ? "A combinar"
+                    : shippingPrice === 0
+                      ? "Grátis"
+                      : `R$ ${shippingPrice.toFixed(2).replace(".", ",")}`}
                 </span>
               </div>
               <div className="border-t border-border pt-3 flex justify-between items-center">
@@ -661,6 +685,28 @@ const Checkout = () => {
                 </span>
               </div>
             </div>
+
+            {shippingToCombine && (
+              <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-3">
+                <p className="font-semibold text-foreground">🚚 Frete a combinar</p>
+                <p className="text-muted-foreground">
+                  Para entregas fora de Manaus, o valor do frete será calculado <strong className="text-foreground">após a finalização do pedido</strong>. Nossa equipe entrará em contato pelo WhatsApp com o valor e o prazo.
+                </p>
+                <Button
+                  type="button"
+                  className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    const waNumber = "5592993339711";
+                    const cidade = address?.localidade || "";
+                    const cepFmt = cep || "";
+                    const msg = `Oi! 😊\n\nAcabei de fazer um pedido no site e gostaria de calcular o frete.\n\n📦 Pedido: (em finalização)\n📍 CEP: ${cepFmt}\n🏙️ Cidade: ${cidade}`;
+                    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank");
+                  }}
+                >
+                  Calcular frete no WhatsApp
+                </Button>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Button variant="outline" className="gap-2" onClick={() => setStep(3)}>
