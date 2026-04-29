@@ -251,6 +251,14 @@ const Checkout = () => {
         return;
       }
 
+      // Shipping "to combine" (outside Manaus): finalize order without payment.
+      // Payment will happen later via WhatsApp once shipping is calculated.
+      if (shippingToCombine) {
+        clearCart();
+        navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=${paymentMethod}&shipping=combine`);
+        return;
+      }
+
       // Pix/Credit card: generate InfinitePay link
       const phoneDigits = telefone.replace(/\D/g, "");
       const redirectUrl = `${window.location.origin}/pedido-recebido`;
