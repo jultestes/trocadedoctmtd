@@ -652,13 +652,7 @@ const WhatsAppCheckout = () => {
               <Button
                 className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`}
                 size="lg"
-                onClick={shippingToCombine ? () => {
-                  const waNumber = "5592993339711";
-                  const cidade = address?.localidade || "";
-                  const cepFmt = cep || "";
-                  const msg = `Oi! 😊\n\nAcabei de fazer um pedido no site e gostaria de calcular o frete.\n\n📦 Pedido: (em finalização)\n📍 CEP: ${cepFmt}\n🏙️ Cidade: ${cidade}`;
-                  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank");
-                } : handleFinalize}
+                onClick={() => handleFinalize(shippingToCombine ? "shipping_quote" : "default")}
                 disabled={checkoutLoading}
               >
                 {checkoutLoading ? (
