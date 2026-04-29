@@ -181,7 +181,7 @@ const WhatsAppCheckout = () => {
     cash: "Dinheiro",
   };
 
-  const handleFinalize = async () => {
+  const handleFinalize = async (mode: "default" | "shipping_quote" = "default") => {
     if (items.length === 0) {
       toast.error("Carrinho vazio");
       return;
@@ -241,7 +241,15 @@ const WhatsAppCheckout = () => {
 
       // Open WhatsApp with the order number, then redirect to tracking page
       const waNumber = "5592993339711";
-      const waMsg = `Oi! Quero finalizar o pedido nº ${orderNsu} 🛍️\n\nNome: ${nome.trim()}\nTelefone: ${telefone}`;
+      let waMsg: string;
+      if (mode === "shipping_quote") {
+        const cidade = address?.localidade || "";
+        const uf = address?.uf || "";
+        const cidadeUf = [cidade, uf].filter(Boolean).join("/");
+        waMsg = `Oi! 😊\nGostaria de calcular o frete do meu pedido.\n\n📦 Pedido: ${orderNsu}\n📍 CEP: ${cep}\n🏙️ Cidade/Estado: ${cidadeUf}`;
+      } else {
+        waMsg = `Oi! Quero finalizar o pedido nº ${orderNsu} 🛍️\n\nNome: ${nome.trim()}\nTelefone: ${telefone}`;
+      }
       const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`;
       // Open in new tab so the user keeps the tracking page in this tab
       window.open(waUrl, "_blank");
@@ -644,13 +652,7 @@ const WhatsAppCheckout = () => {
               <Button
                 className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`}
                 size="lg"
-                onClick={shippingToCombine ? () => {
-                  const waNumber = "5592993339711";
-                  const cidade = address?.localidade || "";
-                  const cepFmt = cep || "";
-                  const msg = `Oi! 😊\n\nAcabei de fazer um pedido no site e gostaria de calcular o frete.\n\n📦 Pedido: (em finalização)\n📍 CEP: ${cepFmt}\n🏙️ Cidade: ${cidade}`;
-                  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank");
-                } : handleFinalize}
+                onClick={() => handleFinalize(shippingToCombine ? "shipping_quote" : "default")}
                 disabled={checkoutLoading}
               >
                 {checkoutLoading ? (
