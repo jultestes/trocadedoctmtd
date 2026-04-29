@@ -181,7 +181,9 @@ const PaymentSuccess = () => {
             Pedido Recebido!
           </h1>
           <p className="text-muted-foreground">
-            Seu pedido foi recebido com sucesso. Obrigado pela compra!
+            {shippingToCombine
+              ? "Seu pedido foi recebido! 💖 Nossa equipe entrará em contato pelo WhatsApp para informar o valor do frete e finalizar o pagamento."
+              : "Seu pedido foi recebido com sucesso. Obrigado pela compra!"}
           </p>
           {orderNsu && (
             <p className="text-sm text-muted-foreground">
