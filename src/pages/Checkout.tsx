@@ -731,7 +731,12 @@ const Checkout = () => {
               <Button variant="outline" className="gap-2" onClick={() => setStep(3)}>
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
-              <Button className={`flex-1 gap-2 ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`} size="lg" onClick={handleFinalize} disabled={checkoutLoading}>
+              <Button
+                className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`}
+                size="lg"
+                onClick={shippingToCombine ? handleCalcularFreteWhatsApp : handleFinalize}
+                disabled={checkoutLoading}
+              >
                 {checkoutLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -739,8 +744,11 @@ const Checkout = () => {
                   </>
                 ) : shippingToCombine ? (
                   <>
-                    <MessageCircle className="w-4 h-4" />
-                    CALCULAR FRETE NO WHATSAPP
+                    <MessageCircle className="w-4 h-4 shrink-0" />
+                    <span className="truncate">
+                      <span className="sm:hidden">Calcular frete</span>
+                      <span className="hidden sm:inline">CALCULAR FRETE NO WHATSAPP</span>
+                    </span>
                   </>
                 ) : (
                   "CONFIRMAR E PAGAR"
