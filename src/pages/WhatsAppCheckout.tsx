@@ -629,25 +629,11 @@ const WhatsAppCheckout = () => {
             </div>
 
             {shippingToCombine && (
-              <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-3">
+              <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4 text-sm space-y-2">
                 <p className="font-semibold text-foreground">🚚 Frete a combinar</p>
                 <p className="text-muted-foreground">
                   Para entregas fora de Manaus, o valor do frete será calculado <strong className="text-foreground">após a finalização do pedido</strong>. Nossa equipe entrará em contato pelo WhatsApp com o valor e o prazo.
                 </p>
-                <Button
-                  type="button"
-                  className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => {
-                    const waNumber = "5592993339711";
-                    const cidade = address?.localidade || "";
-                    const cepFmt = cep || "";
-                    const msg = `Oi! 😊\n\nAcabei de fazer um pedido no site e gostaria de calcular o frete.\n\n📦 Pedido: (em finalização)\n📍 CEP: ${cepFmt}\n🏙️ Cidade: ${cidade}`;
-                    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank");
-                  }}
-                >
-                  <WhatsAppIcon className="w-5 h-5" />
-                  Calcular frete no WhatsApp
-                </Button>
               </div>
             )}
 
@@ -656,15 +642,29 @@ const WhatsAppCheckout = () => {
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
               <Button
-                className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+                className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`}
                 size="lg"
-                onClick={handleFinalize}
+                onClick={shippingToCombine ? () => {
+                  const waNumber = "5592993339711";
+                  const cidade = address?.localidade || "";
+                  const cepFmt = cep || "";
+                  const msg = `Oi! 😊\n\nAcabei de fazer um pedido no site e gostaria de calcular o frete.\n\n📦 Pedido: (em finalização)\n📍 CEP: ${cepFmt}\n🏙️ Cidade: ${cidade}`;
+                  window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, "_blank");
+                } : handleFinalize}
                 disabled={checkoutLoading}
               >
                 {checkoutLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Processando...
+                  </>
+                ) : shippingToCombine ? (
+                  <>
+                    <WhatsAppIcon className="w-5 h-5 shrink-0" />
+                    <span className="truncate">
+                      <span className="sm:hidden">Calcular frete</span>
+                      <span className="hidden sm:inline">CALCULAR FRETE NO WHATSAPP</span>
+                    </span>
                   </>
                 ) : (
                   <>
