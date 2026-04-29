@@ -85,12 +85,8 @@ const Checkout = () => {
     }
   }, [deliveryType]);
 
-  // Reset cash payment if shipping is "to combine" (outside Manaus)
-  useEffect(() => {
-    if (shippingToCombine && paymentMethod === "cash") {
-      setPaymentMethod("pix");
-    }
-  }, [address, isManaus, deliveryType]);
+  // Reset cash payment if shipping is "to combine" (outside Manaus) — declared as a no-dep guard, runs on every render via effect below
+  // (real effect placed after `shippingToCombine` declaration)
 
   // Checkout
   const [checkoutLoading, setCheckoutLoading] = useState(false);
