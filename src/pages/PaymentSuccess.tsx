@@ -39,6 +39,7 @@ const PaymentSuccess = () => {
   const orderNsu = searchParams.get("order_nsu");
   const captureMethod = searchParams.get("capture_method") || searchParams.get("payment_method");
   const isWhatsApp = captureMethod === "whatsapp";
+  const shippingToCombine = searchParams.get("shipping") === "combine";
 
   const [loadingWhatsApp, setLoadingWhatsApp] = useState(false);
 
