@@ -12,6 +12,7 @@ import CartConfirmDialog from "@/components/CartConfirmDialog";
 import ProductBottomSheet, { type BottomSheetProduct } from "@/components/ProductBottomSheet";
 import ProductImageCarousel from "@/components/ProductImageCarousel";
 import PromoBanner, { type PromoBannerConfig } from "@/components/PromoBanner";
+import HorizontalScroller from "@/components/HorizontalScroller";
 import { useCart } from "@/hooks/useCart";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -390,12 +391,9 @@ const Category = () => {
                       {group.name}
                     </p>
                     {/* Mobile: horizontal scroll */}
-                    <div className="relative md:hidden -mx-4">
-                      <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory">
-                        {group.ages.map((ageKey) => renderButton(ageKey, true))}
-                      </div>
-                      <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-black/10 to-transparent" />
-                    </div>
+                    <HorizontalScroller className="md:hidden -mx-4">
+                      {group.ages.map((ageKey) => renderButton(ageKey, true))}
+                    </HorizontalScroller>
                     {/* Desktop: wrap grid */}
                     <div className="hidden md:flex md:flex-wrap gap-2">
                       {group.ages.map((ageKey) => renderButton(ageKey, false))}
