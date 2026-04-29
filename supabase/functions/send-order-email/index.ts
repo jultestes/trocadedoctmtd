@@ -63,8 +63,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Idempotency: don't send twice (column is optional; we ignore if missing)
+    // Idempotency: don't send twice. Claim the sale atomically before sending so
+    // concurrent calls (DB trigger + old browser bundle/manual retry) cannot race.
     if ((sale as any).email_sent_at) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: "already sent" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const emailClaimedAt = new Date().toISOString();
+    const { data: claim, error: claimErr } = await supabase
+      .from("sales")
+      .update({ email_sent_at: emailClaimedAt })
+      .eq("id", sale_id)
+      .is("email_sent_at", null)
+      .select("id")
+      .maybeSingle();
+
+    if (claimErr) {
+      console.error("Failed to claim order email send:", claimErr);
+      return new Response(JSON.stringify({ error: "claim_failed" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!claim) {
       return new Response(
         JSON.stringify({ skipped: true, reason: "already sent" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -179,17 +204,23 @@ A infância é uma só.`;
     const resendBody = await resendRes.json().catch(() => ({}));
     if (!resendRes.ok) {
       console.error("Resend error:", resendRes.status, resendBody);
+      await supabase
+        .from("sales")
+        .update({ email_sent_at: null })
+        .eq("id", sale_id)
+        .eq("email_sent_at", emailClaimedAt);
       return new Response(
         JSON.stringify({ error: "resend_failed", status: resendRes.status, body: resendBody }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Mark as sent (best-effort; ignore error if column doesn't exist)
+    // Refresh sent timestamp after successful delivery request.
     await supabase
       .from("sales")
       .update({ email_sent_at: new Date().toISOString() })
-      .eq("id", sale_id);
+      .eq("id", sale_id)
+      .eq("email_sent_at", emailClaimedAt);
 
     return new Response(JSON.stringify({ success: true, id: resendBody?.id }), {
       status: 200,
