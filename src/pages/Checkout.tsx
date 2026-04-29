@@ -227,6 +227,20 @@ const Checkout = () => {
     return { saleId: (data as any).sale_id, orderNsu };
   };
 
+  const handleCalcularFreteWhatsApp = () => {
+    const orderNsu = `TMTD-${Date.now()}`;
+    const cidadeEstado = address ? `${address.localidade}/${address.uf}` : "";
+    const cepFmt = (address?.cep || cep || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2");
+    const waText =
+      `Oi! 😊\n\n` +
+      `Gostaria de calcular o frete do meu pedido.\n\n` +
+      `📦 Pedido: ${orderNsu}\n` +
+      `📍 CEP: ${cepFmt}\n` +
+      `🏙️ Cidade/Estado: ${cidadeEstado}`;
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
+    window.open(waUrl, "_blank");
+  };
+
   const handleFinalize = async () => {
     if (items.length === 0) {
       toast.error("Carrinho vazio");
