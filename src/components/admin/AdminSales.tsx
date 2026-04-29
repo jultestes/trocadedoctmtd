@@ -287,7 +287,33 @@ const AdminSales = () => {
     if (!phone) return "";
     const d = phone.replace(/\D/g, "");
     if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+    if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
     return phone;
+  };
+
+  const buildWhatsAppLink = (sale: Sale, items: SaleItem[] | undefined) => {
+    const digits = (sale.customer_phone || "").replace(/\D/g, "");
+    if (!digits) return null;
+    // Garante DDI 55
+    const withCountry = digits.startsWith("55") ? digits : `55${digits}`;
+    const orderId = sale.order_nsu || sale.id.slice(0, 8);
+    const itemsList = (items && items.length > 0)
+      ? items.map((i) => `• ${i.product_name}${i.product_sku ? ` (${i.product_sku})` : ""}`).join("\n")
+      : "• (itens carregando...)";
+    const total = `R$ ${Number(sale.total_paid).toFixed(2).replace(".", ",")}`;
+    const msg =
+`Oi! 😊
+Vi que você finalizou um pedido no site, estou te enviando aqui para confirmação:
+
+📦 Pedido #${orderId}
+
+🛍️ Itens:
+${itemsList}
+
+💰 Total: ${total}
+
+Vamos finalizar o pagamento? 💖`;
+    return `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
   };
 
   const getPageNumbers = () => {
