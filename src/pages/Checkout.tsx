@@ -227,6 +227,20 @@ const Checkout = () => {
     return { saleId: (data as any).sale_id, orderNsu };
   };
 
+  const handleCalcularFreteWhatsApp = () => {
+    const orderNsu = `TMTD-${Date.now()}`;
+    const cidadeEstado = address ? `${address.localidade}/${address.uf}` : "";
+    const cepFmt = (address?.cep || cep || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2");
+    const waText =
+      `Oi! 😊\n\n` +
+      `Gostaria de calcular o frete do meu pedido.\n\n` +
+      `📦 Pedido: ${orderNsu}\n` +
+      `📍 CEP: ${cepFmt}\n` +
+      `🏙️ Cidade/Estado: ${cidadeEstado}`;
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
+    window.open(waUrl, "_blank");
+  };
+
   const handleFinalize = async () => {
     if (items.length === 0) {
       toast.error("Carrinho vazio");
@@ -253,23 +267,8 @@ const Checkout = () => {
         return;
       }
 
-      // Shipping "to combine" (outside Manaus): finalize order without payment
-      // and open WhatsApp with a short message so customer can negotiate shipping.
-      if (shippingToCombine) {
-        const cidadeEstado = address ? `${address.localidade}/${address.uf}` : "";
-        const cepFmt = (address?.cep || cep || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2");
-        const waText =
-          `Oi! 😊\n\n` +
-          `Gostaria de calcular o frete do meu pedido.\n\n` +
-          `📦 Pedido: ${orderNsu}\n` +
-          `📍 CEP: ${cepFmt}\n` +
-          `🏙️ Cidade: ${cidadeEstado}`;
-        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
-        clearCart();
-        window.open(waUrl, "_blank");
-        navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=${paymentMethod}&shipping=combine`);
-        return;
-      }
+
+
 
       // Pix/Credit card: generate InfinitePay link
       const phoneDigits = telefone.replace(/\D/g, "");
@@ -732,7 +731,12 @@ const Checkout = () => {
               <Button variant="outline" className="gap-2" onClick={() => setStep(3)}>
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
-              <Button className={`flex-1 gap-2 ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`} size="lg" onClick={handleFinalize} disabled={checkoutLoading}>
+              <Button
+                className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`}
+                size="lg"
+                onClick={shippingToCombine ? handleCalcularFreteWhatsApp : handleFinalize}
+                disabled={checkoutLoading}
+              >
                 {checkoutLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -740,8 +744,11 @@ const Checkout = () => {
                   </>
                 ) : shippingToCombine ? (
                   <>
-                    <MessageCircle className="w-4 h-4" />
-                    CALCULAR FRETE NO WHATSAPP
+                    <MessageCircle className="w-4 h-4 shrink-0" />
+                    <span className="truncate">
+                      <span className="sm:hidden">Calcular frete</span>
+                      <span className="hidden sm:inline">CALCULAR FRETE NO WHATSAPP</span>
+                    </span>
                   </>
                 ) : (
                   "CONFIRMAR E PAGAR"
