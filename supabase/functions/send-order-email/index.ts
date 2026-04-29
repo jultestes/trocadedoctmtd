@@ -18,9 +18,18 @@ const escapeHtml = (s: string) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!)
   );
 
+// Deploy marker: v2 (force redeploy) - 2026-04-29
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Health check (GET) so we can verify the function is deployed without a sale_id.
+  if (req.method === "GET") {
+    return new Response(
+      JSON.stringify({ ok: true, function: "send-order-email", version: "v2" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
