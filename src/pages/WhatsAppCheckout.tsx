@@ -241,7 +241,15 @@ const WhatsAppCheckout = () => {
 
       // Open WhatsApp with the order number, then redirect to tracking page
       const waNumber = "5592993339711";
-      const waMsg = `Oi! Quero finalizar o pedido nº ${orderNsu} 🛍️\n\nNome: ${nome.trim()}\nTelefone: ${telefone}`;
+      let waMsg: string;
+      if (mode === "shipping_quote") {
+        const cidade = address?.localidade || "";
+        const uf = address?.uf || "";
+        const cidadeUf = [cidade, uf].filter(Boolean).join("/");
+        waMsg = `Oi! 😊\nGostaria de calcular o frete do meu pedido.\n\n📦 Pedido: ${orderNsu}\n📍 CEP: ${cep}\n🏙️ Cidade/Estado: ${cidadeUf}`;
+      } else {
+        waMsg = `Oi! Quero finalizar o pedido nº ${orderNsu} 🛍️\n\nNome: ${nome.trim()}\nTelefone: ${telefone}`;
+      }
       const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`;
       // Open in new tab so the user keeps the tracking page in this tab
       window.open(waUrl, "_blank");
