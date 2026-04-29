@@ -107,14 +107,21 @@ const WhatsAppCheckout = () => {
     },
   });
 
+  const isManaus = !!address && address.uf?.toUpperCase() === "AM" &&
+    (address.localidade || "").toLowerCase().includes("manaus");
+
   const shippingPrice = (() => {
     if (deliveryType === "pickup") return 0;
-    if (!bairro) return DEFAULT_SHIPPING;
+    if (!address) return 0;
+    if (!isManaus) return 0;
+    if (!bairro) return 0;
     const match = neighborhoods.find(
       (n) => n.name.toLowerCase().trim() === bairro.toLowerCase().trim()
     );
     return match ? Number(match.price) : DEFAULT_SHIPPING;
   })();
+
+  const shippingToCombine = deliveryType === "delivery" && !!address && !isManaus;
 
   const grandTotal = subtotalAfterCoupon + shippingPrice;
 
