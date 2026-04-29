@@ -238,8 +238,9 @@ const WhatsAppCheckout = () => {
         total_paid: grandTotal,
       });
 
-      // Fire-and-forget order confirmation email
-      sendOrderEmail((data as any).sale_id);
+      // Order confirmation email — await briefly so request leaves the browser
+      // before the WhatsApp tab opens.
+      await sendOrderEmail((data as any).sale_id);
 
       clearCart();
 
