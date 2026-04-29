@@ -252,10 +252,20 @@ const Checkout = () => {
         return;
       }
 
-      // Shipping "to combine" (outside Manaus): finalize order without payment.
-      // Payment will happen later via WhatsApp once shipping is calculated.
+      // Shipping "to combine" (outside Manaus): finalize order without payment
+      // and open WhatsApp with a short message so customer can negotiate shipping.
       if (shippingToCombine) {
+        const cidadeEstado = address ? `${address.localidade}/${address.uf}` : "";
+        const cepFmt = (address?.cep || cep || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2");
+        const waText =
+          `Oi! 😊\n\n` +
+          `Gostaria de calcular o frete do meu pedido.\n\n` +
+          `📦 Pedido: ${orderNsu}\n` +
+          `📍 CEP: ${cepFmt}\n` +
+          `🏙️ Cidade: ${cidadeEstado}`;
+        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
         clearCart();
+        window.open(waUrl, "_blank");
         navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=${paymentMethod}&shipping=combine`);
         return;
       }
