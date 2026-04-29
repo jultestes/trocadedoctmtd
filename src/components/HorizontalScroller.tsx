@@ -55,7 +55,7 @@ const HorizontalScroller = ({ children, className = "", scrollAmount = 160 }: Pr
           type="button"
           aria-label="Rolar para a esquerda"
           onClick={() => scrollBy(-1)}
-          className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-primary/60 hover:text-primary transition-colors animate-nudge-left"
+          className="absolute left-1 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-full bg-primary/15 backdrop-blur-md ring-1 ring-primary/10 shadow-md shadow-primary/10 text-primary hover:bg-primary/25 transition-colors animate-nudge-left"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -65,7 +65,7 @@ const HorizontalScroller = ({ children, className = "", scrollAmount = 160 }: Pr
           type="button"
           aria-label="Rolar para a direita"
           onClick={() => scrollBy(1)}
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-primary/60 hover:text-primary transition-colors animate-nudge-right"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-full bg-primary/15 backdrop-blur-md ring-1 ring-primary/10 shadow-md shadow-primary/10 text-primary hover:bg-primary/25 transition-colors animate-nudge-right"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
