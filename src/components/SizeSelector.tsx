@@ -178,7 +178,27 @@ const SizeSelector = () => {
                           {row.label}
                         </p>
                       )}
-                      <div className="grid grid-cols-4 sm:grid-cols-5 md:flex md:flex-wrap gap-2">
+                      {/* Mobile: horizontal scroll. Desktop: wrap grid */}
+                      <div className="relative md:hidden -mx-4">
+                        <div className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-1 snap-x snap-mandatory">
+                          {row.ages.map((ageKey) => (
+                            <button
+                              key={ageKey}
+                              onClick={() => {
+                                const params = new URLSearchParams();
+                                if (row.catSlug) params.set("cat", row.catSlug);
+                                params.set("idade", ageKey);
+                                navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
+                              }}
+                              className="snap-start shrink-0 h-8 px-3.5 rounded-full bg-background/90 border border-primary/30 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all whitespace-nowrap flex items-center justify-center"
+                            >
+                              {AGE_DISPLAY[ageKey] || ageKey}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="pointer-events-none absolute right-0 top-0 bottom-1 w-10 bg-gradient-to-l from-black/10 to-transparent" />
+                      </div>
+                      <div className="hidden md:flex md:flex-wrap gap-2">
                         {row.ages.map((ageKey) => (
                           <button
                             key={ageKey}
@@ -188,7 +208,7 @@ const SizeSelector = () => {
                               params.set("idade", ageKey);
                               navigate(`/categoria/${row.parentSlug}?${params.toString()}`);
                             }}
-                            className="h-9 md:h-11 px-2.5 md:px-5 rounded-full bg-background/80 border border-primary/30 md:border-2 md:border-primary/40 text-xs md:text-sm font-semibold md:font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap flex items-center justify-center"
+                            className="h-11 px-5 rounded-full bg-background/80 border-2 border-primary/40 text-sm font-bold text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary hover:shadow-md transition-all whitespace-nowrap flex items-center justify-center"
                           >
                             {AGE_DISPLAY[ageKey] || ageKey}
                           </button>
