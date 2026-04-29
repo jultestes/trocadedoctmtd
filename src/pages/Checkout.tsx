@@ -27,6 +27,7 @@ interface ViaCepResponse {
 }
 
 const DEFAULT_SHIPPING = 15.0;
+const WHATSAPP_NUMBER = "5592993339711";
 
 type DeliveryType = "delivery" | "pickup";
 type PaymentMethod = "pix" | "credit_card" | "cash";
