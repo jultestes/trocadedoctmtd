@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { MapPin, Search, Loader2, Truck, ShoppingBag, User, Check, Store, ChevronRight, ChevronLeft, CreditCard, QrCode, Banknote } from "lucide-react";
+import { MapPin, Search, Loader2, Truck, ShoppingBag, User, Check, Store, ChevronRight, ChevronLeft, CreditCard, QrCode, Banknote, MessageCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/useCart";
@@ -27,6 +27,7 @@ interface ViaCepResponse {
 }
 
 const DEFAULT_SHIPPING = 15.0;
+const WHATSAPP_NUMBER = "5592993339711";
 
 type DeliveryType = "delivery" | "pickup";
 type PaymentMethod = "pix" | "credit_card" | "cash";
@@ -251,10 +252,20 @@ const Checkout = () => {
         return;
       }
 
-      // Shipping "to combine" (outside Manaus): finalize order without payment.
-      // Payment will happen later via WhatsApp once shipping is calculated.
+      // Shipping "to combine" (outside Manaus): finalize order without payment
+      // and open WhatsApp with a short message so customer can negotiate shipping.
       if (shippingToCombine) {
+        const cidadeEstado = address ? `${address.localidade}/${address.uf}` : "";
+        const cepFmt = (address?.cep || cep || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2");
+        const waText =
+          `Oi! 😊\n\n` +
+          `Gostaria de calcular o frete do meu pedido.\n\n` +
+          `📦 Pedido: ${orderNsu}\n` +
+          `📍 CEP: ${cepFmt}\n` +
+          `🏙️ Cidade: ${cidadeEstado}`;
+        const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
         clearCart();
+        window.open(waUrl, "_blank");
         navigate(`/pedido-recebido?order_nsu=${orderNsu}&payment_method=${paymentMethod}&shipping=combine`);
         return;
       }
@@ -726,8 +737,13 @@ const Checkout = () => {
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Processando...
                   </>
+                ) : shippingToCombine ? (
+                  <>
+                    <MessageCircle className="w-4 h-4" />
+                    CALCULAR FRETE NO WHATSAPP
+                  </>
                 ) : (
-                  shippingToCombine ? "CONFIRMAR PEDIDO" : "CONFIRMAR E PAGAR"
+                  "CONFIRMAR E PAGAR"
                 )}
               </Button>
             </div>
