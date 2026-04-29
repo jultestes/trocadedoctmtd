@@ -170,10 +170,10 @@ const WhatsAppCheckout = () => {
 
   // Reset payment when delivery type changes (clear incompatible options)
   useEffect(() => {
-    if (deliveryType === "pickup" && paymentMethod === "cash") {
+    if ((deliveryType === "pickup" || shippingToCombine) && paymentMethod === "cash") {
       setPaymentMethod("pix");
     }
-  }, [deliveryType]);
+  }, [deliveryType, shippingToCombine]);
 
   const paymentMethodLabel: Record<PaymentMethod, string> = {
     pix: "PIX",
