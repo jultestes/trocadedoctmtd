@@ -227,18 +227,51 @@ const Checkout = () => {
     return { saleId: (data as any).sale_id, orderNsu };
   };
 
-  const handleCalcularFreteWhatsApp = () => {
-    const orderNsu = `TMTD-${Date.now()}`;
+  const handleCalcularFreteWhatsApp = async () => {
+    if (items.length === 0) {
+      toast.error("Carrinho vazio");
+      return;
+    }
+
     const cidadeEstado = address ? `${address.localidade}/${address.uf}` : "";
     const cepFmt = (address?.cep || cep || "").replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2");
-    const waText =
-      `Oi! 😊\n\n` +
-      `Gostaria de calcular o frete do meu pedido.\n\n` +
-      `📦 Pedido: ${orderNsu}\n` +
-      `📍 CEP: ${cepFmt}\n` +
-      `🏙️ Cidade/Estado: ${cidadeEstado}`;
-    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
-    window.open(waUrl, "_blank");
+
+    // Open a blank tab synchronously to avoid popup blockers; we'll set its URL after saving the order
+    const waWindow = window.open("about:blank", "_blank");
+
+    setCheckoutLoading(true);
+    try {
+      const orderNsu = `TMTD-${Date.now()}`;
+
+      // Save order so it appears in the admin panel as pending
+      const { saleId } = await saveSaleToDB(orderNsu);
+
+      // Fire-and-forget push notification
+      notifyNewSale({ sale_id: saleId, total_paid: grandTotal });
+
+      const waText =
+        `Oi! 😊\n\n` +
+        `Gostaria de calcular o frete do meu pedido.\n\n` +
+        `📦 Pedido: ${orderNsu}\n` +
+        `📍 CEP: ${cepFmt}\n` +
+        `🏙️ Cidade/Estado: ${cidadeEstado}`;
+      const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
+
+      if (waWindow && !waWindow.closed) {
+        waWindow.location.href = waUrl;
+      } else {
+        window.location.href = waUrl;
+      }
+
+      clearCart();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("Calcular frete error:", msg, err);
+      toast.error(msg, { description: "Não foi possível registrar o pedido. Tente novamente." });
+      if (waWindow && !waWindow.closed) waWindow.close();
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   const handleFinalize = async () => {
