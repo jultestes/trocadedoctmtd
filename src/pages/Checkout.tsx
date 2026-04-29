@@ -737,8 +737,13 @@ const Checkout = () => {
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Processando...
                   </>
+                ) : shippingToCombine ? (
+                  <>
+                    <MessageCircle className="w-4 h-4" />
+                    CALCULAR FRETE NO WHATSAPP
+                  </>
                 ) : (
-                  shippingToCombine ? "CONFIRMAR PEDIDO" : "CONFIRMAR E PAGAR"
+                  "CONFIRMAR E PAGAR"
                 )}
               </Button>
             </div>
