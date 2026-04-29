@@ -181,7 +181,7 @@ const WhatsAppCheckout = () => {
     cash: "Dinheiro",
   };
 
-  const handleFinalize = async () => {
+  const handleFinalize = async (mode: "default" | "shipping_quote" = "default") => {
     if (items.length === 0) {
       toast.error("Carrinho vazio");
       return;
