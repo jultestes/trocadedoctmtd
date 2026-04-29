@@ -85,6 +85,13 @@ const Checkout = () => {
     }
   }, [deliveryType]);
 
+  // Reset cash payment if shipping is "to combine" (outside Manaus)
+  useEffect(() => {
+    if (shippingToCombine && paymentMethod === "cash") {
+      setPaymentMethod("pix");
+    }
+  }, [address, isManaus, deliveryType]);
+
   // Checkout
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [storeLocation, setStoreLocation] = useState("");
