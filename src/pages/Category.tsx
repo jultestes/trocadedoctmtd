@@ -248,6 +248,14 @@ const Category = () => {
   const buildFilterGroups = () => {
     const groups: { id: string; name: string; slug: string | null; ages: string[] }[] = [];
 
+    // Sort ages numerically by extracting the number from the age key
+    const sortAges = (ages: string[]) =>
+      [...ages].sort((a, b) => {
+        const na = parseInt(a.match(/\d+/)?.[0] || "0", 10);
+        const nb = parseInt(b.match(/\d+/)?.[0] || "0", 10);
+        return na - nb;
+      });
+
     // Parent direct ages
     const parentAges = (category?.ages || []).filter((ageKey) =>
       products.some((p) =>
@@ -256,7 +264,7 @@ const Category = () => {
       )
     );
     if (parentAges.length > 0) {
-      groups.push({ id: category!.id, name: category!.name, slug: null, ages: parentAges });
+      groups.push({ id: category!.id, name: category!.name, slug: null, ages: sortAges(parentAges) });
     }
 
     // Subcategory ages
@@ -268,7 +276,7 @@ const Category = () => {
         )
       );
       if (subAges.length > 0) {
-        groups.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: subAges });
+        groups.push({ id: sub.id, name: sub.name, slug: sub.slug, ages: sortAges(subAges) });
       }
     }
 
