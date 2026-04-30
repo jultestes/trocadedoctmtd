@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
   // Health check (GET) so we can verify the function is deployed without a sale_id.
   if (req.method === "GET") {
     return new Response(
-      JSON.stringify({ ok: true, function: "send-order-email", version: "v2" }),
+      JSON.stringify({ ok: true, function: "send-order-email-v2", version: "v2" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -267,7 +267,7 @@ A infância é uma só.`;
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("send-order-email error:", msg, err);
+    console.error("send-order-email-v2 error:", msg, err);
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
