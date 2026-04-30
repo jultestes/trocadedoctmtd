@@ -15,7 +15,7 @@ export async function sendOrderEmail(sale_id: string): Promise<void> {
   if (!sale_id) return;
   try {
     // keepalive ensures the request survives page navigation (e.g., WhatsApp redirect)
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-order-email-v2`, {
       method: "POST",
       keepalive: true,
       headers: {
