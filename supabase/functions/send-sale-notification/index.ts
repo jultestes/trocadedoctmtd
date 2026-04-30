@@ -359,8 +359,9 @@ Deno.serve(async (req) => {
     console.log(`[send-sale-notification] subscriptions_found=${subscriptions_found}`);
 
     if (subscriptions_found === 0) {
+      const emailResult = await emailPromise;
       return new Response(
-        JSON.stringify({ ok: true, subscriptions_found: 0, sent: 0, failed: 0, removed: 0, reason: "no subscriptions" }),
+        JSON.stringify({ ok: true, subscriptions_found: 0, sent: 0, failed: 0, removed: 0, reason: "no subscriptions", email: emailResult }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
