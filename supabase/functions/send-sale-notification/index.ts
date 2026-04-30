@@ -338,12 +338,11 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { sale_id, total_paid, send_email } = body || {};
+    const { sale_id, total_paid } = body || {};
 
     // Fire order confirmation email in parallel when sale_id is provided.
     // Triggered automatically for any insert; idempotent via email_sent_at.
-    let emailResult: Record<string, unknown> | null = null;
-    const emailPromise = sale_id
+    const emailPromise: Promise<Record<string, unknown> | null> = sale_id
       ? sendOrderEmail(String(sale_id)).catch((err) => {
           console.error("[order-email] unexpected error", err);
           return { ok: false, reason: "exception", error: String(err?.message || err) };
