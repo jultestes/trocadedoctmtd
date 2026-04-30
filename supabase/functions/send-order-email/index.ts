@@ -18,7 +18,10 @@ const escapeHtml = (s: string) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!)
   );
 
-// Deploy marker: v2 (force redeploy) - 2026-04-29
+// Deploy marker: v3 (force initial deploy) - 2026-04-30T00:05:00Z
+// This function was not registered in the Supabase project on previous publishes.
+// Bumping this marker on each retry so the publish pipeline detects a change
+// and creates the function for the first time.
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
