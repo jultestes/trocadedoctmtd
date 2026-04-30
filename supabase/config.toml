@@ -11,6 +11,3 @@ verify_jwt = false
 
 [functions.send-sale-notification]
 verify_jwt = false
-
-[functions.send-order-email-v2]
-verify_jwt = false
