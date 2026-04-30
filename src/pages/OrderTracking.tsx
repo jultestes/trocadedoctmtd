@@ -127,7 +127,6 @@ const OrderTracking = () => {
     // Use the security-definer RPC when we have the NSU (customer flow).
     if (nsu) {
       const { data, error } = await supabase.rpc(
-        // @ts-expect-error - RPC pending migration apply; falls back gracefully
         "get_sale_items_by_nsu",
         { _nsu: nsu }
       );
@@ -215,7 +214,6 @@ const OrderTracking = () => {
       // Strategy 2: phone-only search via RPC.
       // Requires the `get_sales_by_phone` RPC to be applied to the database.
       const { data, error } = await supabase.rpc(
-        // @ts-expect-error - RPC pending migration apply; falls back gracefully
         "get_sales_by_phone",
         { _phone: phone }
       );

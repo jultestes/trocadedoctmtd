@@ -83,7 +83,7 @@ const PaymentSuccess = () => {
     try {
       const { data: sale } = await supabase
         .rpc("get_sale_by_nsu", { _nsu: orderNsu })
-        .maybeSingle();
+        .maybeSingle() as { data: any };
 
       // Só usa fallback curto se realmente não houver pedido
       if (!sale) {
