@@ -1,1 +1,13 @@
-project_id = "kvpcetpifhzjotlincdh"
+project_id = "bdipjvkpasiuekqtaiev"
+
+[functions.r2-upload]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.infinitepay-webhook]
+verify_jwt = false
+
+[functions.send-sale-notification]
+verify_jwt = false
