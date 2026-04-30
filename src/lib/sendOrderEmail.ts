@@ -1,6 +1,10 @@
 /**
  * Dispara o envio do e-mail de confirmação do pedido via Edge Function.
  *
+ * Agora chamamos `send-sale-notification` (que já está deployada e responde 200)
+ * — ela aceita `sale_id` e envia o e-mail do pedido (com proteção idempotente
+ * via `sales.email_sent_at`) além de notificar admins.
+ *
  * Usa fetch com `keepalive: true` para garantir que a requisição seja
  * concluída mesmo se a página navegar/fechar imediatamente após a chamada
  * (ex.: redirecionamento para WhatsApp ou página de sucesso).
@@ -14,8 +18,7 @@ const SUPABASE_ANON_KEY =
 export async function sendOrderEmail(sale_id: string): Promise<void> {
   if (!sale_id) return;
   try {
-    // keepalive ensures the request survives page navigation (e.g., WhatsApp redirect)
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-order-email-v2`, {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-sale-notification`, {
       method: "POST",
       keepalive: true,
       headers: {
