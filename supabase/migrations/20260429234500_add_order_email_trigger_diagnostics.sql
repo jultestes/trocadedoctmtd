@@ -106,7 +106,7 @@ BEGIN
   END IF;
 
   SELECT net.http_post(
-    url := 'https://bdipjvkpasiuekqtaiev.supabase.co/functions/v1/send-order-email',
+    url := 'https://bdipjvkpasiuekqtaiev.supabase.co/functions/v1/send-order-email-v2',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkaXBqdmtwYXNpdWVrcXRhaWV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1MTc4OTgsImV4cCI6MjA4OTA5Mzg5OH0.KKVzskEJh2TDjzrdlS4ggZDHu5BpI75GRWeykgUTwfY',
@@ -116,20 +116,20 @@ BEGIN
     timeout_milliseconds := 5000
   ) INTO _request_id;
 
-  RAISE LOG 'send-order-email chamada sale_id=% request_id=%', NEW.id, _request_id;
+  RAISE LOG 'send-order-email-v2 chamada sale_id=% request_id=%', NEW.id, _request_id;
 
   INSERT INTO public.order_email_trigger_logs (sale_id, order_nsu, step, message, details)
   VALUES (
     NEW.id,
     NEW.order_nsu,
     'edge function chamada',
-    'send-order-email enfileirada via pg_net',
+    'send-order-email-v2 enfileirada via pg_net',
     jsonb_build_object('request_id', _request_id)
   );
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
-  RAISE WARNING 'erro no trigger send-order-email sale_id=%: %', NEW.id, SQLERRM;
+  RAISE WARNING 'erro no trigger send-order-email-v2 sale_id=%: %', NEW.id, SQLERRM;
   INSERT INTO public.order_email_trigger_logs (sale_id, order_nsu, step, message, details)
   VALUES (NEW.id, NEW.order_nsu, 'erro no trigger', SQLERRM, jsonb_build_object('sqlstate', SQLSTATE));
   RETURN NEW;
