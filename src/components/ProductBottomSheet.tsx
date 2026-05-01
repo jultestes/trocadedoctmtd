@@ -350,7 +350,7 @@ const ProductContent = ({
           size="lg"
         >
           <ShoppingBag className="w-5 h-5" />
-          Adicionar ao pedido
+          Adicionar ao carrinho
         </Button>
       </div>
     </>
