@@ -1194,11 +1194,6 @@ const AdminProducts = () => {
                   );
                 })()}
               </div>
-              {false && (
-                <div>
-                  {/* legacy block kept removed */}
-                </div>
-              )}
 
               {/* Multi-file editable preview */}
               {multiItems.length > 0 &&
