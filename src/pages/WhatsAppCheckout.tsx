@@ -12,7 +12,6 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
-import { notifyNewSale } from "@/lib/notifySale";
 
 interface ViaCepResponse {
   cep: string;
@@ -230,12 +229,6 @@ const WhatsAppCheckout = () => {
         console.error("Sale error:", error);
         throw new Error("Erro ao registrar venda");
       }
-
-      // Fire-and-forget push notification (never blocks checkout)
-      notifyNewSale({
-        sale_id: (data as any).sale_id,
-        total_paid: grandTotal,
-      });
 
       clearCart();
 
