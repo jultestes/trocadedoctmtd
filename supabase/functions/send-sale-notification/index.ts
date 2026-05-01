@@ -349,6 +349,35 @@ Deno.serve(async (req) => {
         })
       : Promise.resolve(null);
 
+    // ---------- Idempotência do push: claim atômico via push_sent_at ----------
+    // Garante que mesmo com múltiplos disparos (frontend + trigger SQL),
+    // apenas UMA execução envia notificação por sale_id.
+    if (sale_id) {
+      const pushClaimedAt = new Date().toISOString();
+      const { data: claimed, error: claimErr } = await supabase
+        .from("sales")
+        .update({ push_sent_at: pushClaimedAt })
+        .eq("id", String(sale_id))
+        .is("push_sent_at", null)
+        .select("id")
+        .maybeSingle();
+
+      if (claimErr) {
+        // Coluna pode não existir ainda — loga e segue (fallback ao comportamento antigo)
+        console.warn("[send-sale-notification] push_sent_at claim error (coluna existe?):", claimErr?.message);
+      } else if (!claimed) {
+        // Outro processo já enviou. Pula push, mas ainda processa email (que tem seu próprio claim).
+        console.log(`[send-sale-notification] push já enviado para sale_id=${sale_id} — pulando (idempotente)`);
+        const emailResult = await emailPromise;
+        return new Response(
+          JSON.stringify({ ok: true, skipped: "already_sent", sale_id, email: emailResult }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      } else {
+        console.log(`[send-sale-notification] push_sent_at reivindicado sale_id=${sale_id} at=${pushClaimedAt}`);
+      }
+    }
+
     // Buscar TODAS as subscriptions (sem filtro de role) — admins são quem se inscreve
     const { data: subs, error: subsErr } = await supabase
       .from("push_subscriptions")
