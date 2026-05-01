@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { buildOrderWhatsAppUrl, buildAddressString } from "@/lib/whatsappMessage";
 
 type SaleItem = {
   id?: string;
@@ -297,51 +298,34 @@ const OrderTracking = () => {
   const handleWhatsApp = () => {
     if (!sale) return;
     const grouped = groupItems(items);
-    const itemsList = grouped
-      .map(
-        (i, idx) =>
-          `  ${idx + 1}. ${i.product_name}${i.product_sku ? ` (SKU: ${i.product_sku})` : ""} — ${i.quantity}x ${formatCurrency(i.unit_price)} = ${formatCurrency(i.subtotal)}`
-      )
-      .join("\n");
+    const isPickup = sale.delivery_type === "pickup";
+    const customerAddress = isPickup
+      ? "Retirada na loja"
+      : buildAddressString({
+          street: sale.address_street,
+          number: sale.address_number,
+          complement: sale.address_complement,
+          neighborhood: sale.address_neighborhood,
+          city: sale.address_city,
+          uf: sale.address_uf,
+          cep: sale.address_cep,
+        });
 
-    const addressParts = [
-      sale.address_street,
-      sale.address_number ? `Nº ${sale.address_number}` : null,
-      sale.address_complement,
-      sale.address_neighborhood,
-      sale.address_city,
-      sale.address_uf,
-      sale.address_cep ? `CEP: ${sale.address_cep}` : null,
-    ]
-      .filter(Boolean)
-      .join(", ");
-
-    const msg = [
-      `🛒 *CONFIRMAÇÃO DE PEDIDO*`,
-      ``,
-      `🔢 *Pedido:* ${sale.order_nsu || sale.id.slice(0, 8)}`,
-      `📅 *Data:* ${formatDate(sale.created_at)}`,
-      ``,
-      `👤 *Cliente:* ${sale.customer_name || "—"}`,
-      `📞 *Telefone:* ${sale.customer_phone || "—"}`,
-      ``,
-      `📦 *Itens:*`,
-      itemsList || "  Nenhum item",
-      ``,
-      sale.discount > 0 ? `🏷️ *Desconto:* -${formatCurrency(sale.discount)}` : null,
-      sale.shipping_price > 0 ? `🚚 *Frete:* ${formatCurrency(sale.shipping_price)}` : null,
-      `✅ *Total:* ${formatCurrency(sale.total_paid)}`,
-      ``,
-      `💳 *Pagamento:* ${paymentLabel[sale.payment_method] || sale.payment_method}`,
-      `🚛 *Tipo:* ${sale.delivery_type === "pickup" ? "Retirada" : "Entrega"}`,
-      sale.delivery_type !== "pickup" && addressParts
-        ? `📍 *Endereço:* ${addressParts}`
-        : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    const url = buildOrderWhatsAppUrl({
+      orderNumber: sale.order_nsu || sale.id.slice(0, 8),
+      customerName: sale.customer_name,
+      customerPhone: sale.customer_phone,
+      customerAddress,
+      items: grouped.map((i) => ({
+        product_name: i.product_name,
+        product_sku: i.product_sku,
+        unit_price: Number(i.unit_price) || 0,
+        quantity: i.quantity,
+      })),
+      total: Number(sale.total_paid) || 0,
+      paymentMethod: sale.payment_method,
+      deliveryMethod: isPickup ? "Retirada na loja" : "Entrega em Manaus",
+    }, WHATSAPP_NUMBER);
     window.open(url, "_blank");
   };
 
