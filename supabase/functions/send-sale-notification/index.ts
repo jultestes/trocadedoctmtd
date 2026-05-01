@@ -398,7 +398,11 @@ Deno.serve(async (req) => {
       .select("id, endpoint, p256dh, auth");
     if (subsErr) throw subsErr;
 
-    const subscriptions_found = (subs ?? []).length;
+    const uniqueSubs = Array.from(
+      new Map((subs ?? []).map((s: any) => [s.endpoint, s])).values()
+    );
+
+    const subscriptions_found = uniqueSubs.length;
     console.log(`[send-sale-notification] subscriptions_found=${subscriptions_found}`);
 
     if (subscriptions_found === 0) {
@@ -436,7 +440,7 @@ Deno.serve(async (req) => {
       error_message: string | null;
     }> = [];
 
-    await Promise.all((subs ?? []).map(async (s: any) => {
+    await Promise.all(uniqueSubs.map(async (s: any) => {
       let host = "";
       try {
         host = new URL(s.endpoint).host;
