@@ -12,6 +12,7 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { buildOrderWhatsAppUrl, buildAddressString, WHATSAPP_NUMBER } from "@/lib/whatsappMessage";
 
 interface ViaCepResponse {
   cep: string;
