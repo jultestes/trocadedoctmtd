@@ -243,7 +243,7 @@ const Checkout = () => {
       const orderNsu = `TMTD-${Date.now()}`;
 
       // Save order so it appears in the admin panel as pending
-      const { saleId } = await saveSaleToDB(orderNsu);
+      await saveSaleToDB(orderNsu);
 
       const waText =
         `Oi! 😊\n\n` +
@@ -281,7 +281,7 @@ const Checkout = () => {
       const orderNsu = `TMTD-${Date.now()}`;
 
       // Save sale
-      const { saleId } = await saveSaleToDB(orderNsu);
+      await saveSaleToDB(orderNsu);
 
       if (paymentMethod === "cash") {
         // Cash: go directly to success page
