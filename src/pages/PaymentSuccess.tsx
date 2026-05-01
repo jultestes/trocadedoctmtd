@@ -7,8 +7,7 @@ import { useCart } from "@/hooks/useCart";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { trackPurchase } from "@/lib/fbpixel";
-
-const WHATSAPP_NUMBER = "5592993339711";
+import { buildOrderWhatsAppUrl, buildAddressString, WHATSAPP_NUMBER } from "@/lib/whatsappMessage";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className}>
@@ -85,7 +84,6 @@ const PaymentSuccess = () => {
         .rpc("get_sale_by_nsu", { _nsu: orderNsu })
         .maybeSingle() as { data: any };
 
-      // Só usa fallback curto se realmente não houver pedido
       if (!sale) {
         shortFallback();
         return;
@@ -96,66 +94,36 @@ const PaymentSuccess = () => {
         .select("product_name, unit_price, product_sku")
         .eq("sale_id", sale.id);
 
-      // Agrupar itens iguais (nome + sku/variação + preço) para mostrar quantidade
-      // Fallbacks inteligentes: nunca descartar item por campo faltando
-      const grouped = new Map<
-        string,
-        { name: string; variant: string; price: number; qty: number }
-      >();
-      for (const i of (items || []) as any[]) {
-        const name = (i.product_name || "").trim() || "Produto";
-        const variant = (i.product_sku || "").trim() || "-";
-        const price = Number(i.unit_price) || 0;
-        const key = `${name}__${variant}__${price}`;
-        const existing = grouped.get(key);
-        if (existing) {
-          existing.qty += 1;
-        } else {
-          grouped.set(key, { name, variant, price, qty: 1 });
-        }
-      }
-
-      const itemsList = Array.from(grouped.values())
-        .map((i) => {
-          const variantLabel = i.variant && i.variant !== "-" ? ` (Tam: ${i.variant})` : "";
-          return `• ${i.name}${variantLabel} x${i.qty} — ${formatCurrency(i.price * i.qty)}`;
-        })
-        .join("\n");
-
       const isPickup = sale.delivery_type === "pickup";
-      const addressParts = [
-        sale.address_street,
-        sale.address_number ? `Nº ${sale.address_number}` : null,
-        sale.address_complement,
-        sale.address_neighborhood,
-        sale.address_city,
-        sale.address_uf,
-        sale.address_cep ? `CEP: ${sale.address_cep}` : null,
-      ]
-        .filter(Boolean)
-        .join(", ");
-
-      const addressLine = isPickup
+      const customerAddress = isPickup
         ? "Retirada na loja"
-        : addressParts || "A combinar";
+        : buildAddressString({
+            street: sale.address_street,
+            number: sale.address_number,
+            complement: sale.address_complement,
+            neighborhood: sale.address_neighborhood,
+            city: sale.address_city,
+            uf: sale.address_uf,
+            cep: sale.address_cep,
+          });
 
-      const lines: string[] = [
-        `🛍️ *CONFIRMAÇÃO DE PEDIDO*`,
-        ``,
-        `📦 *Pedido:* ${sale.order_nsu || orderNsu}`,
-        `👤 *Cliente:* ${sale.customer_name || "A informar"}`,
-        `📞 *Telefone:* ${sale.customer_phone || "A informar"}`,
-        `📍 *Endereço:* ${addressLine}`,
-        ``,
-        `🛒 *Produtos:*`,
-        itemsList || `• Produto x1 — ${formatCurrency(Number(sale.total_paid) || 0)}`,
-        ``,
-        `💰 *Total:* ${formatCurrency(sale.total_paid)}`,
-        `💳 *Pagamento:* ${paymentLabel[sale.payment_method] || sale.payment_method || "A definir"}`,
-        `🚚 *Entrega:* ${isPickup ? "Retirada na loja" : "Entrega"}`,
-      ];
+      const url = buildOrderWhatsAppUrl({
+        orderNumber: sale.order_nsu || orderNsu,
+        customerName: sale.customer_name,
+        customerPhone: sale.customer_phone,
+        customerAddress,
+        items: ((items || []) as any[]).map((i) => ({
+          product_name: i.product_name,
+          product_sku: i.product_sku,
+          unit_price: Number(i.unit_price) || 0,
+          quantity: 1,
+        })),
+        total: Number(sale.total_paid) || 0,
+        paymentMethod: sale.payment_method,
+        deliveryMethod: isPickup ? "Retirada na loja" : "Entrega em Manaus",
+      });
 
-      navigate(buildUrl(lines.join("\n")));
+      navigate(url);
     } catch (err) {
       console.error("Error fetching sale for WhatsApp:", err);
       shortFallback();

@@ -15,6 +15,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DateRangeFilter, computeRange, type PeriodPreset } from "./DateRangeFilter";
 import type { DateRange } from "react-day-picker";
+import { buildOrderWhatsAppUrl, buildAddressString } from "@/lib/whatsappMessage";
 
 type Sale = {
   id: string;
@@ -294,26 +295,35 @@ const AdminSales = () => {
   const buildWhatsAppLink = (sale: Sale, items: SaleItem[] | undefined) => {
     const digits = (sale.customer_phone || "").replace(/\D/g, "");
     if (!digits) return null;
-    // Garante DDI 55
     const withCountry = digits.startsWith("55") ? digits : `55${digits}`;
     const orderId = sale.order_nsu || sale.id.slice(0, 8);
-    const itemsList = (items && items.length > 0)
-      ? items.map((i) => `• ${i.product_name}${i.product_sku ? ` (${i.product_sku})` : ""}`).join("\n")
-      : "• (itens carregando...)";
-    const total = `R$ ${Number(sale.total_paid).toFixed(2).replace(".", ",")}`;
-    const msg =
-`Oi! 😊
-Vi que você finalizou um pedido no site, estou te enviando aqui para confirmação:
-
-📦 Pedido #${orderId}
-
-🛍️ Itens:
-${itemsList}
-
-💰 Total: ${total}
-
-Vamos finalizar o pagamento? 💖`;
-    return `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
+    const isPickup = sale.delivery_type === "pickup";
+    const customerAddress = isPickup
+      ? "Retirada na loja"
+      : buildAddressString({
+          street: sale.address_street,
+          number: sale.address_number,
+          complement: sale.address_complement,
+          neighborhood: sale.address_neighborhood,
+          city: sale.address_city,
+          uf: sale.address_uf,
+          cep: sale.address_cep,
+        });
+    return buildOrderWhatsAppUrl({
+      orderNumber: orderId,
+      customerName: sale.customer_name,
+      customerPhone: sale.customer_phone,
+      customerAddress,
+      items: (items || []).map((i) => ({
+        product_name: i.product_name,
+        product_sku: i.product_sku,
+        unit_price: Number(i.unit_price) || 0,
+        quantity: 1,
+      })),
+      total: Number(sale.total_paid) || 0,
+      paymentMethod: sale.payment_method,
+      deliveryMethod: isPickup ? "Retirada na loja" : "Entrega em Manaus",
+    }, withCountry);
   };
 
   const getPageNumbers = () => {
