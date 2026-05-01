@@ -411,7 +411,7 @@ Deno.serve(async (req) => {
 
     const parsedTotal = typeof total_paid === "number"
       ? total_paid
-      : Number.parseFloat(String(total_paid ?? "0").replace(",", "."));
+      : Number.parseFloat(String(total_paid ?? (saleForPush as any).total_paid ?? "0").replace(",", "."));
     const valorNumber = Number.isFinite(parsedTotal) ? parsedTotal : 0;
     const valorFormatado = `R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
     const notificationPayload = {
@@ -419,7 +419,7 @@ Deno.serve(async (req) => {
       body: `Valor: ${valorFormatado}`,
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
-      tag: `sale-${sale_id || Date.now()}`,
+      tag: `sale-${saleId}`,
       url: "/admin",
     };
 
@@ -474,13 +474,22 @@ Deno.serve(async (req) => {
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    // Se nenhum push foi entregue, libera o claim para permitir retry futuro.
-    if (sale_id && sent === 0 && failed > 0) {
-      await supabase
+    if (sent > 0) {
+      const { data: markedSale, error: markErr } = await supabase
         .from("sales")
-        .update({ push_sent_at: null })
-        .eq("id", String(sale_id));
-      console.log(`[send-sale-notification] claim liberado (sent=0, failed=${failed}) sale_id=${sale_id}`);
+        .update({ push_sent_at: new Date().toISOString() })
+        .eq("id", saleId)
+        .is("push_sent_at", null)
+        .select("id, push_sent_at")
+        .maybeSingle();
+
+      if (markErr) {
+        console.error(`[send-sale-notification] falha ao atualizar push_sent_at sale_id=${saleId}`, markErr);
+      } else if (!markedSale) {
+        console.log(`[send-sale-notification] push_sent_at já preenchido por outra execução sale_id=${saleId}`);
+      } else {
+        console.log(`[send-sale-notification] push_sent_at preenchido sale_id=${saleId}`);
+      }
     }
 
     const emailResult = await emailPromise;
