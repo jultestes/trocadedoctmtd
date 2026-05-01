@@ -358,10 +358,9 @@ Deno.serve(async (req) => {
     }
 
     // ---------- Idempotência do push via sales.push_sent_at ----------
-    // Só envia push quando a venda está paga e ainda não foi notificada.
     const { data: saleForPush, error: saleForPushErr } = await supabase
       .from("sales")
-      .select("id, status, total_paid, push_sent_at")
+      .select("id, status, total_paid, total_original, push_sent_at")
       .eq("id", saleId)
       .maybeSingle();
 
@@ -392,7 +391,31 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Buscar TODAS as subscriptions (sem filtro de role) — admins são quem se inscreve
+    // ---------- CLAIM ATÔMICO: marca push_sent_at ANTES de enviar ----------
+    // Evita corrida (duas execuções concorrentes enviarem 2 pushes para a mesma venda).
+    const claimedAt = new Date().toISOString();
+    const { data: claimedRow, error: claimErr } = await supabase
+      .from("sales")
+      .update({ push_sent_at: claimedAt })
+      .eq("id", saleId)
+      .is("push_sent_at", null)
+      .select("id")
+      .maybeSingle();
+
+    if (claimErr) {
+      console.error(`[send-sale-notification] falha ao reservar push_sent_at sale_id=${saleId}`, claimErr);
+      throw claimErr;
+    }
+    if (!claimedRow) {
+      console.log(`[send-sale-notification] push_sent_at já preenchido por outra execução sale_id=${saleId} — pulando`);
+      const emailResult = await emailPromise;
+      return new Response(
+        JSON.stringify({ ok: true, skipped: "already_claimed", sale_id: saleId, email: emailResult }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Buscar TODAS as subscriptions (admins são quem se inscreve)
     const { data: subs, error: subsErr } = await supabase
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth");
@@ -406,6 +429,12 @@ Deno.serve(async (req) => {
     console.log(`[send-sale-notification] subscriptions_found=${subscriptions_found}`);
 
     if (subscriptions_found === 0) {
+      // libera o claim para permitir nova tentativa quando houver subscriptions
+      await supabase
+        .from("sales")
+        .update({ push_sent_at: null })
+        .eq("id", saleId)
+        .eq("push_sent_at", claimedAt);
       const emailResult = await emailPromise;
       return new Response(
         JSON.stringify({ ok: true, subscriptions_found: 0, sent: 0, failed: 0, removed: 0, reason: "no subscriptions", email: emailResult }),
@@ -413,11 +442,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    const parsedTotal = typeof total_paid === "number"
-      ? total_paid
-      : Number.parseFloat(String(total_paid ?? (saleForPush as any).total_paid ?? "0").replace(",", "."));
-    const valorNumber = Number.isFinite(parsedTotal) ? parsedTotal : 0;
-    const valorFormatado = `R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
+    // ---------- Cálculo seguro do valor (NUNCA R$ 0,00) ----------
+    const toNum = (v: unknown): number => {
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+      const n = Number.parseFloat(String(v ?? "0").replace(",", "."));
+      return Number.isFinite(n) ? n : 0;
+    };
+    const candidatos = [
+      toNum(total_paid),
+      toNum((saleForPush as any).total_paid),
+      toNum((saleForPush as any).total_original),
+    ];
+    const valorNumber = candidatos.find((n) => n > 0) ?? 0;
+    const valorFormatado = valorNumber > 0
+      ? `R$ ${valorNumber.toFixed(2).replace(".", ",")}`
+      : "valor a confirmar";
     const notificationPayload = {
       title: "Venda aprovada!",
       body: `Valor: ${valorFormatado}`,
@@ -478,22 +517,16 @@ Deno.serve(async (req) => {
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    if (sent > 0) {
-      const { data: markedSale, error: markErr } = await supabase
+    // Se não conseguimos enviar nenhum push, libera o claim para nova tentativa.
+    if (sent === 0) {
+      await supabase
         .from("sales")
-        .update({ push_sent_at: new Date().toISOString() })
+        .update({ push_sent_at: null })
         .eq("id", saleId)
-        .is("push_sent_at", null)
-        .select("id, push_sent_at")
-        .maybeSingle();
-
-      if (markErr) {
-        console.error(`[send-sale-notification] falha ao atualizar push_sent_at sale_id=${saleId}`, markErr);
-      } else if (!markedSale) {
-        console.log(`[send-sale-notification] push_sent_at já preenchido por outra execução sale_id=${saleId}`);
-      } else {
-        console.log(`[send-sale-notification] push_sent_at preenchido sale_id=${saleId}`);
-      }
+        .eq("push_sent_at", claimedAt);
+      console.log(`[send-sale-notification] nenhum push enviado — claim liberado sale_id=${saleId}`);
+    } else {
+      console.log(`[send-sale-notification] push_sent_at confirmado sale_id=${saleId} sent=${sent}`);
     }
 
     const emailResult = await emailPromise;

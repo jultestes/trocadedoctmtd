@@ -27,8 +27,7 @@ const Admin = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const isFirstCheckRef = useRef(true);
-  const PLAYED_KEY = "admin_paid_sale_sound_played";
+  const PLAYED_KEY = "admin_new_sale_alert_played";
 
   const getPlayedIds = (): Set<string> => {
     try {
@@ -42,57 +41,64 @@ const Admin = () => {
 
   const savePlayedIds = (ids: Set<string>) => {
     try {
-      // mantém só os últimos 500 para não crescer infinito
       const arr = Array.from(ids).slice(-500);
       localStorage.setItem(PLAYED_KEY, JSON.stringify(arr));
     } catch {}
   };
 
-  useEffect(() => {
-    audioRef.current = new Audio("/sounds/sale-notification.mp3");
+  const markPlayed = useCallback((id: string) => {
+    const played = getPlayedIds();
+    if (played.has(id)) return false;
+    played.add(id);
+    savePlayedIds(played);
+    return true;
   }, []);
 
-  const checkNewPaidSales = useCallback(async () => {
-    // busca as vendas pagas mais recentes
-    const { data, error } = await supabase
-      .from("sales")
-      .select("id, status, created_at")
-      .eq("status", "paid")
-      .order("created_at", { ascending: false })
-      .limit(20);
-
-    if (error || !data) return;
-
-    const played = getPlayedIds();
-
-    // primeira execução: marca tudo como já tocado (evita tocar histórico)
-    if (isFirstCheckRef.current) {
-      data.forEach((s: any) => played.add(s.id));
-      savePlayedIds(played);
-      isFirstCheckRef.current = false;
-      return;
-    }
-
-    const novas = data.filter((s: any) => !played.has(s.id));
-    if (novas.length === 0) return;
-
-    novas.forEach((s: any) => played.add(s.id));
-    savePlayedIds(played);
-
-    toast({
-      title: `🛒 Nova venda paga!`,
-      description: `${novas.length} novo(s) pedido(s) confirmado(s).`,
-    });
-    try {
-      audioRef.current?.play();
-    } catch {}
-  }, [toast]);
-
   useEffect(() => {
-    checkNewPaidSales();
-    const interval = setInterval(checkNewPaidSales, 5000);
-    return () => clearInterval(interval);
-  }, [checkNewPaidSales]);
+    audioRef.current = new Audio("/sounds/sale-notification.mp3");
+    audioRef.current.preload = "auto";
+  }, []);
+
+  const triggerAlert = useCallback(
+    (sale: { id: string; order_nsu?: string | null; total_original?: number | null; total_paid?: number | null }) => {
+      if (!markPlayed(sale.id)) return;
+
+      const valor = Number(sale.total_paid ?? 0) > 0
+        ? Number(sale.total_paid)
+        : Number(sale.total_original ?? 0);
+      const valorFmt = valor > 0 ? `R$ ${valor.toFixed(2).replace(".", ",")}` : "";
+      const pedido = sale.order_nsu || sale.id.slice(0, 8);
+
+      toast({
+        title: "🛒 Nova venda recebida!",
+        description: `Pedido #${pedido}${valorFmt ? ` — ${valorFmt}` : ""}`,
+      });
+      try {
+        audioRef.current?.play().catch(() => {});
+      } catch {}
+    },
+    [toast, markPlayed]
+  );
+
+  // Realtime: escuta INSERT em sales (independente de status) → som + toast
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-new-sales-alert")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "sales" },
+        (payload: any) => {
+          const newSale = payload.new;
+          if (!newSale?.id) return;
+          triggerAlert(newSale);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [triggerAlert]);
 
   const tabs = [
     { id: "overview" as Tab, label: "Visão Geral", icon: BarChart3 },

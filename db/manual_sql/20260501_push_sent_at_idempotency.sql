@@ -67,7 +67,8 @@ BEGIN
     ),
     body := jsonb_build_object(
       'sale_id', NEW.id::text,
-      'total_paid', COALESCE(NEW.total_paid, NEW.total_original, 0),
+      -- Nunca enviar 0: prioriza total_paid (>0), senão total_original
+      'total_paid', COALESCE(NULLIF(NEW.total_paid, 0), NEW.total_original, 0),
       'trigger_reason', _reason
     ),
     timeout_milliseconds := 5000
