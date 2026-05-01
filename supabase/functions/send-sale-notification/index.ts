@@ -460,6 +460,15 @@ Deno.serve(async (req) => {
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
+    // Se nenhum push foi entregue, libera o claim para permitir retry futuro.
+    if (sale_id && sent === 0 && failed > 0) {
+      await supabase
+        .from("sales")
+        .update({ push_sent_at: null })
+        .eq("id", String(sale_id));
+      console.log(`[send-sale-notification] claim liberado (sent=0, failed=${failed}) sale_id=${sale_id}`);
+    }
+
     const emailResult = await emailPromise;
     const result = { ok: true, subscriptions_found, sent, failed, removed: stale.length, notification_payload: notificationPayload, errors, email: emailResult };
     console.log(`[send-sale-notification] result=`, result);
