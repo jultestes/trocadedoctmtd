@@ -544,6 +544,106 @@ const AdminProducts = () => {
     }));
   };
 
+  /**
+   * Unified image list (cover + extras). Index 0 = cover.
+   * Sources: 'main' (form.image_url), 'extra' (form.extra_images[idx]), 'new' (extraImageFiles[idx]).
+   */
+  type ImgItem =
+    | { kind: "main"; url: string }
+    | { kind: "extra"; url: string; idx: number }
+    | { kind: "new"; previewUrl: string; idx: number };
+
+  const buildImageList = (): ImgItem[] => {
+    const list: ImgItem[] = [];
+    if (form.image_url) list.push({ kind: "main", url: form.image_url });
+    form.extra_images.forEach((url, idx) => list.push({ kind: "extra", url, idx }));
+    extraImageFiles.forEach((ef, idx) => list.push({ kind: "new", previewUrl: ef.previewUrl, idx }));
+    return list;
+  };
+
+  /** Apply a reordered ImgItem list back to form state. First item becomes cover. */
+  const applyImageList = (list: ImgItem[]) => {
+    let newMainUrl = "";
+    const newExtras: string[] = [];
+    const newFiles: { file: File; previewUrl: string }[] = [];
+
+    list.forEach((item, position) => {
+      let url = "";
+      let fileEntry: { file: File; previewUrl: string } | null = null;
+      if (item.kind === "main" || item.kind === "extra") {
+        url = item.url;
+      } else {
+        fileEntry = extraImageFiles[item.idx];
+      }
+
+      if (position === 0) {
+        // Cover must be a URL (not a File). If it's a new file, we keep it as a new file
+        // and set image_url empty for now; on save the upload pipeline assigns URLs.
+        // To keep behavior simple: only allow URL items as cover via this UI.
+        if (item.kind === "new") {
+          // Keep as new, but no main yet
+          newFiles.push(fileEntry!);
+        } else {
+          newMainUrl = url;
+        }
+      } else {
+        if (item.kind === "new" && fileEntry) {
+          newFiles.push(fileEntry);
+        } else if (url) {
+          newExtras.push(url);
+        }
+      }
+    });
+
+    setForm((prev) => ({ ...prev, image_url: newMainUrl, extra_images: newExtras }));
+    setExtraImageFiles(newFiles);
+  };
+
+  const removeImageAt = (position: number) => {
+    const list = buildImageList();
+    const removed = list[position];
+    if (!removed) return;
+    if (removed.kind === "new") {
+      try { URL.revokeObjectURL(extraImageFiles[removed.idx].previewUrl); } catch {}
+    }
+    const next = list.filter((_, i) => i !== position);
+    applyImageList(next);
+  };
+
+  const setAsCover = (position: number) => {
+    if (position === 0) return;
+    const list = buildImageList();
+    const item = list[position];
+    if (!item) return;
+    if (item.kind === "new") {
+      toast({
+        title: "Salve primeiro a imagem",
+        description: "Imagens recém-adicionadas precisam ser salvas antes de virar capa.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const next = [item, ...list.filter((_, i) => i !== position)];
+    applyImageList(next);
+  };
+
+  const [dragImageIdx, setDragImageIdx] = useState<number | null>(null);
+
+  const handleImageDragStart = (idx: number) => setDragImageIdx(idx);
+  const handleImageDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleImageDrop = (targetIdx: number) => {
+    if (dragImageIdx === null || dragImageIdx === targetIdx) {
+      setDragImageIdx(null);
+      return;
+    }
+    const list = buildImageList();
+    const moved = list[dragImageIdx];
+    const without = list.filter((_, i) => i !== dragImageIdx);
+    without.splice(targetIdx, 0, moved);
+    applyImageList(without);
+    setDragImageIdx(null);
+  };
+
   const handleMultiUploadConfirm = async () => {
     if (multiItems.length === 0) return;
     if (!form.gender) {
