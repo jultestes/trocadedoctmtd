@@ -233,18 +233,48 @@ const WhatsAppCheckout = () => {
 
       clearCart();
 
-      // Open WhatsApp with the order number, then redirect to tracking page
-      const waNumber = "5592993339711";
-      let waMsg: string;
+      // Open WhatsApp with the standardized message, then redirect to tracking page
+      const waNumber = WHATSAPP_NUMBER;
+      let waUrl: string;
       if (mode === "shipping_quote") {
         const cidade = address?.localidade || "";
         const uf = address?.uf || "";
         const cidadeUf = [cidade, uf].filter(Boolean).join("/");
-        waMsg = `Oi! 😊\nGostaria de calcular o frete do meu pedido.\n\n📦 Pedido: ${orderNsu}\n📍 CEP: ${cep}\n🏙️ Cidade/Estado: ${cidadeUf}`;
+        const waMsg = `Oi! 😊\nGostaria de calcular o frete do meu pedido.\n\n📦 Pedido: ${orderNsu}\n📍 CEP: ${cep}\n🏙️ Cidade/Estado: ${cidadeUf}`;
+        waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`;
       } else {
-        waMsg = `Oi! Quero finalizar o pedido nº ${orderNsu} 🛍️\n\nNome: ${nome.trim()}\nTelefone: ${telefone}`;
+        const customerAddress = deliveryType === "pickup"
+          ? "Retirada na loja"
+          : buildAddressString({
+              street: logradouro,
+              number: numero,
+              complement: complemento,
+              neighborhood: bairro,
+              city: address?.localidade,
+              uf: address?.uf,
+              cep,
+            });
+        const paymentLabelMap: Record<string, string> = {
+          pix: "pix",
+          credit_card: "credit_card",
+          cash: "cash",
+        };
+        waUrl = buildOrderWhatsAppUrl({
+          orderNumber: orderNsu,
+          customerName: nome.trim(),
+          customerPhone: telefone,
+          customerAddress,
+          items: saleItems.map((it: any) => ({
+            product_name: it.product_name,
+            product_sku: it.product_sku,
+            unit_price: Number(it.unit_price) || 0,
+            quantity: 1,
+          })),
+          total: grandTotal,
+          paymentMethod: paymentLabelMap[dbPaymentMethod] || dbPaymentMethod,
+          deliveryMethod: deliveryType === "pickup" ? "Retirada na loja" : "Entrega em Manaus",
+        }, waNumber);
       }
-      const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsg)}`;
       // Open in new tab so the user keeps the tracking page in this tab
       window.open(waUrl, "_blank");
 
