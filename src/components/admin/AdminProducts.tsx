@@ -1119,39 +1119,86 @@ const AdminProducts = () => {
                     </div>
                 }
                 </div>
-                {/* Main image + extras inline */}
-                {form.image_url &&
-              <div className="flex items-center gap-2 flex-wrap">
-                    <img src={form.image_url} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-border" />
-                    {form.extra_images.map((url, idx) =>
-                <div key={`existing-${idx}`} className="relative group">
-                        <img src={url} alt={`Extra ${idx + 1}`} className="w-10 h-10 rounded-lg object-cover border border-border" />
-                        <button type="button" onClick={() => removeExistingExtraImage(idx)}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                          <X className="w-2.5 h-2.5" />
+                {/* Unified image grid: cover + extras + new uploads. Drag to reorder. */}
+                {(() => {
+                  const imgList = buildImageList();
+                  if (imgList.length === 0) return null;
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground">
+                        Arraste para reordenar. A primeira imagem é a capa.
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {imgList.map((item, position) => {
+                          const src = item.kind === "new" ? item.previewUrl : item.url;
+                          const isCover = position === 0;
+                          const isNew = item.kind === "new";
+                          return (
+                            <div
+                              key={`${item.kind}-${position}-${src}`}
+                              draggable
+                              onDragStart={() => handleImageDragStart(position)}
+                              onDragOver={handleImageDragOver}
+                              onDrop={() => handleImageDrop(position)}
+                              className={`relative group cursor-move ${
+                                dragImageIdx === position ? "opacity-40" : ""
+                              }`}
+                            >
+                              <img
+                                src={src}
+                                alt={isCover ? "Capa" : `Imagem ${position + 1}`}
+                                className={`w-14 h-14 rounded-lg object-cover border-2 ${
+                                  isCover
+                                    ? "border-primary"
+                                    : isNew
+                                    ? "border-primary/40"
+                                    : "border-border"
+                                }`}
+                              />
+                              {isCover && (
+                                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground shadow">
+                                  CAPA
+                                </span>
+                              )}
+                              {!isCover && !isNew && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAsCover(position)}
+                                  title="Definir como capa"
+                                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-medium bg-background border border-border text-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow hover:bg-primary hover:text-primary-foreground hover:border-primary whitespace-nowrap"
+                                >
+                                  Capa
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => removeImageAt(position)}
+                                title="Remover imagem"
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => setShowExtraUploadDialog(true)}
+                          className="w-14 h-14 rounded-lg border-dashed border-border hover:border-primary/60 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border-2"
+                          title="Adicionar foto"
+                        >
+                          <Plus className="w-5 h-5" />
                         </button>
                       </div>
-                )}
-                    {extraImageFiles.map((ef, idx) =>
-                <div key={`new-${idx}`} className="relative group">
-                        <img src={ef.previewUrl} alt={`Nova ${idx + 1}`} className="w-10 h-10 rounded-lg object-cover border-2 border-primary/50" />
-                        <button type="button" onClick={() => removeExtraFromForm(idx)}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                          <X className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
-                )}
-                    <button
-                  type="button"
-                  onClick={() => setShowExtraUploadDialog(true)}
-                  className="w-10 h-10 rounded-lg border-dashed border-border hover:border-primary/60 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border-4"
-                  title="Adicionar foto extra">
-                  
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-              }
+                    </div>
+                  );
+                })()}
               </div>
+              {false && (
+                <div>
+                  {/* legacy block kept removed */}
+                </div>
+              )}
 
               {/* Multi-file editable preview */}
               {multiItems.length > 0 &&
