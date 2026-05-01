@@ -26,37 +26,73 @@ const Admin = () => {
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { toast } = useToast();
-  const lastSaleCountRef = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isFirstCheckRef = useRef(true);
+  const PLAYED_KEY = "admin_paid_sale_sound_played";
+
+  const getPlayedIds = (): Set<string> => {
+    try {
+      const raw = localStorage.getItem(PLAYED_KEY);
+      if (!raw) return new Set();
+      return new Set(JSON.parse(raw));
+    } catch {
+      return new Set();
+    }
+  };
+
+  const savePlayedIds = (ids: Set<string>) => {
+    try {
+      // mantém só os últimos 500 para não crescer infinito
+      const arr = Array.from(ids).slice(-500);
+      localStorage.setItem(PLAYED_KEY, JSON.stringify(arr));
+    } catch {}
+  };
 
   useEffect(() => {
     audioRef.current = new Audio("/sounds/sale-notification.mp3");
   }, []);
 
-  const checkNewSales = useCallback(async () => {
-    const { count, error } = await supabase
+  const checkNewPaidSales = useCallback(async () => {
+    // busca as vendas pagas mais recentes
+    const { data, error } = await supabase
       .from("sales")
-      .select("*", { count: "exact", head: true });
-    if (error || count === null) return;
+      .select("id, status, created_at")
+      .eq("status", "paid")
+      .order("created_at", { ascending: false })
+      .limit(20);
 
-    if (lastSaleCountRef.current !== null && count > lastSaleCountRef.current) {
-      const diff = count - lastSaleCountRef.current;
-      toast({
-        title: `🛒 Nova venda recebida!`,
-        description: `${diff} novo(s) pedido(s) chegou(aram).`,
-      });
-      try {
-        audioRef.current?.play();
-      } catch {}
+    if (error || !data) return;
+
+    const played = getPlayedIds();
+
+    // primeira execução: marca tudo como já tocado (evita tocar histórico)
+    if (isFirstCheckRef.current) {
+      data.forEach((s: any) => played.add(s.id));
+      savePlayedIds(played);
+      isFirstCheckRef.current = false;
+      return;
     }
-    lastSaleCountRef.current = count;
+
+    const novas = data.filter((s: any) => !played.has(s.id));
+    if (novas.length === 0) return;
+
+    novas.forEach((s: any) => played.add(s.id));
+    savePlayedIds(played);
+
+    toast({
+      title: `🛒 Nova venda paga!`,
+      description: `${novas.length} novo(s) pedido(s) confirmado(s).`,
+    });
+    try {
+      audioRef.current?.play();
+    } catch {}
   }, [toast]);
 
   useEffect(() => {
-    checkNewSales();
-    const interval = setInterval(checkNewSales, 5000);
+    checkNewPaidSales();
+    const interval = setInterval(checkNewPaidSales, 5000);
     return () => clearInterval(interval);
-  }, [checkNewSales]);
+  }, [checkNewPaidSales]);
 
   const tabs = [
     { id: "overview" as Tab, label: "Visão Geral", icon: BarChart3 },
