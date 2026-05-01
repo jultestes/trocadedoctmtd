@@ -339,6 +339,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const { sale_id, total_paid } = body || {};
+    const triggerReason = String(body?.trigger_reason || "").toLowerCase();
     const saleId = sale_id ? String(sale_id) : "";
 
     // Fire order confirmation email in parallel when sale_id is provided.
@@ -382,11 +383,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (String((saleForPush as any).status || "").toLowerCase() !== "paid") {
-      console.log(`[send-sale-notification] status=${(saleForPush as any).status} sale_id=${saleId} — push ignorado até paid`);
+    // O push do celular é permitido somente no INSERT da venda.
+    // Se algum trigger antigo chamar esta função no UPDATE para paid, não envia push.
+    if (triggerReason !== "insert") {
+      console.log(`[send-sale-notification] trigger_reason=${triggerReason || "missing"} sale_id=${saleId} — push ignorado; somente INSERT envia push`);
       const emailResult = await emailPromise;
       return new Response(
-        JSON.stringify({ ok: true, skipped: "status_not_paid", sale_id: saleId, status: (saleForPush as any).status, email: emailResult }),
+        JSON.stringify({ ok: true, skipped: "not_insert_trigger", sale_id: saleId, trigger_reason: triggerReason || null, email: emailResult }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -458,7 +461,7 @@ Deno.serve(async (req) => {
       ? `R$ ${valorNumber.toFixed(2).replace(".", ",")}`
       : "valor a confirmar";
     const notificationPayload = {
-      title: "Venda aprovada!",
+      title: "Nova venda recebida!",
       body: `Valor: ${valorFormatado}`,
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
