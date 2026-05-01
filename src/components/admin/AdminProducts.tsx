@@ -544,6 +544,106 @@ const AdminProducts = () => {
     }));
   };
 
+  /**
+   * Unified image list (cover + extras). Index 0 = cover.
+   * Sources: 'main' (form.image_url), 'extra' (form.extra_images[idx]), 'new' (extraImageFiles[idx]).
+   */
+  type ImgItem =
+    | { kind: "main"; url: string }
+    | { kind: "extra"; url: string; idx: number }
+    | { kind: "new"; previewUrl: string; idx: number };
+
+  const buildImageList = (): ImgItem[] => {
+    const list: ImgItem[] = [];
+    if (form.image_url) list.push({ kind: "main", url: form.image_url });
+    form.extra_images.forEach((url, idx) => list.push({ kind: "extra", url, idx }));
+    extraImageFiles.forEach((ef, idx) => list.push({ kind: "new", previewUrl: ef.previewUrl, idx }));
+    return list;
+  };
+
+  /** Apply a reordered ImgItem list back to form state. First item becomes cover. */
+  const applyImageList = (list: ImgItem[]) => {
+    let newMainUrl = "";
+    const newExtras: string[] = [];
+    const newFiles: { file: File; previewUrl: string }[] = [];
+
+    list.forEach((item, position) => {
+      let url = "";
+      let fileEntry: { file: File; previewUrl: string } | null = null;
+      if (item.kind === "main" || item.kind === "extra") {
+        url = item.url;
+      } else {
+        fileEntry = extraImageFiles[item.idx];
+      }
+
+      if (position === 0) {
+        // Cover must be a URL (not a File). If it's a new file, we keep it as a new file
+        // and set image_url empty for now; on save the upload pipeline assigns URLs.
+        // To keep behavior simple: only allow URL items as cover via this UI.
+        if (item.kind === "new") {
+          // Keep as new, but no main yet
+          newFiles.push(fileEntry!);
+        } else {
+          newMainUrl = url;
+        }
+      } else {
+        if (item.kind === "new" && fileEntry) {
+          newFiles.push(fileEntry);
+        } else if (url) {
+          newExtras.push(url);
+        }
+      }
+    });
+
+    setForm((prev) => ({ ...prev, image_url: newMainUrl, extra_images: newExtras }));
+    setExtraImageFiles(newFiles);
+  };
+
+  const removeImageAt = (position: number) => {
+    const list = buildImageList();
+    const removed = list[position];
+    if (!removed) return;
+    if (removed.kind === "new") {
+      try { URL.revokeObjectURL(extraImageFiles[removed.idx].previewUrl); } catch {}
+    }
+    const next = list.filter((_, i) => i !== position);
+    applyImageList(next);
+  };
+
+  const setAsCover = (position: number) => {
+    if (position === 0) return;
+    const list = buildImageList();
+    const item = list[position];
+    if (!item) return;
+    if (item.kind === "new") {
+      toast({
+        title: "Salve primeiro a imagem",
+        description: "Imagens recém-adicionadas precisam ser salvas antes de virar capa.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const next = [item, ...list.filter((_, i) => i !== position)];
+    applyImageList(next);
+  };
+
+  const [dragImageIdx, setDragImageIdx] = useState<number | null>(null);
+
+  const handleImageDragStart = (idx: number) => setDragImageIdx(idx);
+  const handleImageDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleImageDrop = (targetIdx: number) => {
+    if (dragImageIdx === null || dragImageIdx === targetIdx) {
+      setDragImageIdx(null);
+      return;
+    }
+    const list = buildImageList();
+    const moved = list[dragImageIdx];
+    const without = list.filter((_, i) => i !== dragImageIdx);
+    without.splice(targetIdx, 0, moved);
+    applyImageList(without);
+    setDragImageIdx(null);
+  };
+
   const handleMultiUploadConfirm = async () => {
     if (multiItems.length === 0) return;
     if (!form.gender) {
@@ -1019,38 +1119,80 @@ const AdminProducts = () => {
                     </div>
                 }
                 </div>
-                {/* Main image + extras inline */}
-                {form.image_url &&
-              <div className="flex items-center gap-2 flex-wrap">
-                    <img src={form.image_url} alt="Preview" className="w-10 h-10 rounded-lg object-cover border border-border" />
-                    {form.extra_images.map((url, idx) =>
-                <div key={`existing-${idx}`} className="relative group">
-                        <img src={url} alt={`Extra ${idx + 1}`} className="w-10 h-10 rounded-lg object-cover border border-border" />
-                        <button type="button" onClick={() => removeExistingExtraImage(idx)}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                          <X className="w-2.5 h-2.5" />
+                {/* Unified image grid: cover + extras + new uploads. Drag to reorder. */}
+                {(() => {
+                  const imgList = buildImageList();
+                  if (imgList.length === 0) return null;
+                  return (
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground">
+                        Arraste para reordenar. A primeira imagem é a capa.
+                      </p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {imgList.map((item, position) => {
+                          const src = item.kind === "new" ? item.previewUrl : item.url;
+                          const isCover = position === 0;
+                          const isNew = item.kind === "new";
+                          return (
+                            <div
+                              key={`${item.kind}-${position}-${src}`}
+                              draggable
+                              onDragStart={() => handleImageDragStart(position)}
+                              onDragOver={handleImageDragOver}
+                              onDrop={() => handleImageDrop(position)}
+                              className={`relative group cursor-move ${
+                                dragImageIdx === position ? "opacity-40" : ""
+                              }`}
+                            >
+                              <img
+                                src={src}
+                                alt={isCover ? "Capa" : `Imagem ${position + 1}`}
+                                className={`w-14 h-14 rounded-lg object-cover border-2 ${
+                                  isCover
+                                    ? "border-primary"
+                                    : isNew
+                                    ? "border-primary/40"
+                                    : "border-border"
+                                }`}
+                              />
+                              {isCover && (
+                                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground shadow">
+                                  CAPA
+                                </span>
+                              )}
+                              {!isCover && !isNew && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAsCover(position)}
+                                  title="Definir como capa"
+                                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[9px] font-medium bg-background border border-border text-foreground opacity-0 group-hover:opacity-100 transition-opacity shadow hover:bg-primary hover:text-primary-foreground hover:border-primary whitespace-nowrap"
+                                >
+                                  Capa
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => removeImageAt(position)}
+                                title="Remover imagem"
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={() => setShowExtraUploadDialog(true)}
+                          className="w-14 h-14 rounded-lg border-dashed border-border hover:border-primary/60 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border-2"
+                          title="Adicionar foto"
+                        >
+                          <Plus className="w-5 h-5" />
                         </button>
                       </div>
-                )}
-                    {extraImageFiles.map((ef, idx) =>
-                <div key={`new-${idx}`} className="relative group">
-                        <img src={ef.previewUrl} alt={`Nova ${idx + 1}`} className="w-10 h-10 rounded-lg object-cover border-2 border-primary/50" />
-                        <button type="button" onClick={() => removeExtraFromForm(idx)}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                          <X className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
-                )}
-                    <button
-                  type="button"
-                  onClick={() => setShowExtraUploadDialog(true)}
-                  className="w-10 h-10 rounded-lg border-dashed border-border hover:border-primary/60 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border-4"
-                  title="Adicionar foto extra">
-                  
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
-              }
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Multi-file editable preview */}
