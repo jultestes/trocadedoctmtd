@@ -517,22 +517,16 @@ Deno.serve(async (req) => {
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    if (sent > 0) {
-      const { data: markedSale, error: markErr } = await supabase
+    // Se não conseguimos enviar nenhum push, libera o claim para nova tentativa.
+    if (sent === 0) {
+      await supabase
         .from("sales")
-        .update({ push_sent_at: new Date().toISOString() })
+        .update({ push_sent_at: null })
         .eq("id", saleId)
-        .is("push_sent_at", null)
-        .select("id, push_sent_at")
-        .maybeSingle();
-
-      if (markErr) {
-        console.error(`[send-sale-notification] falha ao atualizar push_sent_at sale_id=${saleId}`, markErr);
-      } else if (!markedSale) {
-        console.log(`[send-sale-notification] push_sent_at já preenchido por outra execução sale_id=${saleId}`);
-      } else {
-        console.log(`[send-sale-notification] push_sent_at preenchido sale_id=${saleId}`);
-      }
+        .eq("push_sent_at", claimedAt);
+      console.log(`[send-sale-notification] nenhum push enviado — claim liberado sale_id=${saleId}`);
+    } else {
+      console.log(`[send-sale-notification] push_sent_at confirmado sale_id=${saleId} sent=${sent}`);
     }
 
     const emailResult = await emailPromise;
