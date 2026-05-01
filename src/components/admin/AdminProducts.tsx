@@ -1174,7 +1174,7 @@ const AdminProducts = () => {
                                 type="button"
                                 onClick={() => removeImageAt(position)}
                                 title="Remover imagem"
-                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 hover:scale-110 transition-all"
                               >
                                 <X className="w-3 h-3" />
                               </button>
