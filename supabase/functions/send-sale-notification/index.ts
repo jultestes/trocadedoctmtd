@@ -339,43 +339,57 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const { sale_id, total_paid } = body || {};
+    const saleId = sale_id ? String(sale_id) : "";
 
     // Fire order confirmation email in parallel when sale_id is provided.
     // Triggered automatically for any insert; idempotent via email_sent_at.
     const emailPromise: Promise<Record<string, unknown> | null> = sale_id
-      ? sendOrderEmail(String(sale_id)).catch((err) => {
+      ? sendOrderEmail(saleId).catch((err) => {
           console.error("[order-email] unexpected error", err);
           return { ok: false, reason: "exception", error: String(err?.message || err) };
         })
       : Promise.resolve(null);
 
-    // ---------- Idempotência do push: claim atômico via push_sent_at ----------
-    // Garante que mesmo com múltiplos disparos (frontend + trigger SQL),
-    // apenas UMA execução envia notificação por sale_id.
-    if (sale_id) {
-      const pushClaimedAt = new Date().toISOString();
-      const { data: claimed, error: claimErr } = await supabase
-        .from("sales")
-        .update({ push_sent_at: pushClaimedAt })
-        .eq("id", String(sale_id))
-        .is("push_sent_at", null)
-        .select("id")
-        .maybeSingle();
+    if (!saleId) {
+      return new Response(
+        JSON.stringify({ ok: false, error: "sale_id_required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
-      if (claimErr) {
-        // Coluna pode não existir ainda — loga e segue (fallback ao comportamento antigo)
-        console.warn("[send-sale-notification] push_sent_at claim error (coluna existe?):", claimErr?.message);
-      } else if (!claimed) {
-        // Outro processo já enviou. Pula push, mas ainda processa email (que tem seu próprio claim).
-        console.log(`[send-sale-notification] push já enviado para sale_id=${sale_id} — pulando (idempotente)`);
-        const emailResult = await emailPromise;
-        return new Response(
-          JSON.stringify({ ok: true, skipped: "already_sent", sale_id, email: emailResult }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      } else {
-        console.log(`[send-sale-notification] push_sent_at reivindicado sale_id=${sale_id} at=${pushClaimedAt}`);
-      }
+    // ---------- Idempotência do push via sales.push_sent_at ----------
+    // Só envia push quando a venda está paga e ainda não foi notificada.
+    const { data: saleForPush, error: saleForPushErr } = await supabase
+      .from("sales")
+      .select("id, status, total_paid, push_sent_at")
+      .eq("id", saleId)
+      .maybeSingle();
+
+    if (saleForPushErr) throw saleForPushErr;
+    if (!saleForPush) {
+      const emailResult = await emailPromise;
+      return new Response(
+        JSON.stringify({ ok: false, error: "sale_not_found", sale_id: saleId, email: emailResult }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if ((saleForPush as any).push_sent_at) {
+      console.log(`[send-sale-notification] push já enviado para sale_id=${saleId} — pulando`);
+      const emailResult = await emailPromise;
+      return new Response(
+        JSON.stringify({ ok: true, skipped: "already_sent", sale_id: saleId, email: emailResult }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (String((saleForPush as any).status || "").toLowerCase() !== "paid") {
+      console.log(`[send-sale-notification] status=${(saleForPush as any).status} sale_id=${saleId} — push ignorado até paid`);
+      const emailResult = await emailPromise;
+      return new Response(
+        JSON.stringify({ ok: true, skipped: "status_not_paid", sale_id: saleId, status: (saleForPush as any).status, email: emailResult }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     // Buscar TODAS as subscriptions (sem filtro de role) — admins são quem se inscreve
@@ -384,7 +398,11 @@ Deno.serve(async (req) => {
       .select("id, endpoint, p256dh, auth");
     if (subsErr) throw subsErr;
 
-    const subscriptions_found = (subs ?? []).length;
+    const uniqueSubs = Array.from(
+      new Map((subs ?? []).map((s: any) => [s.endpoint, s])).values()
+    );
+
+    const subscriptions_found = uniqueSubs.length;
     console.log(`[send-sale-notification] subscriptions_found=${subscriptions_found}`);
 
     if (subscriptions_found === 0) {
@@ -397,7 +415,7 @@ Deno.serve(async (req) => {
 
     const parsedTotal = typeof total_paid === "number"
       ? total_paid
-      : Number.parseFloat(String(total_paid ?? "0").replace(",", "."));
+      : Number.parseFloat(String(total_paid ?? (saleForPush as any).total_paid ?? "0").replace(",", "."));
     const valorNumber = Number.isFinite(parsedTotal) ? parsedTotal : 0;
     const valorFormatado = `R$ ${valorNumber.toFixed(2).replace(".", ",")}`;
     const notificationPayload = {
@@ -405,7 +423,7 @@ Deno.serve(async (req) => {
       body: `Valor: ${valorFormatado}`,
       icon: "/pwa-icon-192.png",
       badge: "/pwa-icon-192.png",
-      tag: `sale-${sale_id || Date.now()}`,
+      tag: `sale-${saleId}`,
       url: "/admin",
     };
 
@@ -422,7 +440,7 @@ Deno.serve(async (req) => {
       error_message: string | null;
     }> = [];
 
-    await Promise.all((subs ?? []).map(async (s: any) => {
+    await Promise.all(uniqueSubs.map(async (s: any) => {
       let host = "";
       try {
         host = new URL(s.endpoint).host;
@@ -460,13 +478,22 @@ Deno.serve(async (req) => {
 
     if (stale.length) await supabase.from("push_subscriptions").delete().in("id", stale);
 
-    // Se nenhum push foi entregue, libera o claim para permitir retry futuro.
-    if (sale_id && sent === 0 && failed > 0) {
-      await supabase
+    if (sent > 0) {
+      const { data: markedSale, error: markErr } = await supabase
         .from("sales")
-        .update({ push_sent_at: null })
-        .eq("id", String(sale_id));
-      console.log(`[send-sale-notification] claim liberado (sent=0, failed=${failed}) sale_id=${sale_id}`);
+        .update({ push_sent_at: new Date().toISOString() })
+        .eq("id", saleId)
+        .is("push_sent_at", null)
+        .select("id, push_sent_at")
+        .maybeSingle();
+
+      if (markErr) {
+        console.error(`[send-sale-notification] falha ao atualizar push_sent_at sale_id=${saleId}`, markErr);
+      } else if (!markedSale) {
+        console.log(`[send-sale-notification] push_sent_at já preenchido por outra execução sale_id=${saleId}`);
+      } else {
+        console.log(`[send-sale-notification] push_sent_at preenchido sale_id=${saleId}`);
+      }
     }
 
     const emailResult = await emailPromise;
