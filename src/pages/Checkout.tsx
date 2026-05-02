@@ -755,7 +755,7 @@ const Checkout = () => {
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
               <Button
-                className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base ${shippingToCombine && !checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30" : ""}`}
+                className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base ${!checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30 motion-reduce:animate-none" : ""}`}
                 size="lg"
                 onClick={shippingToCombine ? handleCalcularFreteWhatsApp : handleFinalize}
                 disabled={checkoutLoading}
