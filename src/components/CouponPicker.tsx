@@ -85,11 +85,11 @@ const CouponPicker = () => {
                       setExpanded(false);
                     }}
                     className={cn(
-                      "min-w-0 rounded-xl border-2 px-2 py-2 flex flex-col items-start gap-0.5 transition-all text-left",
+                      "min-w-0 rounded-xl border-2 px-2 py-2 flex flex-col items-start gap-0.5 transition-all text-left motion-reduce:animate-none",
                       isCurrent
                         ? "border-emerald-500 bg-emerald-500"
                         : eligible
-                          ? "border-transparent bg-white dark:bg-background hover:border-orange-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                          ? "border-transparent bg-white dark:bg-background animate-coupon-pulse hover:[animation-play-state:paused] hover:scale-[1.07] hover:border-orange-400 hover:shadow-md active:scale-[0.98] cursor-pointer"
                           : "border-dashed border-border bg-white/60 dark:bg-background/60 opacity-60 cursor-not-allowed",
                     )}
                     title={!eligible && !isCurrent ? `Adicione mais ${c.min_quantity - totalItems} para ativar` : undefined}
@@ -176,9 +176,9 @@ const CouponPicker = () => {
                   disabled={!eligible}
                   onClick={() => eligible && applyCoupon(c)}
                   className={cn(
-                    "min-w-0 rounded-xl bg-white dark:bg-background border-2 px-2 py-2 flex flex-col items-start gap-0.5 transition-all text-left",
+                    "min-w-0 rounded-xl bg-white dark:bg-background border-2 px-2 py-2 flex flex-col items-start gap-0.5 transition-all text-left motion-reduce:animate-none",
                     eligible
-                      ? "border-transparent hover:border-orange-400 hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                      ? "border-transparent animate-coupon-pulse hover:[animation-play-state:paused] hover:scale-[1.07] hover:border-orange-400 hover:shadow-md active:scale-[0.98] cursor-pointer"
                       : "border-dashed border-border opacity-60 cursor-not-allowed",
                   )}
                   title={!eligible ? `Adicione mais ${c.min_quantity - totalItems} para ativar` : undefined}
