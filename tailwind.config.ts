@@ -113,6 +113,16 @@ export default {
             boxShadow: "0 8px 20px -4px hsl(24 95% 53% / 0.25)",
           },
         },
+        "checkout-pulse": {
+          "0%, 100%": {
+            transform: "scale(1)",
+            boxShadow: "0 4px 12px -2px hsl(var(--primary) / 0.35)",
+          },
+          "50%": {
+            transform: "scale(1.04)",
+            boxShadow: "0 12px 28px -4px hsl(var(--primary) / 0.55)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
