@@ -13,6 +13,7 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface ViaCepResponse {
   cep: string;
