@@ -13,6 +13,7 @@ import { useCoupon } from "@/hooks/useCoupon";
 import { calculateCouponDiscount } from "@/lib/couponDiscount";
 import { useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 interface ViaCepResponse {
   cep: string;
@@ -755,7 +756,10 @@ const Checkout = () => {
                 <ChevronLeft className="w-4 h-4" /> Voltar
               </Button>
               <Button
-                className={`flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base ${!checkoutLoading ? "animate-soft-pulse shadow-lg shadow-primary/30 motion-reduce:animate-none" : ""}`}
+                className={cn(
+                  "flex-1 min-w-0 gap-2 px-3 text-sm sm:text-base will-change-transform motion-reduce:animate-none",
+                  !checkoutLoading && "animate-checkout-pulse",
+                )}
                 size="lg"
                 onClick={shippingToCombine ? handleCalcularFreteWhatsApp : handleFinalize}
                 disabled={checkoutLoading}
