@@ -103,6 +103,16 @@ export default {
           "0%, 100%": { transform: "scale(1)", boxShadow: "0 0 0 0 hsl(var(--primary) / 0.45)" },
           "50%": { transform: "scale(1.025)", boxShadow: "0 0 0 10px hsl(var(--primary) / 0)" },
         },
+        "coupon-pulse": {
+          "0%, 100%": {
+            transform: "scale(1)",
+            boxShadow: "0 1px 2px 0 hsl(24 95% 53% / 0.08)",
+          },
+          "50%": {
+            transform: "scale(1.05)",
+            boxShadow: "0 8px 20px -4px hsl(24 95% 53% / 0.25)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +121,7 @@ export default {
         "nudge-right": "nudge-right 1.8s ease-in-out infinite",
         "nudge-left": "nudge-left 1.8s ease-in-out infinite",
         "soft-pulse": "soft-pulse 1.8s ease-in-out infinite",
+        "coupon-pulse": "coupon-pulse 1.8s ease-in-out infinite",
       },
     },
   },
