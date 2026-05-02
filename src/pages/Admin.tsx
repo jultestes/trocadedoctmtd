@@ -25,8 +25,10 @@ const Admin = () => {
   const [tab, setTab] = useState<Tab>("overview");
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [soundBlocked, setSoundBlocked] = useState(false);
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const unlockedRef = useRef(false);
   const PLAYED_KEY = "admin_new_sale_alert_played";
 
   const getPlayedIds = (): Set<string> => {
@@ -54,10 +56,60 @@ const Admin = () => {
     return true;
   }, []);
 
+  // Cria o objeto Audio uma vez
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/sale-notification.mp3");
-    audioRef.current.preload = "auto";
+    const a = new Audio("/sounds/sale-notification.mp3");
+    a.preload = "auto";
+    a.volume = 1;
+    audioRef.current = a;
   }, []);
+
+  // Destrava o áudio no primeiro gesto do usuário (necessário em browsers modernos)
+  useEffect(() => {
+    const unlock = () => {
+      const a = audioRef.current;
+      if (!a || unlockedRef.current) return;
+      a.muted = true;
+      a.play()
+        .then(() => {
+          a.pause();
+          a.currentTime = 0;
+          a.muted = false;
+          unlockedRef.current = true;
+          setSoundBlocked(false);
+          window.removeEventListener("click", unlock);
+          window.removeEventListener("touchstart", unlock);
+          window.removeEventListener("keydown", unlock);
+        })
+        .catch(() => {
+          a.muted = false;
+        });
+    };
+    window.addEventListener("click", unlock);
+    window.addEventListener("touchstart", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("touchstart", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  const enableSoundManually = useCallback(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.play()
+      .then(() => {
+        a.pause();
+        a.currentTime = 0;
+        unlockedRef.current = true;
+        setSoundBlocked(false);
+        toast({ title: "🔔 Som ativado", description: "Você ouvirá novas vendas." });
+      })
+      .catch((err) => {
+        console.error("[admin-sound] falha ao ativar som:", err);
+      });
+  }, [toast]);
 
   const triggerAlert = useCallback(
     (sale: { id: string; order_nsu?: string | null; total_original?: number | null; total_paid?: number | null }) => {
@@ -73,9 +125,22 @@ const Admin = () => {
         title: "🛒 Nova venda recebida!",
         description: `Pedido #${pedido}${valorFmt ? ` — ${valorFmt}` : ""}`,
       });
+
+      const a = audioRef.current;
+      if (!a) return;
       try {
-        audioRef.current?.play().catch(() => {});
-      } catch {}
+        a.currentTime = 0;
+        const p = a.play();
+        if (p && typeof p.then === "function") {
+          p.catch((err) => {
+            console.warn("[admin-sound] play bloqueado:", err);
+            setSoundBlocked(true);
+          });
+        }
+      } catch (err) {
+        console.warn("[admin-sound] erro ao tocar:", err);
+        setSoundBlocked(true);
+      }
     },
     [toast, markPlayed]
   );
@@ -100,6 +165,7 @@ const Admin = () => {
     };
   }, [triggerAlert]);
 
+
   const tabs = [
     { id: "overview" as Tab, label: "Visão Geral", icon: BarChart3 },
     { id: "products" as Tab, label: "Produtos", icon: Package },
@@ -121,6 +187,14 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-muted">
+      {soundBlocked && (
+        <button
+          onClick={enableSoundManually}
+          className="fixed top-3 right-3 z-[60] bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 rounded-lg shadow-lg hover:bg-primary/90 animate-pulse"
+        >
+          🔔 Ativar som de novas vendas
+        </button>
+      )}
       <div className="flex">
         <aside className={`${sidebarWidth} bg-card border-r border-border min-h-screen p-3 hidden md:flex flex-col fixed top-0 left-0 z-40 transition-all duration-200`}>
           <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
