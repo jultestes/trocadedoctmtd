@@ -132,6 +132,7 @@ export default {
         "nudge-left": "nudge-left 1.8s ease-in-out infinite",
         "soft-pulse": "soft-pulse 1.8s ease-in-out infinite",
         "coupon-pulse": "coupon-pulse 1.8s ease-in-out infinite",
+        "checkout-pulse": "checkout-pulse 1.6s ease-in-out infinite",
       },
     },
   },
