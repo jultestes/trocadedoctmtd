@@ -187,6 +187,14 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-muted">
+      {soundBlocked && (
+        <button
+          onClick={enableSoundManually}
+          className="fixed top-3 right-3 z-[60] bg-primary text-primary-foreground text-xs font-semibold px-3 py-2 rounded-lg shadow-lg hover:bg-primary/90 animate-pulse"
+        >
+          🔔 Ativar som de novas vendas
+        </button>
+      )}
       <div className="flex">
         <aside className={`${sidebarWidth} bg-card border-r border-border min-h-screen p-3 hidden md:flex flex-col fixed top-0 left-0 z-40 transition-all duration-200`}>
           <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
