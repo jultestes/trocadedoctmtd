@@ -418,15 +418,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Buscar TODAS as subscriptions (admins são quem se inscreve)
+    // Buscar TODAS as subscriptions (admins são quem se inscreve).
+    // Ordena pelo mais recente para que a deduplicação por user_id mantenha
+    // somente a inscrição mais nova de cada usuário/dispositivo.
     const { data: subs, error: subsErr } = await supabase
       .from("push_subscriptions")
-      .select("id, endpoint, p256dh, auth");
+      .select("id, endpoint, p256dh, auth, user_id, last_used_at, created_at")
+      .order("last_used_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false, nullsFirst: false });
     if (subsErr) throw subsErr;
 
-    const uniqueSubs = Array.from(
+    // Dedup por endpoint (proteção básica)
+    const byEndpoint = Array.from(
       new Map((subs ?? []).map((s: any) => [s.endpoint, s])).values()
     );
+    // Dedup por user_id — mantém apenas a inscrição mais recente por usuário,
+    // evitando notificações duplicadas quando o mesmo admin tem várias entradas.
+    const seenUsers = new Set<string>();
+    const uniqueSubs = byEndpoint.filter((s: any) => {
+      if (!s.user_id) return true;
+      if (seenUsers.has(s.user_id)) return false;
+      seenUsers.add(s.user_id);
+      return true;
+    });
 
     const subscriptions_found = uniqueSubs.length;
     console.log(`[send-sale-notification] subscriptions_found=${subscriptions_found}`);
