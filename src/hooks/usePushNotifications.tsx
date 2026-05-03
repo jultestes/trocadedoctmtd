@@ -108,6 +108,14 @@ export function usePushNotifications() {
         { onConflict: "endpoint" }
       );
 
+      // Remove inscrições antigas deste mesmo usuário com endpoints diferentes
+      // (evita notificações duplicadas no mesmo dispositivo após re-inscrição).
+      await (supabase as any)
+        .from("push_subscriptions")
+        .delete()
+        .eq("user_id", user.id)
+        .neq("endpoint", endpoint);
+
       setSubscribed(true);
     } finally {
       setBusy(false);
