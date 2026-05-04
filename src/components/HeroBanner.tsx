@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { BannerSlide } from "@/components/admin/layout/types";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getOptimizedImageUrl, isTransformableImage } from "@/lib/image";
 
 interface HeroBannerProps {
   banners?: BannerSlide[];
