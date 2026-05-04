@@ -50,19 +50,35 @@ const HeroBanner = ({ banners }: HeroBannerProps) => {
   return (
     <section className="relative w-full overflow-hidden" style={{ aspectRatio: currentAspect }}>
       {slides.map((slide, i) => {
+        // Only render current slide + immediate neighbors (preload). Skip the rest entirely.
+        const isActive = i === current;
+        const isNeighbor =
+          slides.length > 1 &&
+          (i === (current + 1) % slides.length || i === (current - 1 + slides.length) % slides.length);
+        if (!isActive && !isNeighbor) return null;
+
         const slideAspect =
           (isMobile ? slide.aspect_mobile : slide.aspect_desktop) ||
           (isMobile ? "4/5" : "16/5");
+        const rawUrl = getImageUrl(slide) || "";
+        // Optimize Supabase-hosted banner images via render endpoint (huge win for big hero files)
+        const optimizedUrl = isTransformableImage(rawUrl)
+          ? getOptimizedImageUrl(rawUrl, {
+              width: isMobile ? 720 : 1600,
+              quality: 70,
+              resize: "cover",
+            })
+          : rawUrl;
         return (
         <div
           key={i}
-          className={`${i === current ? "relative" : "absolute inset-0"} transition-opacity duration-700 ${i === current ? "opacity-100" : "opacity-0 pointer-events-none"} ${slide.clickable && slide.link ? "cursor-pointer" : ""}`}
+          className={`${isActive ? "relative" : "absolute inset-0"} transition-opacity duration-700 ${isActive ? "opacity-100" : "opacity-0 pointer-events-none"} ${slide.clickable && slide.link ? "cursor-pointer" : ""}`}
           style={{ aspectRatio: slideAspect }}
-          onClick={() => handleBannerClick(slide)}
+          onClick={() => isActive && handleBannerClick(slide)}
         >
-          {getImageUrl(slide) ? (
+          {rawUrl ? (
             <img
-              src={getImageUrl(slide) || ""}
+              src={optimizedUrl}
               alt={slide.title}
               className="w-full h-full object-cover block"
               loading={i === 0 ? "eager" : "lazy"}
