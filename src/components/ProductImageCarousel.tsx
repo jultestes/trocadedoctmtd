@@ -42,10 +42,15 @@ const ProductImageCarousel = memo(({
     dragFree: false,
   });
   const [selected, setSelected] = useState(0);
+  // Defer loading of secondary images until user interacts (hover/touch/scroll)
+  const [loadAll, setLoadAll] = useState(false);
 
   useEffect(() => {
     if (!emblaApi) return;
-    const onSelect = () => setSelected(emblaApi.selectedScrollSnap());
+    const onSelect = () => {
+      setSelected(emblaApi.selectedScrollSnap());
+      setLoadAll(true);
+    };
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
     onSelect();
@@ -60,39 +65,51 @@ const ProductImageCarousel = memo(({
   }
 
   return (
-    <div className={`relative group/carousel h-full w-full ${className}`}>
+    <div
+      className={`relative group/carousel h-full w-full ${className}`}
+      onPointerEnter={() => setLoadAll(true)}
+      onTouchStart={() => setLoadAll(true)}
+    >
       <div ref={emblaRef} className="overflow-hidden h-full w-full">
         <div className="flex h-full">
-          {validImages.map((src, i) => (
+          {validImages.map((src, i) => {
+            // Only first image renders immediately; others render after interaction
+            const shouldRender = i === 0 || loadAll;
+            return (
             <div
               key={i}
               className="relative shrink-0 grow-0 basis-full h-full"
               onClick={onImageClick}
             >
-              {optimized ? (
-                <OptimizedImage
-                  src={src}
-                  alt={alt}
-                  className="w-full h-full object-cover"
-                  sizes={sizes}
-                  widths={[220, 360, 480]}
-                  transformWidth={360}
-                  quality={45}
-                  loading={eager && i === 0 ? "eager" : "lazy"}
-                  fetchPriority={eager && i === 0 ? "high" : "low"}
-                  decoding="async"
-                />
+              {shouldRender ? (
+                optimized ? (
+                  <OptimizedImage
+                    src={src}
+                    alt={alt}
+                    className="w-full h-full object-cover"
+                    sizes={sizes}
+                    widths={[220, 360]}
+                    transformWidth={320}
+                    quality={45}
+                    loading={eager && i === 0 ? "eager" : "lazy"}
+                    fetchPriority={eager && i === 0 ? "high" : "low"}
+                    decoding="async"
+                  />
+                ) : (
+                  <img
+                    src={src}
+                    alt={alt}
+                    className="w-full h-full object-cover"
+                    loading={eager && i === 0 ? "eager" : "lazy"}
+                    decoding="async"
+                  />
+                )
               ) : (
-                <img
-                  src={src}
-                  alt={alt}
-                  className="w-full h-full object-cover"
-                  loading={eager && i === 0 ? "eager" : "lazy"}
-                  decoding="async"
-                />
+                <div className="w-full h-full bg-muted/30" />
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
