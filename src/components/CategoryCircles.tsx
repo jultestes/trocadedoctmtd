@@ -38,16 +38,17 @@ const Circle = ({ item }: { item: CategoryCircle }) => {
       className="group flex flex-col items-center gap-3 snap-start shrink-0"
     >
       <div className="relative pb-3 md:pb-4">
-        <div
-          className="relative w-24 h-24 md:w-[160px] md:h-[160px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300"
-          style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
-        >
+        <div className="relative w-24 h-24 md:w-[160px] md:h-[160px] overflow-visible">
+          <div
+            className="absolute inset-0 rounded-full ring-2 ring-white shadow-md group-hover:shadow-lg transition-all duration-300"
+            style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
+          />
           {item.image_url && (
             <img
               src={item.image_url}
               alt={item.title}
               loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[125%] h-[125%] object-contain object-bottom pointer-events-none group-hover:scale-105 transition-transform duration-300"
             />
           )}
         </div>
