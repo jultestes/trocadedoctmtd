@@ -28,29 +28,46 @@ const DEFAULT_ITEMS: CategoryCircle[] = [
   { title: "Vestidos", link: "/categoria/vestidos", bg_color: "10 80% 92%", active: true },
 ];
 
-const Circle = ({ item }: { item: CategoryCircle }) => (
-  <Link
-    to={item.link || "/"}
-    className="group flex flex-col items-center gap-3 snap-start shrink-0"
-  >
-    <div
-      className="relative w-24 h-24 md:w-[160px] md:h-[160px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300"
-      style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
+const Circle = ({ item }: { item: CategoryCircle }) => {
+  const vip = isVipItem(item.title);
+  return (
+    <Link
+      to={item.link || "/"}
+      target={vip && item.link?.startsWith("http") ? "_blank" : undefined}
+      rel={vip && item.link?.startsWith("http") ? "noopener noreferrer" : undefined}
+      className="group flex flex-col items-center gap-3 snap-start shrink-0"
     >
-      {item.image_url && (
-        <img
-          src={item.image_url}
-          alt={item.title}
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      )}
-    </div>
-    <span className="text-[11px] md:text-base font-semibold text-foreground text-center leading-tight whitespace-nowrap">
-      {item.title}
-    </span>
-  </Link>
-);
+      <div className="relative pb-3 md:pb-4">
+        <div
+          className="relative w-24 h-24 md:w-[160px] md:h-[160px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300"
+          style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
+        >
+          {item.image_url && (
+            <img
+              src={item.image_url}
+              alt={item.title}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+        </div>
+        {vip && (
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex items-center gap-1 md:gap-1.5 bg-primary text-primary-foreground rounded-full pl-2 pr-1 py-0.5 md:pl-3 md:pr-1 md:py-1 shadow-md whitespace-nowrap">
+            <span className="text-[8px] md:text-[11px] font-bold tracking-wide uppercase leading-none">
+              Ofertas Exclusivas
+            </span>
+            <span className="flex items-center justify-center w-3.5 h-3.5 md:w-5 md:h-5 rounded-full bg-primary-foreground/20">
+              <WhatsAppIcon className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" />
+            </span>
+          </div>
+        )}
+      </div>
+      <span className="text-[11px] md:text-base font-semibold text-foreground text-center leading-tight whitespace-nowrap">
+        {item.title}
+      </span>
+    </Link>
+  );
+};
 
 const CategoryCircles = ({ title, items }: CategoryCirclesProps) => {
   const list = (items && items.length > 0 ? items : DEFAULT_ITEMS).filter((i) => i.active !== false);
