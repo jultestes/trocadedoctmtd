@@ -610,3 +610,70 @@ function MiniBannersEditor({
     </div>
   );
 }
+
+/* ─── Category Circles Sub-Editor ─── */
+function CategoryCirclesEditor({
+  title, items, onChangeTitle, onChange,
+}: {
+  title: string;
+  items: CategoryCircle[];
+  onChangeTitle: (t: string) => void;
+  onChange: (i: CategoryCircle[]) => void;
+}) {
+  const update = (idx: number, key: keyof CategoryCircle, value: any) => {
+    const next = [...items];
+    next[idx] = { ...next[idx], [key]: value };
+    onChange(next);
+  };
+  const add = () => onChange([...items, { title: "Novo", link: "/", bg_color: "199 80% 90%", active: true }]);
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+  const move = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= items.length) return;
+    const n = [...items];
+    [n[idx], n[j]] = [n[j], n[idx]];
+    onChange(n);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Título da seção (opcional)</label>
+        <Input
+          placeholder="Ex: Categorias"
+          value={title}
+          onChange={(e) => onChangeTitle(e.target.value)}
+          className="h-7 text-xs mt-1"
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          Atalhos ({items.length})
+        </label>
+        <Button size="sm" variant="outline" onClick={add} className="h-6 text-[10px] gap-1">
+          <Plus className="w-3 h-3" /> Adicionar
+        </Button>
+      </div>
+      {items.map((item, i) => (
+        <div key={i} className="border border-border rounded-lg p-2 space-y-2 bg-muted/20">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] font-semibold text-muted-foreground">Atalho {i + 1}</span>
+            <div className="flex items-center gap-1">
+              <button disabled={i === 0} onClick={() => move(i, -1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowUp className="w-3 h-3"/></button>
+              <button disabled={i === items.length-1} onClick={() => move(i, 1)} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ArrowDown className="w-3 h-3"/></button>
+              <Switch checked={item.active !== false} onCheckedChange={(v) => update(i, "active", v)} />
+              <button onClick={() => remove(i)} className="text-muted-foreground hover:text-destructive ml-1"><Trash2 className="w-3 h-3"/></button>
+            </div>
+          </div>
+          <ImageUploader value={item.image_url || ""} onChange={(url) => update(i, "image_url", url)} folder="banners" label="Imagem circular (opcional)" />
+          <Input placeholder="Nome" value={item.title} onChange={(e) => update(i, "title", e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="Link (ex: /categoria/meninas)" value={item.link} onChange={(e) => update(i, "link", e.target.value)} className="h-7 text-xs" />
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
+            <ColorPickerField value={item.bg_color ?? ""} onChange={(v) => update(i, "bg_color", v)} size="sm" placeholder="199 80% 90%" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
