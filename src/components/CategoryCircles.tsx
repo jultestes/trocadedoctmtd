@@ -19,10 +19,10 @@ const DEFAULT_ITEMS: CategoryCircle[] = [
 const Circle = ({ item }: { item: CategoryCircle }) => (
   <Link
     to={item.link || "/"}
-    className="group flex flex-col items-center gap-2 snap-start shrink-0"
+    className="group flex flex-col items-center gap-3 snap-start shrink-0"
   >
     <div
-      className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden ring-2 ring-white shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300"
+      className="relative w-24 h-24 md:w-[160px] md:h-[160px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300"
       style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
     >
       {item.image_url && (
@@ -34,7 +34,7 @@ const Circle = ({ item }: { item: CategoryCircle }) => (
         />
       )}
     </div>
-    <span className="text-xs md:text-sm font-medium text-foreground text-center max-w-[5.5rem] md:max-w-[6.5rem] truncate">
+    <span className="text-sm md:text-base font-semibold text-foreground text-center max-w-[6rem] md:max-w-[10rem] truncate">
       {item.title}
     </span>
   </Link>
@@ -45,16 +45,16 @@ const CategoryCircles = ({ title, items }: CategoryCirclesProps) => {
   if (list.length === 0) return null;
 
   return (
-    <section className="py-6 md:py-10 bg-background">
+    <section className="py-4 md:py-6 bg-background">
       <div className="container">
         {title && (
-          <h2 className="text-base md:text-xl font-heading font-bold text-foreground text-center mb-4 md:mb-6">
+          <h2 className="text-base md:text-xl font-heading font-bold text-foreground text-center mb-4 md:mb-5">
             {title}
           </h2>
         )}
 
         {/* Desktop: linha centralizada */}
-        <div className="hidden md:flex items-start justify-center gap-8 flex-wrap">
+        <div className="hidden md:flex items-start justify-center gap-10 lg:gap-14 flex-wrap">
           {list.map((item, i) => <Circle key={i} item={item} />)}
         </div>
 
