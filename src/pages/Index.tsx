@@ -11,6 +11,7 @@ import PromoStrip from "@/components/PromoStrip";
 import ShortcutCards from "@/components/ShortcutCards";
 import SecondaryBanner from "@/components/SecondaryBanner";
 import MiniBanners from "@/components/MiniBanners";
+import CategoryCircles from "@/components/CategoryCircles";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import type { LayoutSection } from "@/components/admin/layout/types";
@@ -51,6 +52,8 @@ const renderSection = (section: LayoutSection, gridIndex: { current: number }) =
       return <SecondaryBanner {...(section.props || {})} />;
     case "mini_banners":
       return <MiniBanners items={section.props?.items} />;
+    case "category_circles":
+      return <CategoryCircles title={section.props?.title} items={section.props?.items} />;
     case "spacer":
       return <div style={{ height: `${section.props?.height || 40}px` }} />;
     default:

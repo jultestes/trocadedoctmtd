@@ -143,6 +143,30 @@ export default function PreviewBlock({ section, isSelected, onClick }: PreviewBl
           </div>
         </div>
       );
+    case "category_circles": {
+      const items = (props.items || []).filter((i: any) => i.active !== false);
+      return (
+        <div className={wrapperClass} onClick={onClick}>
+          {overlay}
+          <div className="py-4 px-6 bg-card rounded-lg">
+            {props.title && <p className="text-sm font-bold text-center mb-3">{props.title}</p>}
+            <div className="flex gap-3 justify-center flex-wrap">
+              {(items.length ? items : [1,2,3,4,5,6]).slice(0, 8).map((it: any, i: number) => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <div
+                    className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-white shadow-sm"
+                    style={{ backgroundColor: it?.bg_color ? `hsl(${it.bg_color})` : "hsl(var(--muted))" }}
+                  >
+                    {it?.image_url && <img src={it.image_url} alt="" className="w-full h-full object-cover" />}
+                  </div>
+                  <span className="text-[9px] text-muted-foreground truncate max-w-[3.5rem]">{it?.title || "—"}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
     default:
       return <div className="bg-muted h-16 rounded-lg" />;
   }

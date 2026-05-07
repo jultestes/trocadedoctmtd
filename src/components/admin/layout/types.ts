@@ -9,7 +9,16 @@ export type SectionType =
   | "shortcut_cards"
   | "secondary_banner"
   | "mini_banners"
+  | "category_circles"
   | "spacer";
+
+export interface CategoryCircle {
+  title: string;
+  image_url?: string;
+  link: string;
+  bg_color?: string;
+  active?: boolean;
+}
 
 export type MiniBannerWidth = "full" | "two_thirds" | "half" | "third";
 
