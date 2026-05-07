@@ -19,10 +19,10 @@ const DEFAULT_ITEMS: CategoryCircle[] = [
 const Circle = ({ item }: { item: CategoryCircle }) => (
   <Link
     to={item.link || "/"}
-    className="group flex flex-col items-center gap-2 snap-start shrink-0"
+    className="group flex flex-col items-center gap-3 snap-start shrink-0"
   >
     <div
-      className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden ring-2 ring-white shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300"
+      className="relative w-24 h-24 md:w-[160px] md:h-[160px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300"
       style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
     >
       {item.image_url && (
