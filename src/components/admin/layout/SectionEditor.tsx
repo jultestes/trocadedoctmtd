@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Settings2, X, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { sectionLabel } from "./constants";
-import type { LayoutSection, BannerSlide, FeatureItem, PromoStripItem, ShortcutCard, SecondaryBannerSlide, MiniBannerItem, MiniBannerWidth } from "./types";
+import type { LayoutSection, BannerSlide, FeatureItem, PromoStripItem, ShortcutCard, SecondaryBannerSlide, MiniBannerItem, MiniBannerWidth, CategoryCircle } from "./types";
 import { DEFAULT_FEATURES, DEFAULT_BANNERS } from "./constants";
 import {
   HERO_ASPECT_PRESETS_DESKTOP, HERO_ASPECT_PRESETS_MOBILE,
@@ -166,6 +166,16 @@ export default function SectionEditor({ section, onUpdateProps, onClose }: Secti
       {section.type === "mini_banners" && (
         <MiniBannersEditor
           items={props.items || []}
+          onChange={(items) => updateProp("items", items)}
+        />
+      )}
+
+      {/* ─── Category Circles Editor ─── */}
+      {section.type === "category_circles" && (
+        <CategoryCirclesEditor
+          title={props.title || ""}
+          items={props.items || []}
+          onChangeTitle={(t) => updateProp("title", t)}
           onChange={(items) => updateProp("items", items)}
         />
       )}
