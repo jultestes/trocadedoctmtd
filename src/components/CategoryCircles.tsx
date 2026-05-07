@@ -48,7 +48,7 @@ const Circle = ({ item }: { item: CategoryCircle }) => {
               src={item.image_url}
               alt={item.title}
               loading="lazy"
-              className="absolute left-1/2 bottom-0 -translate-x-1/2 w-[125%] h-[125%] object-contain object-bottom pointer-events-none group-hover:scale-105 transition-transform duration-300"
+              className="absolute left-1/2 bottom-0 -translate-x-1/2 h-[115%] w-auto max-w-none object-contain object-bottom pointer-events-none group-hover:scale-[1.03] transition-transform duration-300"
             />
           )}
         </div>
