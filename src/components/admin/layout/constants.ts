@@ -43,6 +43,20 @@ export const SECTION_CATALOG: {
       ],
     },
   },
+  {
+    type: "category_circles", label: "Atalhos Circulares", icon: React.createElement(LayoutGrid, { className: "w-5 h-5" }),
+    defaultProps: {
+      title: "",
+      items: [
+        { title: "Meninas", link: "/categoria/meninas", bg_color: "332 80% 92%", active: true },
+        { title: "Meninos", link: "/categoria/meninos", bg_color: "199 80% 90%", active: true },
+        { title: "Promoções", link: "/categoria/promocoes", bg_color: "45 90% 88%", active: true },
+        { title: "Pijamas", link: "/categoria/pijamas", bg_color: "271 60% 92%", active: true },
+        { title: "Conjuntos", link: "/categoria/conjuntos", bg_color: "150 50% 88%", active: true },
+        { title: "Vestidos", link: "/categoria/vestidos", bg_color: "10 80% 92%", active: true },
+      ],
+    },
+  },
   { type: "size_selector", label: "Seletor de Tamanhos", icon: React.createElement(LayoutGrid, { className: "w-5 h-5" }) },
   {
     type: "product_grid", label: "Grade de Produtos", icon: React.createElement(ShoppingBag, { className: "w-5 h-5" }),
@@ -94,6 +108,14 @@ export const DEFAULT_LAYOUT: LayoutSection[] = [
   { id: "features_bar_1", type: "features_bar", visible: true, props: { features: DEFAULT_FEATURES() } },
   { id: "promo_strip_1", type: "promo_strip", visible: true, props: { items: [{ text: "3 conjuntos por R$100", link: "/categoria/meninas" }, { text: "5 peças por R$150", link: "/categoria/meninos" }] } },
   { id: "shortcut_cards_1", type: "shortcut_cards", visible: true },
+  { id: "category_circles_1", type: "category_circles", visible: true, props: { items: [
+    { title: "Meninas", link: "/categoria/meninas", bg_color: "332 80% 92%", active: true },
+    { title: "Meninos", link: "/categoria/meninos", bg_color: "199 80% 90%", active: true },
+    { title: "Promoções", link: "/categoria/promocoes", bg_color: "45 90% 88%", active: true },
+    { title: "Pijamas", link: "/categoria/pijamas", bg_color: "271 60% 92%", active: true },
+    { title: "Conjuntos", link: "/categoria/conjuntos", bg_color: "150 50% 88%", active: true },
+    { title: "Vestidos", link: "/categoria/vestidos", bg_color: "10 80% 92%", active: true },
+  ] } },
   { id: "size_selector_1", type: "size_selector", visible: true },
   { id: "product_grid_meninas", type: "product_grid", visible: true, props: { title: "Meninas", category: "meninas", product_ids: [], max_count: "10" } },
   { id: "secondary_banner_1", type: "secondary_banner", visible: true, props: { slides: [{ title: "Promoção Especial", subtitle: "Aproveite os melhores preços", cta_text: "Ver agora", link: "/categoria/meninas", bg_color: "332 60% 80%", active: true }] } },
