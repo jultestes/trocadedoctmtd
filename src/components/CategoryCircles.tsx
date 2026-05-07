@@ -34,7 +34,7 @@ const Circle = ({ item }: { item: CategoryCircle }) => (
         />
       )}
     </div>
-    <span className="text-xs md:text-sm font-medium text-foreground text-center max-w-[5.5rem] md:max-w-[6.5rem] truncate">
+    <span className="text-sm md:text-base font-semibold text-foreground text-center max-w-[6rem] md:max-w-[10rem] truncate">
       {item.title}
     </span>
   </Link>
