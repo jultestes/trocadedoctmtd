@@ -45,16 +45,16 @@ const CategoryCircles = ({ title, items }: CategoryCirclesProps) => {
   if (list.length === 0) return null;
 
   return (
-    <section className="py-6 md:py-10 bg-background">
+    <section className="py-4 md:py-6 bg-background">
       <div className="container">
         {title && (
-          <h2 className="text-base md:text-xl font-heading font-bold text-foreground text-center mb-4 md:mb-6">
+          <h2 className="text-base md:text-xl font-heading font-bold text-foreground text-center mb-4 md:mb-5">
             {title}
           </h2>
         )}
 
         {/* Desktop: linha centralizada */}
-        <div className="hidden md:flex items-start justify-center gap-8 flex-wrap">
+        <div className="hidden md:flex items-start justify-center gap-10 lg:gap-14 flex-wrap">
           {list.map((item, i) => <Circle key={i} item={item} />)}
         </div>
 
