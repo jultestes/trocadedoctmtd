@@ -226,6 +226,38 @@ export default function SectionEditor({ section, onUpdateProps, onClose }: Secti
         </div>
       )}
 
+      {/* ─── Image Banner Editor ─── */}
+      {section.type === "image_banner" && (
+        <div className="space-y-3">
+          <ImageUploader
+            value={props.image_url || ""}
+            onChange={(url) => updateProp("image_url", url)}
+            folder="banners"
+            label="Imagem Desktop"
+          />
+          <ImageUploader
+            value={props.image_url_mobile || ""}
+            onChange={(url) => updateProp("image_url_mobile", url)}
+            folder="banners"
+            label="Imagem Mobile (opcional)"
+          />
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Texto alternativo (alt)</label>
+            <Input value={props.alt ?? ""} onChange={(e) => updateProp("alt", e.target.value)} className="h-8 text-xs mt-1" placeholder="Ex: Promoção de verão" />
+          </div>
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Banner clicável</label>
+            <Switch checked={!!props.clickable} onCheckedChange={(v) => updateProp("clickable", v)} />
+          </div>
+          {props.clickable && (
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Link de destino</label>
+              <Input value={props.link ?? ""} onChange={(e) => updateProp("link", e.target.value)} className="h-8 text-xs mt-1" placeholder="Ex: /categoria/promocoes" />
+            </div>
+          )}
+        </div>
+      )}
+
       {["size_selector", "brands_carousel"].includes(section.type) && (
         <p className="text-xs text-muted-foreground italic">Essa seção não tem opções editáveis.</p>
       )}

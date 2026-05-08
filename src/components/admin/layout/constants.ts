@@ -98,6 +98,10 @@ export const SECTION_CATALOG: {
       accent_color_2: "271 60% 65%",
     },
   },
+  {
+    type: "image_banner", label: "Faixa de Imagem (upload)", icon: React.createElement(Image, { className: "w-5 h-5" }),
+    defaultProps: { image_url: "", image_url_mobile: "", alt: "", link: "", clickable: false },
+  },
   { type: "spacer", label: "Espaçador", icon: React.createElement(Layers, { className: "w-5 h-5" }), defaultProps: { height: "40" } },
 ];
 

@@ -184,6 +184,21 @@ export default function PreviewBlock({ section, isSelected, onClick }: PreviewBl
           </div>
         </div>
       );
+    case "image_banner": {
+      const src = props.image_url || props.image_url_mobile;
+      return (
+        <div className={wrapperClass} onClick={onClick}>
+          {overlay}
+          {src ? (
+            <img src={src} alt="" className="w-full h-auto rounded-lg block" />
+          ) : (
+            <div className="h-24 rounded-lg bg-muted/30 border border-dashed border-muted-foreground/30 flex items-center justify-center text-xs text-muted-foreground gap-2">
+              <Image className="w-4 h-4" /> Faixa de Imagem (envie uma imagem)
+            </div>
+          )}
+        </div>
+      );
+    }
     default:
       return <div className="bg-muted h-16 rounded-lg" />;
   }
