@@ -12,13 +12,14 @@ import ShortcutCards from "@/components/ShortcutCards";
 import SecondaryBanner from "@/components/SecondaryBanner";
 import MiniBanners from "@/components/MiniBanners";
 import CategoryCircles from "@/components/CategoryCircles";
+import FreeShippingBar from "@/components/FreeShippingBar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import type { LayoutSection } from "@/components/admin/layout/types";
 import { DEFAULT_LAYOUT } from "@/components/admin/layout/constants";
 
 // Tipos de seção que NÃO devem receber wrapper alternado (já têm largura total ou bg próprio)
-const FULL_BLEED_TYPES = new Set(["hero_banner", "promo_strip", "spacer"]);
+const FULL_BLEED_TYPES = new Set(["hero_banner", "promo_strip", "free_shipping_bar", "spacer"]);
 
 const renderSection = (section: LayoutSection, gridIndex: { current: number }) => {
   if (!section.visible) return null;
@@ -44,6 +45,8 @@ const renderSection = (section: LayoutSection, gridIndex: { current: number }) =
       return <FeaturesBar features={section.props?.features} />;
     case "brands_carousel":
       return <BrandsCarousel />;
+    case "free_shipping_bar":
+      return <FreeShippingBar {...(section.props || {})} />;
     case "promo_strip":
       return <PromoStrip items={section.props?.items} bg_color={section.props?.bg_color} />;
     case "shortcut_cards":

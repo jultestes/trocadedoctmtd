@@ -167,6 +167,23 @@ export default function PreviewBlock({ section, isSelected, onClick }: PreviewBl
         </div>
       );
     }
+    case "free_shipping_bar":
+      return (
+        <div className={wrapperClass} onClick={onClick}>
+          {overlay}
+          <div
+            className="py-3 px-6 rounded-lg flex items-center justify-center gap-3 text-center"
+            style={{ backgroundColor: props.bg_color ? `hsl(${props.bg_color})` : "hsl(199 90% 92%)" }}
+          >
+            <span className="text-base font-extrabold" style={{ color: props.text_color ? `hsl(${props.text_color})` : "hsl(210 90% 35%)" }}>
+              🚚 {props.title || "Frete Grátis"}
+            </span>
+            <span className="text-[10px] text-muted-foreground hidden md:inline">
+              {props.region1_label} · {props.region2_label}
+            </span>
+          </div>
+        </div>
+      );
     default:
       return <div className="bg-muted h-16 rounded-lg" />;
   }

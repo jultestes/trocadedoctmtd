@@ -180,6 +180,52 @@ export default function SectionEditor({ section, onUpdateProps, onClose }: Secti
         />
       )}
 
+      {/* ─── Free Shipping Bar Editor ─── */}
+      {section.type === "free_shipping_bar" && (
+        <div className="space-y-3">
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Texto principal</label>
+            <Input value={props.title ?? ""} onChange={(e) => updateProp("title", e.target.value)} className="h-8 text-xs mt-1" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Região 1 — título</label>
+              <Input value={props.region1_label ?? ""} onChange={(e) => updateProp("region1_label", e.target.value)} className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Região 1 — valor</label>
+              <Input value={props.region1_value ?? ""} onChange={(e) => updateProp("region1_value", e.target.value)} className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Região 2 — título</label>
+              <Input value={props.region2_label ?? ""} onChange={(e) => updateProp("region2_label", e.target.value)} className="h-8 text-xs mt-1" />
+            </div>
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Região 2 — valor</label>
+              <Input value={props.region2_value ?? ""} onChange={(e) => updateProp("region2_value", e.target.value)} className="h-8 text-xs mt-1" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor de fundo</label>
+            <div className="mt-1"><ColorPickerField value={props.bg_color ?? ""} onChange={(v) => updateProp("bg_color", v)} size="sm" placeholder="199 90% 92%" /></div>
+          </div>
+          <div>
+            <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Cor do texto</label>
+            <div className="mt-1"><ColorPickerField value={props.text_color ?? ""} onChange={(v) => updateProp("text_color", v)} size="sm" placeholder="210 90% 35%" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Decoração rosa</label>
+              <div className="mt-1"><ColorPickerField value={props.accent_color_1 ?? ""} onChange={(v) => updateProp("accent_color_1", v)} size="sm" placeholder="332 80% 70%" /></div>
+            </div>
+            <div>
+              <label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Decoração roxo</label>
+              <div className="mt-1"><ColorPickerField value={props.accent_color_2 ?? ""} onChange={(v) => updateProp("accent_color_2", v)} size="sm" placeholder="271 60% 65%" /></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {["size_selector", "brands_carousel"].includes(section.type) && (
         <p className="text-xs text-muted-foreground italic">Essa seção não tem opções editáveis.</p>
       )}
