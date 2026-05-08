@@ -45,6 +45,8 @@ const renderSection = (section: LayoutSection, gridIndex: { current: number }) =
       return <FeaturesBar features={section.props?.features} />;
     case "brands_carousel":
       return <BrandsCarousel />;
+    case "free_shipping_bar":
+      return <FreeShippingBar {...(section.props || {})} />;
     case "promo_strip":
       return <PromoStrip items={section.props?.items} bg_color={section.props?.bg_color} />;
     case "shortcut_cards":
