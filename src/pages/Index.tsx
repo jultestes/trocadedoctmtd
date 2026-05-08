@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { trackPageView } from "@/lib/fbpixel";
 import TopBar from "@/components/TopBar";
+import TopImageBanner from "@/components/TopImageBanner";
 import Header from "@/components/Header";
 import HeroBanner from "@/components/HeroBanner";
 import SizeSelector from "@/components/SizeSelector";
@@ -93,6 +94,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <TopImageBanner />
       <TopBar />
       <Header />
       {visible.map((section) => {
