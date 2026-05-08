@@ -84,6 +84,20 @@ export const SECTION_CATALOG: {
     defaultProps: { features: DEFAULT_FEATURES() },
   },
   { type: "brands_carousel", label: "Carrossel de Marcas", icon: React.createElement(Megaphone, { className: "w-5 h-5" }) },
+  {
+    type: "free_shipping_bar", label: "Faixa Frete Grátis", icon: React.createElement(Truck, { className: "w-5 h-5" }),
+    defaultProps: {
+      title: "Frete Grátis",
+      region1_label: "Sul e Sudeste",
+      region1_value: "compras acima de R$299",
+      region2_label: "Demais Regiões",
+      region2_value: "compras acima de R$399",
+      bg_color: "199 90% 92%",
+      text_color: "210 90% 35%",
+      accent_color_1: "332 80% 70%",
+      accent_color_2: "271 60% 65%",
+    },
+  },
   { type: "spacer", label: "Espaçador", icon: React.createElement(Layers, { className: "w-5 h-5" }), defaultProps: { height: "40" } },
 ];
 

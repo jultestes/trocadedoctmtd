@@ -10,6 +10,7 @@ export type SectionType =
   | "secondary_banner"
   | "mini_banners"
   | "category_circles"
+  | "free_shipping_bar"
   | "spacer";
 
 export interface CategoryCircle {
