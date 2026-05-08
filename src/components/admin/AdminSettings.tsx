@@ -9,6 +9,8 @@ import { Wrench, MapPin, Phone, Mail, Save, Plus, Trash2, Share2, Instagram, Fac
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { PromoBannerConfig } from "@/components/PromoBanner";
+import type { TopImageBannerConfig } from "@/components/TopImageBanner";
+import ImageUploader from "@/components/admin/layout/ImageUploader";
 
 const PLATFORM_ICONS: Record<string, React.ElementType> = {
   instagram: Instagram,
@@ -70,6 +72,15 @@ const AdminSettings = () => {
     small_text: "Válido enquanto durar o estoque • Entrega em Manaus",
   });
   const [savingPromo, setSavingPromo] = useState(false);
+  const [topBanner, setTopBanner] = useState<TopImageBannerConfig>({
+    enabled: false,
+    image_url: "",
+    image_url_mobile: "",
+    link: "",
+    height_desktop: 0,
+    height_mobile: 0,
+  });
+  const [savingTopBanner, setSavingTopBanner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [savingStore, setSavingStore] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -82,7 +93,7 @@ const AdminSettings = () => {
     const { data } = await supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["maintenance", "store_info", "social_links", "category_promo_banner"]);
+      .in("key", ["maintenance", "store_info", "social_links", "category_promo_banner", "top_image_banner"]);
 
     if (data) {
       for (const row of data) {
@@ -97,6 +108,9 @@ const AdminSettings = () => {
         }
         if (row.key === "category_promo_banner") {
           setPromoBanner(row.value as unknown as PromoBannerConfig);
+        }
+        if (row.key === "top_image_banner") {
+          setTopBanner(row.value as unknown as TopImageBannerConfig);
         }
       }
     }
@@ -130,6 +144,33 @@ const AdminSettings = () => {
       return;
     }
     toast({ title: "Banner promocional salvo!" });
+  };
+
+  const saveTopBanner = async () => {
+    setSavingTopBanner(true);
+    const { data: existing } = await supabase
+      .from("site_settings")
+      .select("id")
+      .eq("key", "top_image_banner")
+      .maybeSingle();
+    const value = JSON.parse(JSON.stringify(topBanner));
+    let error;
+    if (existing) {
+      ({ error } = await supabase
+        .from("site_settings")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("key", "top_image_banner"));
+    } else {
+      ({ error } = await supabase
+        .from("site_settings")
+        .insert({ key: "top_image_banner", value }));
+    }
+    setSavingTopBanner(false);
+    if (error) {
+      toast({ title: "Erro ao salvar faixa do topo", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Faixa do topo salva!" });
   };
 
   useEffect(() => {
@@ -501,6 +542,77 @@ const AdminSettings = () => {
         <Button onClick={savePromoBanner} disabled={savingPromo} className="gap-2">
           <Save className="w-4 h-4" />
           {savingPromo ? "Salvando..." : "Salvar Banner Promocional"}
+        </Button>
+      </div>
+
+      {/* Top Image Banner */}
+      <div className="bg-card border border-border rounded-xl p-6 space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Megaphone className="w-5 h-5 text-muted-foreground" />
+            <div>
+              <h3 className="font-semibold text-foreground text-lg">Faixa de Imagem (Topo do Site)</h3>
+              <p className="text-sm text-muted-foreground">Imagem exibida acima do cabeçalho/menu</p>
+            </div>
+          </div>
+          <Switch
+            checked={!!topBanner.enabled}
+            onCheckedChange={(v) => setTopBanner({ ...topBanner, enabled: v })}
+          />
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Imagem Desktop</label>
+            <ImageUploader
+              value={topBanner.image_url || ""}
+              onChange={(url) => setTopBanner({ ...topBanner, image_url: url })}
+              folder="top-banner"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Imagem Mobile</label>
+            <ImageUploader
+              value={topBanner.image_url_mobile || ""}
+              onChange={(url) => setTopBanner({ ...topBanner, image_url_mobile: url })}
+              folder="top-banner"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1.5 block">Link (opcional)</label>
+          <Input
+            placeholder="https://..."
+            value={topBanner.link || ""}
+            onChange={(e) => setTopBanner({ ...topBanner, link: e.target.value })}
+          />
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Altura Desktop (px) — 0 = automática</label>
+            <Input
+              type="number"
+              min={0}
+              value={topBanner.height_desktop ?? 0}
+              onChange={(e) => setTopBanner({ ...topBanner, height_desktop: Number(e.target.value) || 0 })}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Altura Mobile (px) — 0 = automática</label>
+            <Input
+              type="number"
+              min={0}
+              value={topBanner.height_mobile ?? 0}
+              onChange={(e) => setTopBanner({ ...topBanner, height_mobile: Number(e.target.value) || 0 })}
+            />
+          </div>
+        </div>
+
+        <Button onClick={saveTopBanner} disabled={savingTopBanner} className="gap-2">
+          <Save className="w-4 h-4" />
+          {savingTopBanner ? "Salvando..." : "Salvar Faixa do Topo"}
         </Button>
       </div>
 
