@@ -46,9 +46,21 @@ const Header = () => {
 
   return (
     <header className="bg-background shadow-sm sticky top-0 z-50">
-      <div className="container flex items-center justify-between py-3 gap-4">
+      <div className="container flex items-center justify-between py-3 gap-4 relative">
+        {/* Mobile menu toggle (left) */}
+        <button
+          className="lg:hidden text-foreground order-first"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Menu"
+        >
+          {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+
         {/* Logo */}
-        <a href="/" className="flex items-center shrink-0">
+        <a
+          href="/"
+          className="flex items-center shrink-0 lg:static absolute left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto"
+        >
           <img src={logo} alt="TMTD Kids" className="h-12 md:h-16 w-auto" />
         </a>
 
