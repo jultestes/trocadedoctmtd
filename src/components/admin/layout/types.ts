@@ -11,6 +11,7 @@ export type SectionType =
   | "mini_banners"
   | "category_circles"
   | "free_shipping_bar"
+  | "image_banner"
   | "spacer";
 
 export interface CategoryCircle {
