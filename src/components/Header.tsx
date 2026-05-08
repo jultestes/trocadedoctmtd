@@ -61,7 +61,7 @@ const Header = () => {
           href="/"
           className="flex items-center shrink-0 lg:static absolute left-1/2 -translate-x-1/2 lg:translate-x-0 lg:left-auto"
         >
-          <img src={logo} alt="TMTD Kids" className="h-12 md:h-16 w-auto" />
+          <img src={logo} alt="TMTD Kids" className="h-12 md:h-16 w-auto block pb-1 md:pb-0" />
         </a>
 
         {/* Desktop Nav */}
