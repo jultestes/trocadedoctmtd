@@ -39,7 +39,7 @@ const Circle = ({ item }: { item: CategoryCircle }) => {
     >
       <div className="relative pb-3 md:pb-4">
         <div
-          className="relative w-28 h-28 md:w-[190px] md:h-[190px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg transition-all duration-300"
+          className="relative w-32 h-32 md:w-[230px] md:h-[230px] rounded-full overflow-hidden ring-2 ring-white shadow-md group-hover:shadow-lg transition-all duration-300"
           style={{ backgroundColor: item.bg_color ? `hsl(${item.bg_color})` : "hsl(var(--muted))" }}
         >
           {item.image_url && (
