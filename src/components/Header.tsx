@@ -145,13 +145,6 @@ const Header = () => {
             </Link>
           )}
 
-          {/* Mobile menu toggle */}
-          <button
-            className="lg:hidden text-foreground"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
       </div>
 
