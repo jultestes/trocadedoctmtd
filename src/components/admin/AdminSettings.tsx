@@ -146,6 +146,33 @@ const AdminSettings = () => {
     toast({ title: "Banner promocional salvo!" });
   };
 
+  const saveTopBanner = async () => {
+    setSavingTopBanner(true);
+    const { data: existing } = await supabase
+      .from("site_settings")
+      .select("id")
+      .eq("key", "top_image_banner")
+      .maybeSingle();
+    const value = JSON.parse(JSON.stringify(topBanner));
+    let error;
+    if (existing) {
+      ({ error } = await supabase
+        .from("site_settings")
+        .update({ value, updated_at: new Date().toISOString() })
+        .eq("key", "top_image_banner"));
+    } else {
+      ({ error } = await supabase
+        .from("site_settings")
+        .insert({ key: "top_image_banner", value }));
+    }
+    setSavingTopBanner(false);
+    if (error) {
+      toast({ title: "Erro ao salvar faixa do topo", variant: "destructive" });
+      return;
+    }
+    toast({ title: "Faixa do topo salva!" });
+  };
+
   useEffect(() => {
     fetchSettings();
   }, []);
