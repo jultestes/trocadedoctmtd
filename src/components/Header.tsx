@@ -46,7 +46,7 @@ const Header = () => {
 
   return (
     <header className="bg-background shadow-sm sticky top-0 z-50">
-      <div className="container flex items-center justify-between py-3 gap-4 relative">
+      <div className="container flex items-center justify-between pt-5 pb-3 md:py-3 gap-4 relative">
         {/* Mobile menu toggle (left) */}
         <button
           className="lg:hidden text-foreground order-first"
