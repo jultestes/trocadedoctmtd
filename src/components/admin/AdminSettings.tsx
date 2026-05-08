@@ -72,6 +72,15 @@ const AdminSettings = () => {
     small_text: "Válido enquanto durar o estoque • Entrega em Manaus",
   });
   const [savingPromo, setSavingPromo] = useState(false);
+  const [topBanner, setTopBanner] = useState<TopImageBannerConfig>({
+    enabled: false,
+    image_url: "",
+    image_url_mobile: "",
+    link: "",
+    height_desktop: 0,
+    height_mobile: 0,
+  });
+  const [savingTopBanner, setSavingTopBanner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [savingStore, setSavingStore] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -84,7 +93,7 @@ const AdminSettings = () => {
     const { data } = await supabase
       .from("site_settings")
       .select("key, value")
-      .in("key", ["maintenance", "store_info", "social_links", "category_promo_banner"]);
+      .in("key", ["maintenance", "store_info", "social_links", "category_promo_banner", "top_image_banner"]);
 
     if (data) {
       for (const row of data) {
@@ -99,6 +108,9 @@ const AdminSettings = () => {
         }
         if (row.key === "category_promo_banner") {
           setPromoBanner(row.value as unknown as PromoBannerConfig);
+        }
+        if (row.key === "top_image_banner") {
+          setTopBanner(row.value as unknown as TopImageBannerConfig);
         }
       }
     }
