@@ -9,6 +9,8 @@ import { Wrench, MapPin, Phone, Mail, Save, Plus, Trash2, Share2, Instagram, Fac
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { PromoBannerConfig } from "@/components/PromoBanner";
+import type { TopImageBannerConfig } from "@/components/TopImageBanner";
+import ImageUploader from "@/components/admin/layout/ImageUploader";
 
 const PLATFORM_ICONS: Record<string, React.ElementType> = {
   instagram: Instagram,
