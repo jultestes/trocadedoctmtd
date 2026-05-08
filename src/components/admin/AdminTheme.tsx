@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Save, Palette, Image as ImageIcon, Type, Plus, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import type { ThemeColors, TopbarText } from "./layout/types";
 import IconPicker from "./layout/IconPicker";
@@ -139,6 +140,14 @@ export default function AdminTheme() {
         <div className="space-y-2">
           {topbarTexts.map((item, i) => (
             <div key={i} className="flex items-center gap-2 p-2 border border-border rounded-lg bg-muted/20">
+              <Switch
+                checked={item.enabled !== false}
+                onCheckedChange={(checked) => {
+                  const next = [...topbarTexts];
+                  next[i] = { ...next[i], enabled: checked };
+                  setTopbarTexts(next);
+                }}
+              />
               <IconPicker value={item.icon} onChange={(v) => {
                 const next = [...topbarTexts];
                 next[i] = { ...next[i], icon: v };
@@ -151,7 +160,7 @@ export default function AdminTheme() {
                   next[i] = { ...next[i], text: e.target.value };
                   setTopbarTexts(next);
                 }}
-                className="h-8 text-xs flex-1"
+                className={`h-8 text-xs flex-1 ${item.enabled === false ? "opacity-50" : ""}`}
               />
               <button
                 onClick={() => setTopbarTexts(topbarTexts.filter((_, idx) => idx !== i))}

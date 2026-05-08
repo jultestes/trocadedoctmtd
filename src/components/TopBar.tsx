@@ -11,7 +11,9 @@ const DEFAULT_ITEMS = [
 
 const TopBar = () => {
   const { topbarTexts } = useSiteSettings();
-  const items = topbarTexts.length > 0 ? topbarTexts : DEFAULT_ITEMS;
+  const source = topbarTexts.length > 0 ? topbarTexts : DEFAULT_ITEMS;
+  const items = source.filter((it: any) => it.enabled !== false);
+  if (items.length === 0) return null;
 
   return (
     <div className="bg-topbar text-topbar-foreground py-2 text-sm">

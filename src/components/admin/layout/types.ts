@@ -111,6 +111,7 @@ export interface ThemeColors {
 export interface TopbarText {
   icon: string;
   text: string;
+  enabled?: boolean;
 }
 
 export interface SiteSettingsData {
