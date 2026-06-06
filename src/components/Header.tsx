@@ -120,26 +120,29 @@ const Header = () => {
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Acompanhar Pedido - visível para todos, ao lado da lupa */}
-          <Link
-            to="/acompanhar-pedido"
-            className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
-            title="Acompanhar Pedido"
-          >
-            <Package className="w-5 h-5 md:w-4 md:h-4" />
-            <span className="hidden xl:inline">Meus Pedidos</span>
-          </Link>
+          {/* Acompanhar Pedido + Admin (juntos) */}
+          <div className="flex items-center gap-2">
+            <Link
+              to="/acompanhar-pedido"
+              className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+              title="Acompanhar Pedido"
+            >
+              <Package className="w-5 h-5 md:w-4 md:h-4" />
+              <span className="hidden xl:inline">Meus Pedidos</span>
+            </Link>
 
-          {/* Admin-only: atalho admin + sair */}
-          {isAdmin && (
-            <>
+            {isAdmin && (
               <Link to="/admin" className="text-foreground hover:text-primary transition-colors" title="Admin">
                 <Shield className="w-5 h-5" />
               </Link>
-              <button onClick={signOut} className="text-foreground hover:text-primary transition-colors" title="Sair">
-                <User className="w-5 h-5" />
-              </button>
-            </>
+            )}
+          </div>
+
+          {/* Admin-only: sair */}
+          {isAdmin && (
+            <button onClick={signOut} className="text-foreground hover:text-primary transition-colors" title="Sair">
+              <User className="w-5 h-5" />
+            </button>
           )}
 
         </div>
