@@ -131,11 +131,9 @@ const Header = () => {
               <span className="hidden xl:inline">Meus Pedidos</span>
             </Link>
 
-            {isAdmin && (
-              <Link to="/admin" className="text-foreground hover:text-primary transition-colors" title="Admin">
-                <Shield className="w-5 h-5" />
-              </Link>
-            )}
+            <Link to="/admin" className="text-foreground hover:text-primary transition-colors" title="Admin">
+              <Shield className="w-5 h-5" />
+            </Link>
           </div>
 
           {/* Admin-only: sair */}
